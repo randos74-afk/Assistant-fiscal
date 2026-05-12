@@ -535,83 +535,237 @@ function flatQ(data){
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   IMPRESSION PDF
+   IMPRESSION PDF — fenêtre dédiée (corrige le bug écran blanc)
 ═══════════════════════════════════════════════════════════════════ */
-function PrintZone({res,resume,data}){
-  if(!res) return null;
-  const km=res.items.find(d=>d.lab.startsWith("Frais kilométriques"));
-  const dateStr=new Date().toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
-  return(
-    <div className="print-zone" style={{display:"none"}}>
-      <div className="print-header">
-        <h1>Simulateur Frais Réels — Déclaration de revenus 2025</h1>
-        <p>Généré le {dateStr} · Revenus {data.statut||""} · Barème DGFiP 2026 (GP 120)</p>
-      </div>
+function buildPrintHTML(res, resume, data) {
+  const dateStr = new Date().toLocaleDateString("fr-FR",{day:"2-digit",month:"long",year:"numeric"});
+  const km = res.items.find(d=>d.lab.startsWith("Frais kilométriques"));
 
-      {/* Score */}
-      <div className="print-score-card">
-        <div>
-          <div className="total-label">Total frais réels déductibles (case 1AK)</div>
-          <div className="total-val">{ff(res.total)} €</div>
-          <div style={{fontSize:"9pt",color:res.ok?"#27ae60":"#c0392b",marginTop:"4px"}}>
-            {res.ok?`✅ Gain vs abattement 10 % : +${ff(res.gain)} €`:`⚠️ Abattement 10 % (${ff(res.ab)} €) plus avantageux`}
-          </div>
-        </div>
-        <div className="compare">
-          <div>Abattement 10 %</div>
-          <div style={{fontSize:"14pt",fontWeight:"bold"}}>{ff(res.ab)} €</div>
-          <div style={{marginTop:"6px"}}>Salaire imposable</div>
-          <div style={{fontSize:"12pt",fontWeight:"bold"}}>{ff(res.sal||0)} €</div>
-        </div>
-      </div>
+  const rows = res.items.map(d=>`
+    <tr>
+      <td><div class="lab${d.mt<0?" neg":""}">${d.lab}</div><div class="sub">${d.calc}</div></td>
+      <td class="amt${d.mt<0?" neg":""}">${d.mt>=0?"+":""}${(Math.round(d.mt*100)/100).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2})} €</td>
+    </tr>`).join("");
 
-      {/* Détail */}
-      <div className="print-section-title">Détail ligne à ligne</div>
-      {res.items.map((d,i)=>(
-        <div key={i} className="print-row">
-          <div>
-            <div className="label">{d.lab}</div>
-            <div className="sub">{d.calc}</div>
-          </div>
-          <div className={`amount${d.mt<0?" neg":""}`}>{d.mt>=0?"+":""}{ff(d.mt)} €</div>
-        </div>
-      ))}
-      <div className="print-total-row">
-        <span>TOTAL</span>
-        <span>{ff(res.total)} €</span>
-      </div>
+  const justifs = [
+    km ? "· Carte grise · Agenda des déplacements · Compteur ou appli GPS" : "",
+    res.items.find(d=>d.lab==="Péages autoroute") ? "· Relevés de badge de télépéage" : "",
+    res.items.find(d=>d.cat==="repas"&&d.mt>0) ? "· Tickets de restaurant ou de cantine" : "",
+    res.items.find(d=>d.cat==="materiel") ? "· Factures matériel · Documentation usage professionnel" : "",
+    res.items.find(d=>d.cat==="teletravail") ? "· Accord de télétravail écrit · Factures internet · Plan du logement" : "",
+    res.items.find(d=>d.cat==="double_res") ? "· Bail résidence secondaire · Attestation employeur · Justificatifs transport" : "",
+    "· Conserver tous justificatifs 3 ans à compter de la déclaration (art. L. 169 LPF)",
+  ].filter(Boolean).join("<br/>");
 
-      {/* Justificatifs */}
-      <div className="print-justifs">
-        <strong>📂 Justificatifs à conserver 3 ans</strong><br/>
-        {km&&"· Carte grise · Agenda des déplacements · Compteur ou appli GPS\n"}
-        {res.items.find(d=>d.lab==="Péages autoroute")&&"· Relevés de badge de télépéage\n"}
-        {res.items.find(d=>d.cat==="repas"&&d.mt>0)&&"· Tickets de restaurant ou de cantine\n"}
-        {res.items.find(d=>d.cat==="materiel")&&"· Factures matériel · Documentation usage professionnel\n"}
-        {res.items.find(d=>d.cat==="teletravail")&&"· Accord de télétravail · Factures internet · Plan du logement\n"}
-        {res.items.find(d=>d.cat==="double_res")&&"· Bail résidence secondaire · Attestation employeur · Justificatifs transport\n"}
-        · Conserver tous justificatifs 3 ans à compter de la déclaration (art. L. 169 LPF)
-      </div>
+  const alertes = res.warns.length > 0
+    ? `<div class="alertes"><strong>Points de vigilance</strong><br/>${res.warns.map(w=>`⚠️ ${w}`).join("<br/>")}</div>` : "";
 
-      {/* Texte déclaration */}
-      <div style={{marginTop:"16px"}}>
-        <div className="print-resume-title">Texte à copier — Rubrique informations complémentaires</div>
-        <pre className="print-resume">{resume}</pre>
-      </div>
+  const fmtN = n => (Math.round(n*100)/100).toLocaleString("fr-FR",{minimumFractionDigits:2,maximumFractionDigits:2});
 
-      {/* Alertes */}
-      {res.warns.length>0&&(
-        <div style={{marginTop:"14px",fontSize:"9pt",color:"#c0392b"}}>
-          <strong>Points de vigilance :</strong><br/>
-          {res.warns.map((w,i)=><div key={i}>⚠️ {w}</div>)}
-        </div>
-      )}
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Frais Réels 2025 — Marc Chevallay</title>
+<style>
+  @page { size:A4; margin:16mm 14mm 20mm 14mm; }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  body{ font-family:Georgia,serif; font-size:10pt; color:#111; background:#fff; }
 
-      <div className="print-footer">
-        Simulateur à titre indicatif — Barèmes DGFiP 2026 pour revenus 2025 · En cas de doute, consultez un professionnel fiscal · impots.gouv.fr
-      </div>
+  /* ── EN-TÊTE ── */
+  .page-header{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    border-bottom:2.5px solid #c4a35a; padding-bottom:10px; margin-bottom:16px;
+  }
+  .page-header .left h1{ font-size:15pt; color:#111; letter-spacing:.3px; }
+  .page-header .left p{ font-size:8pt; color:#555; margin-top:3px; }
+  .page-header .right{ text-align:right; font-size:8pt; color:#777; line-height:1.6; }
+
+  /* ── SCORE ── */
+  .score-card{
+    display:flex; justify-content:space-between; align-items:center;
+    border:1.5px solid #c4a35a; border-radius:6px; padding:12px 16px; margin-bottom:16px;
+  }
+  .score-card .total-label{ font-size:8pt; color:#555; margin-bottom:4px; }
+  .score-card .total-val{ font-size:24pt; font-weight:bold; color:#111; line-height:1; }
+  .score-card .verdict{ font-size:8.5pt; margin-top:5px; }
+  .score-card .verdict.ok{ color:#1a7a3f; }
+  .score-card .verdict.ko{ color:#c0392b; }
+  .score-card .right{ text-align:right; font-size:8.5pt; color:#444; line-height:1.9; }
+  .score-card .right strong{ font-size:12pt; display:block; }
+
+  /* ── SECTION TITLE ── */
+  .section-title{
+    font-size:7.5pt; letter-spacing:3px; text-transform:uppercase;
+    color:#888; margin:14px 0 6px; border-bottom:1px solid #eee; padding-bottom:3px;
+  }
+
+  /* ── TABLEAU DÉTAIL ── */
+  table{ width:100%; border-collapse:collapse; }
+  tr{ break-inside:avoid; }
+  td{ padding:6px 0; border-bottom:1px solid #f0f0f0; vertical-align:top; }
+  td:last-child{ text-align:right; white-space:nowrap; padding-left:12px; }
+  .lab{ font-size:9.5pt; color:#111; }
+  .lab.neg{ color:#c0392b; }
+  .sub{ font-size:7.5pt; color:#777; margin-top:2px; }
+  .amt{ font-size:10pt; font-weight:bold; color:#111; }
+  .amt.neg{ color:#c0392b; }
+  .total-row td{ border-top:2px solid #c4a35a; border-bottom:none; padding-top:10px; font-size:12pt; font-weight:bold; }
+
+  /* ── JUSTIFICATIFS ── */
+  .justifs{
+    margin-top:14px; border:1px solid #ddd; border-radius:4px;
+    padding:10px 14px; font-size:8.5pt; color:#444; line-height:2.1; break-inside:avoid;
+  }
+  .justifs strong{ display:block; margin-bottom:4px; }
+
+  /* ── RÉSUMÉ DÉCLARATION ── */
+  .resume-title{ font-size:7.5pt; letter-spacing:3px; text-transform:uppercase; color:#888; margin:14px 0 6px; }
+  .resume-box{
+    border:1.5px solid #c4a35a; border-radius:4px; padding:12px 16px;
+    font-size:8.5pt; line-height:1.9; white-space:pre-wrap; break-inside:avoid;
+    font-family:Georgia,serif;
+  }
+
+  /* ── ALERTES ── */
+  .alertes{
+    margin-top:12px; border:1px solid #e0a040; border-radius:4px;
+    padding:10px 14px; font-size:8.5pt; color:#7a4a00; line-height:1.9; break-inside:avoid;
+  }
+  .alertes strong{ display:block; margin-bottom:4px; }
+
+  /* ── PIED DE PAGE ── */
+  .page-footer{
+    position:fixed; bottom:0; left:0; right:0;
+    border-top:1px solid #c4a35a; padding:6px 14mm;
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:7pt; color:#888; background:#fff;
+  }
+  .page-footer .copy{ color:#555; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<!-- EN-TÊTE -->
+<div class="page-header">
+  <div class="left">
+    <h1>Simulateur Fiscal — Frais Réels 2025</h1>
+    <p>Déclaration de revenus 2026 · Généré le ${dateStr}</p>
+  </div>
+  <div class="right">
+    <strong>© Marc Chevallay — Tous droits réservés</strong><br/>
+    Simulateur Fiscal 2025 · Déclaration 2026<br/>
+    Conforme barème DGFiP GP 120, mars 2026
+  </div>
+</div>
+
+<!-- SCORE -->
+<div class="score-card">
+  <div>
+    <div class="total-label">Total frais réels déductibles (case 1AK)</div>
+    <div class="total-val">${fmtN(res.total)} €</div>
+    <div class="verdict ${res.ok?"ok":"ko"}">
+      ${res.ok
+        ? `✅ Frais réels recommandés — gain +${fmtN(res.gain)} € vs abattement`
+        : `⚠️ Abattement 10 % plus avantageux de ${fmtN(-res.gain)} €`}
     </div>
-  );
+  </div>
+  <div class="right">
+    Abattement forfaitaire 10 %<strong>${fmtN(res.ab)} €</strong>
+    Salaire imposable<strong>${fmtN(res.sal||0)} €</strong>
+  </div>
+</div>
+
+<!-- DÉTAIL -->
+<div class="section-title">Détail ligne à ligne</div>
+<table>
+  ${rows}
+  <tr class="total-row">
+    <td>TOTAL FRAIS RÉELS</td>
+    <td>${fmtN(res.total)} €</td>
+  </tr>
+</table>
+
+<!-- JUSTIFICATIFS -->
+<div class="justifs">
+  <strong>📂 Justificatifs à conserver 3 ans (art. L. 169 LPF)</strong>
+  ${justifs}
+</div>
+
+<!-- TEXTE DÉCLARATION -->
+<div class="resume-title">Texte à copier — Rubrique informations complémentaires</div>
+<pre class="resume-box">${resume}</pre>
+
+${alertes}
+
+<!-- PIED DE PAGE -->
+<div class="page-footer">
+  <span class="copy">© Marc Chevallay — Tous droits réservés · Simulateur Fiscal 2025 · Déclaration 2026 · Conforme barème DGFiP GP 120, mars 2026</span>
+  <span>Document à titre informatif — Aucune valeur juridique — Vérifiez auprès des services fiscaux avant tout dépôt</span>
+</div>
+
+<script>window.onload=()=>{window.print();setTimeout(()=>window.close(),1500);}</script>
+</body>
+</html>`;
+}
+
+function openPrintWindow(res, resume, data) {
+  const html = buildPrintHTML(res, resume, data);
+  const w = window.open("", "_blank", "width=900,height=700");
+  if (!w) { alert("Autorisez les fenêtres pop-up pour ce site afin d'imprimer."); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOTEUR IR — OpenFisca-France API publique
+═══════════════════════════════════════════════════════════════════ */
+async function simulerIR(data, fraisReels) {
+  const sal = (+data.salaire||0) + (+data.primes_mt||0);
+  if (!sal) return null;
+
+  // On calcule avec ET sans frais réels pour comparer
+  const buildBody = (deduction) => ({
+    individus: {
+      declarant: {
+        salaire_imposable: { "2025": sal },
+        frais_reels: { "2025": deduction },
+        age: { "2025": 40 },
+      }
+    },
+    foyers_fiscaux: {
+      foyer: {
+        declarants: ["declarant"],
+        nb_parts: { "2025": 1 },
+      }
+    },
+    menages: { menage: { personne_de_reference: ["declarant"] } },
+  });
+
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch("https://api.fr.openfisca.org/api/v1/calculate", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ ...buildBody(Math.round(fraisReels)), variables: { impot_revenu_restant_a_payer: { "2025": null } } })
+      }),
+      fetch("https://api.fr.openfisca.org/api/v1/calculate", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ ...buildBody(0), variables: { impot_revenu_restant_a_payer: { "2025": null } } })
+      }),
+    ]);
+
+    if (!r1.ok || !r2.ok) throw new Error("API indisponible");
+    const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
+
+    const irFraisReels = Math.abs(d1.foyers_fiscaux?.foyer?.impot_revenu_restant_a_payer?.["2025"] ?? null);
+    const irAbattement = Math.abs(d2.foyers_fiscaux?.foyer?.impot_revenu_restant_a_payer?.["2025"] ?? null);
+
+    if (irFraisReels === null || irAbattement === null) throw new Error("Données manquantes");
+    return { irFraisReels, irAbattement, economie: irAbattement - irFraisReels };
+  } catch(e) {
+    return { erreur: e.message };
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -648,7 +802,7 @@ export default function App(){
   function skip(){const nd={...data};if(q.def!==undefined)nd[q.id]=q.def;setData(nd);const nq=flatQ(nd);if(step<nq.length-1)setStep(s=>s+1);else setDone(true);}
   function restart(){setData({});setStep(0);setDone(false);setCopied(false);}
   function copy(){navigator.clipboard.writeText(resume).then(()=>{setCopied(true);setTimeout(()=>setCopied(false),3000);});}
-  function printPDF(){window.print();}
+  function printPDF(){if(res) openPrintWindow(res,resume,data);}
 
   return(
     <div style={{minHeight:"100vh",background:C.bg,display:"flex",flexDirection:"column",fontFamily:"'EB Garamond','Garamond',Georgia,serif",color:C.text,position:"relative",overflow:"hidden"}}>
@@ -668,11 +822,8 @@ export default function App(){
         </div>
       </header>
 
-      {/* Zone d'impression (cachée à l'écran, visible à l'impression) */}
-      <PrintZone res={res} resume={resume} data={data}/>
-
       {/* Main */}
-      <main className="no-print" style={{flex:1,display:"flex",justifyContent:"center",padding:"0 16px 80px"}}>
+      <main style={{flex:1,display:"flex",justifyContent:"center",padding:"0 16px 80px"}}>
         <div style={{width:"100%",maxWidth:"680px"}}>
           <div ref={topRef} style={{paddingTop:"1px"}}/>
 
@@ -751,6 +902,16 @@ const BS={
 ═══════════════════════════════════════════════════════════════════ */
 function ResultsView({res,resume,data,copied,onCopy,onPrint,onRestart}){
   const[tab,setTab]=useState("detail");
+  const[ir,setIr]=useState(null);
+  const[irLoading,setIrLoading]=useState(false);
+
+  useEffect(()=>{
+    if(tab==="ir"&&!ir&&!irLoading){
+      setIrLoading(true);
+      simulerIR(data,res.total).then(r=>{setIr(r);setIrLoading(false);});
+    }
+  },[tab]);
+
   const C2={gold:"#c4a35a",goldLight:"#e2c07a",goldDim:"rgba(196,163,90,0.35)",green:"#4caf82",red:"#e06060",amber:"#e0a040",text:"#ddd6c8",textDim:"rgba(221,214,200,0.45)",textMid:"rgba(221,214,200,0.7)",surface:"rgba(255,255,255,0.025)",border:"rgba(255,255,255,0.07)"};
 
   return(
@@ -776,9 +937,9 @@ function ResultsView({res,resume,data,copied,onCopy,onPrint,onRestart}){
       </div>
 
       {/* Tabs */}
-      <div style={{display:"flex",gap:"4px",marginBottom:"28px",background:"rgba(255,255,255,0.02)",borderRadius:"10px",padding:"4px",border:`1px solid ${C2.border}`}}>
-        {[{k:"detail",l:"Détail"},{k:"opti",l:`Optimisations (${res.opps.length})`},{k:"warns",l:`Alertes (${res.warns.length})`},{k:"decla",l:"Déclaration"}].map(({k,l})=>(
-          <button key={k} onClick={()=>setTab(k)} style={{flex:1,padding:"9px 8px",background:tab===k?"rgba(196,163,90,0.12)":"transparent",border:tab===k?`1px solid rgba(196,163,90,0.35)`:"1px solid transparent",borderRadius:"7px",color:tab===k?C2.goldLight:C2.textDim,cursor:"pointer",fontSize:"13px",fontFamily:"inherit",transition:"all .2s"}}>{l}</button>
+      <div style={{display:"flex",gap:"4px",marginBottom:"28px",background:"rgba(255,255,255,0.02)",borderRadius:"10px",padding:"4px",border:`1px solid ${C2.border}`,flexWrap:"wrap"}}>
+        {[{k:"detail",l:"Détail"},{k:"ir",l:"Impact IR 🧮"},{k:"opti",l:`Optimisations (${res.opps.length})`},{k:"warns",l:`Alertes (${res.warns.length})`},{k:"decla",l:"Déclaration"}].map(({k,l})=>(
+          <button key={k} onClick={()=>setTab(k)} style={{flex:1,minWidth:"80px",padding:"9px 8px",background:tab===k?"rgba(196,163,90,0.12)":"transparent",border:tab===k?`1px solid rgba(196,163,90,0.35)`:"1px solid transparent",borderRadius:"7px",color:tab===k?C2.goldLight:C2.textDim,cursor:"pointer",fontSize:"12px",fontFamily:"inherit",transition:"all .2s"}}>{l}</button>
         ))}
       </div>
 
@@ -825,7 +986,90 @@ function ResultsView({res,resume,data,copied,onCopy,onPrint,onRestart}){
         </div>
       )}
 
-      {/* Tab: Optimisations */}
+      {/* Tab: Impact IR OpenFisca */}
+      {tab==="ir"&&(
+        <div style={{marginBottom:"32px"}}>
+          <div style={{fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:C2.gold,marginBottom:"16px"}}>
+            Impact sur l'impôt sur le revenu — Moteur OpenFisca-France v175
+          </div>
+
+          {irLoading&&(
+            <div style={{textAlign:"center",padding:"48px 0",color:C2.textDim}}>
+              <div style={{fontSize:"28px",marginBottom:"12px",animation:"spin 1s linear infinite",display:"inline-block"}}>⚙️</div>
+              <div style={{fontSize:"14px"}}>Calcul en cours via OpenFisca-France…</div>
+              <div style={{fontSize:"12px",color:C2.textDim,marginTop:"6px",fontStyle:"italic"}}>API publique — résultat en quelques secondes</div>
+            </div>
+          )}
+
+          {!irLoading&&ir&&ir.erreur&&(
+            <div style={{padding:"20px",background:"rgba(224,96,96,0.08)",border:"1px solid rgba(224,96,96,0.25)",borderRadius:"10px",color:C2.red,fontSize:"14px"}}>
+              ⚠️ L'API OpenFisca est temporairement indisponible.<br/>
+              <span style={{fontSize:"12px",color:C2.textDim,marginTop:"6px",display:"block"}}>Réessayez dans quelques instants — le service est gratuit et public.</span>
+            </div>
+          )}
+
+          {!irLoading&&ir&&!ir.erreur&&(
+            <div>
+              {/* Comparatif IR */}
+              <div style={{display:"flex",gap:"16px",marginBottom:"24px",flexWrap:"wrap"}}>
+                <div style={{flex:1,minWidth:"180px",background:"rgba(76,175,130,0.08)",border:"1px solid rgba(76,175,130,0.25)",borderRadius:"12px",padding:"20px",textAlign:"center"}}>
+                  <div style={{fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:C2.green,marginBottom:"8px"}}>IR avec frais réels</div>
+                  <div style={{fontSize:"34px",fontWeight:"bold",color:"#f0e8d8",fontFamily:"'Cormorant Garamond',Garamond,serif"}}>{ff(ir.irFraisReels)} €</div>
+                  <div style={{fontSize:"11px",color:C2.textDim,marginTop:"6px"}}>Frais réels déduits : {ff(res.total)} €</div>
+                </div>
+                <div style={{flex:1,minWidth:"180px",background:"rgba(255,255,255,0.025)",border:`1px solid ${C2.border}`,borderRadius:"12px",padding:"20px",textAlign:"center"}}>
+                  <div style={{fontSize:"10px",letterSpacing:"2px",textTransform:"uppercase",color:C2.textDim,marginBottom:"8px"}}>IR avec abattement 10 %</div>
+                  <div style={{fontSize:"34px",fontWeight:"bold",color:C2.textMid,fontFamily:"'Cormorant Garamond',Garamond,serif"}}>{ff(ir.irAbattement)} €</div>
+                  <div style={{fontSize:"11px",color:C2.textDim,marginTop:"6px"}}>Abattement déduit : {ff(res.ab)} €</div>
+                </div>
+              </div>
+
+              {/* Économie */}
+              <div style={{background:ir.economie>0?"rgba(0,80,40,0.22)":"rgba(80,20,0,0.22)",border:`1px solid ${ir.economie>0?"rgba(76,175,130,0.35)":"rgba(224,96,96,0.35)"}`,borderRadius:"12px",padding:"24px",textAlign:"center",marginBottom:"24px"}}>
+                <div style={{fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:ir.economie>0?C2.green:C2.red,marginBottom:"8px"}}>
+                  {ir.economie>0?"✅ Économie d'impôt réalisée":"⚠️ Impôt plus élevé avec frais réels"}
+                </div>
+                <div style={{fontSize:"44px",fontWeight:"bold",color:ir.economie>0?C2.goldLight:C2.red,fontFamily:"'Cormorant Garamond',Garamond,serif",lineHeight:1}}>
+                  {ir.economie>0?"+":""}{ff(ir.economie)} €
+                </div>
+                <div style={{fontSize:"13px",color:C2.textDim,marginTop:"8px"}}>
+                  {ir.economie>0
+                    ? `En optant pour les frais réels, vous payez ${ff(ir.economie)} € d'impôt en moins`
+                    : `L'abattement forfaitaire reste plus avantageux de ${ff(-ir.economie)} €`}
+                </div>
+              </div>
+
+              {/* Tableau de synthèse */}
+              <div style={{background:C2.surface,border:`1px solid ${C2.border}`,borderRadius:"10px",padding:"18px",marginBottom:"20px"}}>
+                <div style={{fontSize:"10px",letterSpacing:"3px",textTransform:"uppercase",color:C2.gold,marginBottom:"14px"}}>Synthèse fiscale complète</div>
+                {[
+                  ["Salaire net imposable",ff((+data.salaire||0)+(+data.primes_mt||0))+" €",""],
+                  ["Frais réels déclarés",ff(res.total)+" €","case 1AK"],
+                  ["Abattement forfaitaire 10 %",ff(res.ab)+" €","plafond 14 171 €"],
+                  ["Base imposable (frais réels)",ff(Math.max(0,(+data.salaire||0)+(+data.primes_mt||0)-res.total))+" €",""],
+                  ["Base imposable (abattement)",ff(Math.max(0,(+data.salaire||0)+(+data.primes_mt||0)-res.ab))+" €",""],
+                  ["IR calculé — frais réels",ff(ir.irFraisReels)+" €","OpenFisca-France v175"],
+                  ["IR calculé — abattement 10 %",ff(ir.irAbattement)+" €","OpenFisca-France v175"],
+                ].map(([lab,val,note],i)=>(
+                  <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid rgba(255,255,255,0.04)",gap:"12px"}}>
+                    <div style={{flex:1}}>
+                      <span style={{fontSize:"13px",color:"#f0e8d8"}}>{lab}</span>
+                      {note&&<span style={{fontSize:"10px",color:C2.textDim,marginLeft:"8px"}}>({note})</span>}
+                    </div>
+                    <span style={{fontSize:"14px",fontWeight:"bold",color:C2.gold,whiteSpace:"nowrap"}}>{val}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{padding:"12px 16px",background:"rgba(196,163,90,0.05)",border:`1px solid ${C2.goldDim}`,borderRadius:"8px",fontSize:"12px",color:C2.textDim,lineHeight:1.7}}>
+                💡 Simulation calculée via l'API publique OpenFisca-France (moteur v175). Basée sur un foyer fiscal d'un déclarant, 1 part. Ne tient pas compte du quotient familial, des crédits d'impôt ni des autres revenus. Résultat indicatif — consultez impots.gouv.fr pour votre simulation personnalisée complète.
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+
       {tab==="opti"&&(
         <div style={{marginBottom:"32px"}}>
           {res.opps.length===0&&<div style={{color:C2.green,fontSize:"15px",padding:"20px 0"}}>✅ Votre dossier semble bien optimisé.</div>}
