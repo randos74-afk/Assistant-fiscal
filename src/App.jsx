@@ -3,6 +3,11 @@ import { useState, useEffect, useMemo, useRef } from "react";
 /* ═══════════════════════════════════════════════════════════════════
    BARÈMES DGFIP 2026 — revenus 2025 (GP 120)
 ═══════════════════════════════════════════════════════════════════ */
+// Barème 2026, revenus 2025 — provisoire, à mettre à jour en janvier 2027.
+// Source : docs/bareme-officiel-dgfip.pdf (p. 8 voitures, p. 9 deux-roues et cyclomoteurs)
+// et BOFiP BOI-BAREME-000001 (version du 20/07/2023). Valeurs deux-roues et cyclomoteurs
+// inchangées depuis les revenus 2022 : non encore confirmées pour les revenus 2025.
+// Deux-roues > 50 cm³ : la clé est la tranche officielle (2 : 1 ou 2 CV, 5 : 3 à 5 CV, 6 : plus de 5 CV).
 const BK = {
   voiture: {
     3:[[5000,.529,0],[20000,.316,1065],[Infinity,.370,0]],
@@ -12,17 +17,24 @@ const BK = {
     7:[[5000,.697,0],[20000,.394,1515],[Infinity,.470,0]],
   },
   moto: {
-    1:[[3000,.395,0],[6000,.099,891],[Infinity,.248,0]],
-    2:[[3000,.468,0],[6000,.082,1158],[Infinity,.275,0]],
-    3:[[3000,.606,0],[6000,.079,1583],[Infinity,.343,0]],
-    5:[[3000,.606,0],[6000,.079,1583],[Infinity,.343,0]],
+    2:[[3000,.395,0],[6000,.099,891],[Infinity,.248,0]],
+    5:[[3000,.468,0],[6000,.082,1158],[Infinity,.275,0]],
+    6:[[3000,.606,0],[6000,.079,1583],[Infinity,.343,0]],
   },
-  cyclo:{1:[[3000,.299,0],[6000,.071,684],[Infinity,.185,0]]},
+  cyclo:{1:[[3000,.315,0],[6000,.079,711],[Infinity,.198,0]]},
 };
+
+function trancheMoto(cv){return +cv<=2?2:+cv<=5?5:6;}
+const LIB_MOTO={2:"1 ou 2 CV",5:"3 à 5 CV",6:"plus de 5 CV"};
+function libBareme(type,cv){
+  if(type==="cyclo") return "barème cyclomoteur";
+  if(type==="moto") return `barème deux-roues ${LIB_MOTO[trancheMoto(cv)]}`;
+  return `barème ${cv} CV`;
+}
 
 function calcKm(type,cv,km,elec){
   const bk=BK[type]||BK.voiture;
-  const cap=type==="voiture"?Math.min(+cv,7):type==="moto"?Math.min(+cv,5):1;
+  const cap=type==="voiture"?Math.min(+cv,7):type==="moto"?trancheMoto(cv):1;
   const tr=bk[cap]||bk[Object.keys(bk)[0]];
   let m=0;
   for(const[max,coef,plus]of tr){if(km<=max){m=coef*km+plus;break;}if(max===Infinity)m=coef*km;}
@@ -79,9 +91,9 @@ const SECTIONS=[
         cond:d=>["voiture","moto","cyclo"].includes(d.vehicule)},
       {id:"cv",q:"Puissance fiscale de votre véhicule (CV) ?",type:"sel",
         opts:d=>d.vehicule==="voiture"?[3,4,5,6,7].map(v=>({v,l:`${v} CV${v===7?" ou plus":""}`}))
-                :d.vehicule==="moto"?[1,2,3,5].map(v=>({v,l:`${v} CV${v===5?" ou plus":""}`}))
+                :d.vehicule==="moto"?[{v:2,l:"1 ou 2 CV"},{v:5,l:"3, 4 ou 5 CV"},{v:6,l:"Plus de 5 CV"}]
                 :[{v:1,l:"Cyclomoteur"}],
-        hint:"Carte grise, case P.6. Plafonné à 7 CV (voiture) ou 5 CV (moto).",
+        hint:"Carte grise, case P.6. Plafonné à 7 CV (voiture).",
         cond:d=>["voiture","moto","cyclo"].includes(d.vehicule)},
       {id:"carburant",q:"Type de carburant ?",type:"sel",
         opts:[{v:"essence",l:"Essence"},{v:"diesel",l:"Diesel"},{v:"hybride",l:"Hybride"},{v:"gpl",l:"GPL / GNV"},{v:"hydrogene",l:"Hydrogène"}],
@@ -316,7 +328,7 @@ function compute(data){
     const elec=data.electrique===true;
     const m=calcKm(data.vehicule==="cyclo"?"cyclo":data.vehicule,data.cv||5,km,elec);
     items.push({lab:"Frais kilométriques (barème DGFiP)",mt:m,
-      calc:`${km.toLocaleString("fr-FR")} km × barème ${data.cv||5} CV${elec?" ×1,20 (électrique)":""}`,
+      calc:`${km.toLocaleString("fr-FR")} km × ${libBareme(data.vehicule,data.cv||5)}${elec?" ×1,20 (électrique)":""}`,
       km,cv:data.cv,cat:"transport"});
     total+=m;
     if(elec) opps.push({txt:"Majoration +20 % appliquée — véhicule 100 % électrique",score:5});
@@ -487,7 +499,7 @@ function makeResume(data,res){
   t+="━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
   if(km){
     t+=`▸ FRAIS KILOMÉTRIQUES\n`;
-    t+=`  Véhicule : ${data.vehicule} — ${km.cv} CV fiscal${data.electrique?" — 100 % électrique (×1,20)":""}\n`;
+    t+=`  Véhicule : ${data.vehicule} — ${data.vehicule==="moto"?`${LIB_MOTO[trancheMoto(km.cv||5)]} fiscaux (deux-roues)`:`${km.cv} CV fiscal`}${data.electrique?" — 100 % électrique (×1,20)":""}\n`;
     t+=`  Kilométrage annuel total : ${km.km?.toLocaleString("fr-FR")||"—"} km\n`;
     t+=`  Montant barème DGFiP 2026 : ${ff(km.mt)} €\n`;
     if(+data.peages>0) t+=`  Péages : ${ff(+data.peages)} €\n`;
