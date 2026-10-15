@@ -418,3 +418,337 @@ a {
   font-weight: 400;
   color: var(--texte-secondaire);
 }
+
+/* Titre de question suivi de l'astérisque d'aide. */
+.question-titre {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.question-titre .titre-question {
+  flex: 1;
+}
+
+.bouton-asterisque {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ambre-aide-fond);
+  color: var(--ambre-aide);
+  font-family: inherit;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  padding-top: 8px;
+  cursor: pointer;
+}
+
+.bouton-asterisque:focus-visible,
+.lien-je-ne-sais-pas:focus-visible,
+.bouton-fermer:focus-visible {
+  outline: 3px solid var(--primaire);
+  outline-offset: 2px;
+}
+
+.asterisque-grand {
+  width: 32px;
+  height: 32px;
+  font-size: 24px;
+  padding-top: 6px;
+}
+
+.lien-je-ne-sais-pas {
+  align-self: flex-start;
+  min-height: var(--zone-tactile);
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: var(--primaire);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Champ de montant avec symbole € dans le champ. */
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.champ-libelle {
+  font-size: var(--taille-texte-min);
+  font-weight: 600;
+}
+
+.champ-saisie {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  padding: 0 16px;
+}
+
+.champ-saisie:focus-within {
+  border: 2px solid var(--primaire);
+}
+
+.champ-saisie-erreur {
+  border: 2px solid var(--rouge-erreur);
+}
+
+.champ-saisie input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--texte);
+  font-family: "Inter", sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-size: 22px;
+  padding: 10px 0;
+}
+
+.champ-unite {
+  font-size: 20px;
+  color: var(--texte-secondaire);
+  padding-left: 8px;
+}
+
+.champ-compact .champ-saisie {
+  min-height: var(--zone-tactile);
+  padding: 0 12px;
+}
+
+.champ-compact .champ-saisie input {
+  font-size: var(--taille-texte);
+}
+
+.champ-erreur {
+  margin: 0;
+  color: var(--rouge-erreur);
+  font-size: var(--taille-texte-min);
+}
+
+.grille-mois {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.total-addition {
+  margin: 0;
+  font-size: var(--taille-texte);
+}
+
+.depliant {
+  border-top: 1px solid var(--bordure);
+  padding-top: 12px;
+  font-size: var(--taille-texte-min);
+}
+
+.depliant summary {
+  min-height: var(--zone-tactile);
+  display: flex;
+  align-items: center;
+  color: var(--primaire);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.depliant p {
+  margin: 4px 0 0;
+}
+
+/* Fiche d'aide : volet bas sur téléphone, fenêtre centrée sur grand écran. */
+.fiche-aide {
+  border: 0;
+  padding: 0;
+  margin: auto auto 0;
+  width: 100%;
+  max-width: min(480px, 100%);
+  max-height: 92vh;
+  border-radius: 24px 24px 0 0;
+  background: var(--fond);
+  color: var(--texte);
+}
+
+.fiche-aide::backdrop {
+  background: rgba(27, 36, 51, 0.6);
+}
+
+@media (min-width: 700px) {
+  .fiche-aide {
+    margin: auto;
+    border-radius: var(--rayon);
+  }
+  .fiche-aide-poignee {
+    display: none;
+  }
+}
+
+.fiche-aide-contenu {
+  padding: 10px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fiche-aide-poignee {
+  width: 44px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--bordure);
+  align-self: center;
+}
+
+.fiche-aide-entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fiche-aide-titre {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fiche-aide-titre h2 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.bouton-fermer {
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  border: 0;
+  background: transparent;
+  color: var(--texte-secondaire);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: var(--rayon);
+}
+
+.fiche-aide-rubriques {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.fiche-aide-rubriques h3 {
+  margin: 0 0 2px;
+  font-size: var(--taille-texte-min);
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.fiche-aide-rubriques p {
+  margin: 0;
+}
+
+/* Illustrations d'aide : documents fictifs, filigrane EXEMPLE, repère ambre numéroté. */
+.illustration {
+  margin: 0;
+  border: 1px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond-secondaire);
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.illustration-filigrane {
+  position: absolute;
+  top: 70px;
+  left: 40px;
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--primaire);
+  opacity: 0.1;
+  transform: rotate(-18deg);
+  letter-spacing: 6px;
+  pointer-events: none;
+}
+
+.illustration-entete {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--texte-secondaire);
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.bulletin {
+  background: var(--fond);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bulletin-societe {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.bulletin-ligne {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 6px;
+  align-items: center;
+  padding: 4px 6px;
+}
+
+.bulletin-ligne > span:not(:first-child) {
+  text-align: right;
+}
+
+.bulletin-titres {
+  color: var(--texte-secondaire);
+  font-size: 11px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.bulletin-a-lire {
+  outline: 3px solid var(--ambre-aide);
+  outline-offset: 1px;
+  border-radius: 6px;
+  font-weight: 700;
+}
+
+.repere-numero {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  border-radius: 999px;
+  background: var(--ambre-aide);
+  color: var(--fond);
+  font-size: 11px;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}

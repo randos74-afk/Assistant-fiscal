@@ -96,7 +96,7 @@ export function Accueil({ millesime, sauvegardeDisponible, onCommencer, onRepren
 
       <main className="ecran-contenu">
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <h1 className="titre-ecran">Frais réels ou abattement de 10 % ?</h1>
+          <h1 className="titre-ecran">Frais réels ou abattement de 10&nbsp;%&nbsp;?</h1>
           <p className="texte-secondaire">
             En 15 minutes, sachez si vous pouvez payer moins d'impôt. On vous guide à chaque question.
           </p>

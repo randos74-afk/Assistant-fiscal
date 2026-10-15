@@ -5,6 +5,7 @@ import type { Parametres } from "../moteur/types";
 import { detailProfil, PROFILS, type IdProfil } from "../parcours/metiers";
 import { PiedDePage } from "./Cadre";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
+import { typographie } from "./typographie";
 
 interface Props {
   parametres: Parametres;
@@ -15,7 +16,7 @@ interface Props {
 
 export function Metier({ parametres, valeurInitiale, onChoix, onRetour }: Props) {
   const [choix, setChoix] = useState<IdProfil | undefined>(valeurInitiale);
-  const titre = "Quel est votre métier ?";
+  const titre = typographie("Quel est votre métier ?");
 
   return (
     <div className="ecran">
@@ -33,7 +34,7 @@ export function Metier({ parametres, valeurInitiale, onChoix, onRetour }: Props)
           onChoix={(v) => setChoix(v as IdProfil)}
         />
 
-        {choix === "autre" && <Encadre>Votre métier n'est pas dans la liste ? Aucun souci : toutes les questions vous seront posées.</Encadre>}
+        {choix === "autre" && <Encadre>{typographie("Votre métier n'est pas dans la liste ? Aucun souci : toutes les questions vous seront posées.")}</Encadre>}
       </main>
 
       <PiedDePage>

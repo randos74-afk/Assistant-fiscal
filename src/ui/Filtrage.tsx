@@ -10,6 +10,7 @@ import {
 } from "../parcours/filtrage";
 import { PiedDePage } from "./Cadre";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
+import { typographie } from "./typographie";
 
 interface Props {
   millesime: number;
@@ -55,7 +56,7 @@ export function Filtrage({ millesime, reponsesInitiales = {}, indiceInitial = 0,
       <EnTeteEtape libelle={`Vérification : question ${indice + 1} sur ${total}`} etape={indice + 1} total={total} onRetour={retour} />
 
       <main className="ecran-contenu" style={{ gap: 16 }}>
-        <h1 className="titre-question">{libelleQuestion(q, millesime)}</h1>
+        <h1 className="titre-question">{typographie(libelleQuestion(q, millesime))}</h1>
         {q.precision && <p className="texte-secondaire sous-question">{q.precision}</p>}
 
         <ChoixUnique
@@ -67,7 +68,7 @@ export function Filtrage({ millesime, reponsesInitiales = {}, indiceInitial = 0,
           onChoix={(v) => setReponses({ ...reponses, [q.id]: v })}
         />
 
-        {precision && <Encadre>{precision}</Encadre>}
+        {precision && <Encadre>{typographie(precision)}</Encadre>}
       </main>
 
       <PiedDePage>
@@ -95,8 +96,8 @@ export function EcranExclusion({
 
       <main className="ecran-contenu">
         <h1 className="titre-question">FraisFit ne convient pas à votre situation</h1>
-        <p style={{ margin: 0 }}>{exclusion.raison}</p>
-        <Encadre>{exclusion.conseil}</Encadre>
+        <p style={{ margin: 0 }}>{typographie(exclusion.raison)}</p>
+        <Encadre>{typographie(exclusion.conseil)}</Encadre>
         <p className="texte-secondaire">
           Si vous venez d'acheter FraisFit, vous pouvez demander son remboursement sur Google Play.
         </p>

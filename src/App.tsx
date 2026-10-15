@@ -6,16 +6,18 @@ import type { IdProfil } from "./parcours/metiers";
 import { Accueil } from "./ui/Accueil";
 import { Filtrage } from "./ui/Filtrage";
 import { Metier } from "./ui/Metier";
+import { Salaire, type SaisieSalaire } from "./ui/Salaire";
 import { existeSauvegarde } from "./ui/sauvegarde";
 import AncienSimulateur from "./ancien/AncienSimulateur.jsx";
 
-type Ecran = "accueil" | "filtrage" | "metier" | "ancien-simulateur";
+type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "ancien-simulateur";
 
 export default function App() {
   const [ecran, setEcran] = useState<Ecran>("accueil");
   const [reponsesFiltrage, setReponsesFiltrage] = useState<Reponses>({});
   const [aussiEntreprise, setAussiEntreprise] = useState(false);
   const [metier, setMetier] = useState<IdProfil | undefined>();
+  const [salaire, setSalaire] = useState<SaisieSalaire | undefined>();
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
 
@@ -48,7 +50,20 @@ export default function App() {
           onRetour={() => setEcran("filtrage")}
           onChoix={(choix) => {
             setMetier(choix);
-            // Provisoire : « Votre salaire » n'existe pas encore.
+            setEcran("salaire");
+          }}
+        />
+      );
+
+    case "salaire":
+      return (
+        <Salaire
+          millesime={millesime}
+          valeurInitiale={salaire}
+          onRetour={() => setEcran("metier")}
+          onValider={(s) => {
+            setSalaire(s);
+            // Provisoire : « Vos jours » n'existe pas encore.
             setEcran("ancien-simulateur");
           }}
         />
