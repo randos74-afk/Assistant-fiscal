@@ -35,7 +35,13 @@ export function Relecture({ reponses: r, foyer, resultat, vraisemblance: v, onMo
       ecran: "salaire",
       titre: "Votre salaire",
       resume: r.salaire
-        ? `${euros(r.salaire.montant)} de net imposable${r.salaire.source === "addition-bulletins" ? ", addition de vos bulletins" : ""}`
+        ? `${euros(r.salaire.montant)} de net imposable${
+            r.salaire.source === "addition-bulletins"
+              ? ", addition de vos bulletins"
+              : r.salaire.employeurs && r.salaire.employeurs.length > 1
+                ? `, ${r.salaire.employeurs.length} employeurs`
+                : ""
+          }`
         : "À compléter",
     },
     {

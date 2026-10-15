@@ -1,6 +1,6 @@
 // Étape 2 : vos jours (F2). Deux questions : combien de jours travaillés, puis où.
 // Le calendrier réel de l'année pré-remplit tout ; la personne corrige, mois par mois si besoin.
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 import type { Parametres } from "../moteur/types";
 import {
   calendrierParMois,
@@ -18,7 +18,7 @@ import { lireEntier } from "../parcours/saisie";
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
 import { ChampNombre } from "./ChampNombre";
-import { BandeauConfidentialite, Encadre, EnTeteEtape } from "./Question";
+import { BandeauConfidentialite, Encadre, EnTeteEtape, Pastilles } from "./Question";
 import { typographie } from "./typographie";
 
 export interface SaisieJours {
@@ -408,40 +408,5 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
 
       <FicheAide fiche={fiche} ouverte={aide !== null} onFermer={() => setAide(null)} />
     </div>
-  );
-}
-
-/** Choix d'un petit nombre en pastilles alignées. */
-function Pastilles({
-  legende,
-  aide,
-  options,
-  valeur,
-  onChoix,
-}: {
-  legende: string;
-  aide?: ReactNode;
-  options: number[];
-  valeur: number;
-  onChoix: (n: number) => void;
-}) {
-  return (
-    <fieldset className="pastilles">
-      <legend className="visuellement-cache">{legende}</legend>
-      <div className="pastilles-entete">
-        <span className="champ-libelle" aria-hidden="true">
-          {legende}
-        </span>
-        {aide}
-      </div>
-      <div className="pastilles-liste">
-        {options.map((n) => (
-          <label key={n} className={n === valeur ? "pastille-choix pastille-choix-coche" : "pastille-choix"}>
-            <input type="radio" name={legende} checked={n === valeur} onChange={() => onChoix(n)} className="visuellement-cache" />
-            {n}
-          </label>
-        ))}
-      </div>
-    </fieldset>
   );
 }

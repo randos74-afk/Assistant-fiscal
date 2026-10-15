@@ -97,3 +97,41 @@ export function BandeauConfidentialite() {
     </div>
   );
 }
+
+/** Choix d'un petit nombre en pastilles alignées. */
+export function Pastilles({
+  legende,
+  aide,
+  options,
+  valeur,
+  onChoix,
+  libelle = String,
+}: {
+  legende: string;
+  aide?: ReactNode;
+  options: number[];
+  valeur: number;
+  onChoix: (n: number) => void;
+  /** Texte d'une pastille, par exemple « 4 ou + ». */
+  libelle?: (n: number) => string;
+}) {
+  return (
+    <fieldset className="pastilles">
+      <legend className="visuellement-cache">{legende}</legend>
+      <div className="pastilles-entete">
+        <span className="champ-libelle" aria-hidden="true">
+          {legende}
+        </span>
+        {aide}
+      </div>
+      <div className="pastilles-liste">
+        {options.map((n) => (
+          <label key={n} className={n === valeur ? "pastille-choix pastille-choix-coche" : "pastille-choix"}>
+            <input type="radio" name={legende} checked={n === valeur} onChange={() => onChoix(n)} className="visuellement-cache" />
+            {libelle(n)}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
