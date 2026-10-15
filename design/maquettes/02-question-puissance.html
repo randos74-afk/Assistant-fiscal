@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FraisFit — Puissance du véhicule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F4E8C}a:hover{color:#163A6B}
+</style>
+<style>body{background:#E9EDF2;display:flex;justify-content:center;padding:24px 0}</style>
+</head>
+<body>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FFFFFF; font-family: 'Atkinson Hyperlegible Next', sans-serif; color: #1B2433; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 16px 20px 14px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid #D3DCE8">
+    <div style="display: flex; align-items: center; justify-content: space-between">
+      <button type="button" aria-label="Retour" style="width: 44px; height: 44px; margin-left: -10px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; cursor: pointer">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1F4E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div style="font-size: 15px; font-weight: 600; color: #163A6B">Étape 3 sur 7 : votre trajet</div>
+      <div style="width: 34px"></div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px" aria-hidden="true">
+      <div style="height: 6px; border-radius: 3px; background: #1F4E8C"></div>
+      <div style="height: 6px; border-radius: 3px; background: #1F4E8C"></div>
+      <div style="height: 6px; border-radius: 3px; background: #1F4E8C"></div>
+      <div style="height: 6px; border-radius: 3px; background: #D3DCE8"></div>
+      <div style="height: 6px; border-radius: 3px; background: #D3DCE8"></div>
+      <div style="height: 6px; border-radius: 3px; background: #D3DCE8"></div>
+      <div style="height: 6px; border-radius: 3px; background: #D3DCE8"></div>
+    </div>
+  </header>
+
+  <main style="flex: 1; padding: 24px 20px 0; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; align-items: flex-start; gap: 8px">
+      <h1 style="margin: 0; font-size: 24px; line-height: 1.25; font-weight: 700; color: #163A6B; flex: 1">Combien de chevaux fait votre voiture ?</h1>
+      <button type="button" aria-label="Aide : où trouver ce chiffre" style="width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 999px; background: #FDF0E1; color: #B45309; font-family: inherit; font-size: 28px; font-weight: 800; line-height: 1; padding-top: 8px; cursor: pointer">*</button>
+    </div>
+    <p style="margin: -6px 0 0; font-size: 16px; line-height: 1.4; color: #4A5568">C'est la puissance fiscale, en CV. Elle est écrite sur votre carte grise.</p>
+
+    <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px">
+      <legend style="position: absolute; width: 1px; height: 1px; overflow: hidden">Puissance fiscale</legend>
+      <label style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px; border: 1.5px solid #D3DCE8; border-radius: 12px; font-size: 17px; cursor: pointer"><input type="radio" name="cv" style="width: 20px; height: 20px; accent-color: #1F4E8C"> 3 CV et moins</label>
+      <label style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px; border: 1.5px solid #D3DCE8; border-radius: 12px; font-size: 17px; cursor: pointer"><input type="radio" name="cv" style="width: 20px; height: 20px; accent-color: #1F4E8C"> 4 CV</label>
+      <label style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px; border: 2px solid #1F4E8C; background: #EAF1FA; border-radius: 12px; font-size: 17px; font-weight: 700; color: #163A6B; cursor: pointer"><input type="radio" name="cv" checked style="width: 20px; height: 20px; accent-color: #1F4E8C"> 5 CV</label>
+      <label style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px; border: 1.5px solid #D3DCE8; border-radius: 12px; font-size: 17px; cursor: pointer"><input type="radio" name="cv" style="width: 20px; height: 20px; accent-color: #1F4E8C"> 6 CV</label>
+      <label style="display: flex; align-items: center; gap: 12px; height: 52px; padding: 0 16px; border: 1.5px solid #D3DCE8; border-radius: 12px; font-size: 17px; cursor: pointer"><input type="radio" name="cv" style="width: 20px; height: 20px; accent-color: #1F4E8C"> 7 CV et plus</label>
+    </fieldset>
+
+    <a href="#" style="font-size: 16px; font-weight: 600; align-self: flex-start; padding: 6px 0">Je ne sais pas</a>
+
+    <div style="background: #F5F7FA; border-radius: 12px; padding: 14px 16px; display: flex; gap: 10px; align-items: flex-start">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F4E8C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 1px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      <p style="margin: 0; font-size: 15px; line-height: 1.4">Au-delà de 7 CV, les impôts comptent 7 CV. Vous n'avez rien à corriger.</p>
+    </div>
+  </main>
+
+  <footer style="padding: 14px 20px 20px; display: flex; flex-direction: column; gap: 10px">
+    <div style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: #4A5568">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1E7B4F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      Vos chiffres restent sur votre téléphone
+    </div>
+    <button type="button" style="width: 100%; height: 54px; border: 0; border-radius: 12px; background: #245A9E; color: #FFFFFF; font-family: inherit; font-size: 18px; font-weight: 700; cursor: pointer">Continuer</button>
+  </footer>
+</div>
+</body>
+</html>

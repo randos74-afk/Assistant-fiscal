@@ -1,0 +1,150 @@
+{
+  "millesime": {
+    "revenus": 2025,
+    "declaration": 2026,
+    "statut": "en vigueur",
+    "date_gel": "2026-10-13",
+    "note": "Fichier versionné : changer d'année = ajouter parametres/revenus-AAAA.json, jamais modifier le code. Montants en euros."
+  },
+
+  "abattement_10_pourcent": {
+    "taux": 0.10,
+    "minimum_par_declarant": 509,
+    "maximum_par_declarant": 14555,
+    "source": "Brochure pratique IR 2026, aide-mémoire ; actualité BOFiP du 17/02/2026 (BOI-BAREME-000035 §70)"
+  },
+
+  "repas": {
+    "valeur_repas_au_foyer": 5.45,
+    "forfait_sans_justificatif_detaille": 5.45,
+    "seuil_alerte_prix_repas": 21.10,
+    "note_seuil": "21,10 € = limite d'exonération URSSAF 2025 d'une indemnité de repas au restaurant ; c'est une alerte, PAS un plafond fiscal : ne jamais couper le montant automatiquement.",
+    "avantage_en_nature_repas_fourni_employeur": 5.45,
+    "source": "Dépliant DGFiP GP 120 ; Tout sur mes finances 30/06/2026 ; WebLex chiffres 2025"
+  },
+
+  "grand_deplacement_reperes": {
+    "logement_petit_dejeuner_paris_petite_couronne_par_jour": 75.60,
+    "logement_petit_dejeuner_autres_departements_par_jour": 56.10,
+    "repas_par_repas": 21.10,
+    "note": "Repères d'exonération URSSAF 2025, affichés à titre indicatif seulement."
+  },
+
+  "teletravail": {
+    "forfait_par_jour": 2.70,
+    "plafond_mensuel": 59.40,
+    "plafond_annuel": 626.40,
+    "semaines_travaillees_reference": 47,
+    "heures_par_journee_teletravail_local_mixte": 12,
+    "heures_par_an": 8760,
+    "studio_part_professionnelle": 0.5,
+    "source": "Notice DGFiP 2041 GP ; reconduit pour les revenus 2025 (brochure pratique 2026)"
+  },
+
+  "materiel": {
+    "seuil_deduction_immediate_HT": 500,
+    "duree_amortissement_informatique_ans": 3,
+    "methode": "linéaire, prorata temporis la première année, × part d'usage professionnel (jamais forfaitisée)",
+    "source": "BOI-RSA-BASE-30-50-30-40 §50 à 80"
+  },
+
+  "deplacements": {
+    "distance_aller_max_sans_justification_km": 40,
+    "allers_retours_par_jour_par_defaut": 1,
+    "puissance_max_voiture_cv": 7,
+    "puissance_max_deux_roues_cv": 5,
+    "majoration_electrique": 0.20,
+    "note_electrique": "Les barèmes électriques ci-dessous sont recopiés tels que publiés par la DGFiP ; ne PAS les recalculer en ×1,20 (arrondis officiels). Recharge et location de batterie sont incluses dans le barème.",
+    "source": "Dépliant DGFiP GP 120 (barème reconduit à l'identique depuis l'arrêté de mars 2023)"
+  },
+
+  "bareme_kilometrique": {
+    "formule": "Pour une distance annuelle d (km) dans la tranche : montant = d × a + b. Le barème s'applique au kilométrage professionnel TOTAL du véhicule sur l'année, jamais trajet par trajet.",
+    "voiture_thermique": {
+      "tranches_km": [5000, 20000],
+      "lignes": {
+        "3": [{"a": 0.529, "b": 0}, {"a": 0.316, "b": 1065}, {"a": 0.370, "b": 0}],
+        "4": [{"a": 0.606, "b": 0}, {"a": 0.340, "b": 1330}, {"a": 0.407, "b": 0}],
+        "5": [{"a": 0.636, "b": 0}, {"a": 0.357, "b": 1395}, {"a": 0.427, "b": 0}],
+        "6": [{"a": 0.665, "b": 0}, {"a": 0.374, "b": 1457}, {"a": 0.447, "b": 0}],
+        "7": [{"a": 0.697, "b": 0}, {"a": 0.394, "b": 1515}, {"a": 0.470, "b": 0}]
+      },
+      "cles": "3 = 3 CV et moins ; 7 = 7 CV et plus"
+    },
+    "voiture_electrique": {
+      "tranches_km": [5000, 20000],
+      "lignes": {
+        "3": [{"a": 0.635, "b": 0}, {"a": 0.379, "b": 1278}, {"a": 0.444, "b": 0}],
+        "4": [{"a": 0.727, "b": 0}, {"a": 0.408, "b": 1596}, {"a": 0.488, "b": 0}],
+        "5": [{"a": 0.763, "b": 0}, {"a": 0.428, "b": 1674}, {"a": 0.512, "b": 0}],
+        "6": [{"a": 0.798, "b": 0}, {"a": 0.449, "b": 1748}, {"a": 0.536, "b": 0}],
+        "7": [{"a": 0.836, "b": 0}, {"a": 0.473, "b": 1818}, {"a": 0.564, "b": 0}]
+      }
+    },
+    "cyclomoteur_thermique": {
+      "definition": "≤ 50 cm³ ou ≤ 4 kW, vitesse ≤ 45 km/h",
+      "tranches_km": [3000, 6000],
+      "ligne": [{"a": 0.315, "b": 0}, {"a": 0.079, "b": 711}, {"a": 0.198, "b": 0}]
+    },
+    "cyclomoteur_electrique": {
+      "tranches_km": [3000, 6000],
+      "ligne": [{"a": 0.378, "b": 0}, {"a": 0.095, "b": 853}, {"a": 0.238, "b": 0}]
+    },
+    "moto_thermique": {
+      "tranches_km": [3000, 6000],
+      "lignes": {
+        "1-2": [{"a": 0.395, "b": 0}, {"a": 0.099, "b": 891}, {"a": 0.248, "b": 0}],
+        "3-5": [{"a": 0.468, "b": 0}, {"a": 0.082, "b": 1158}, {"a": 0.275, "b": 0}],
+        "5+": [{"a": 0.606, "b": 0}, {"a": 0.079, "b": 1583}, {"a": 0.343, "b": 0}]
+      }
+    },
+    "moto_electrique": {
+      "tranches_km": [3000, 6000],
+      "lignes": {
+        "1-2": [{"a": 0.474, "b": 0}, {"a": 0.119, "b": 1069}, {"a": 0.298, "b": 0}],
+        "3-5": [{"a": 0.562, "b": 0}, {"a": 0.098, "b": 1390}, {"a": 0.330, "b": 0}],
+        "5+": [{"a": 0.727, "b": 0}, {"a": 0.095, "b": 1900}, {"a": 0.412, "b": 0}]
+      }
+    }
+  },
+
+  "alertes_vraisemblance": {
+    "niveau_1_rappel_multiple_abattement": 2.0,
+    "niveau_2_verification_part_du_salaire": 0.50,
+    "niveau_3_blocage_part_du_salaire": 1.00,
+    "jours_sur_site_max_temps_plein": 230,
+    "km_annuels_alerte": 30000,
+    "hausse_annuelle_alerte": 0.50,
+    "note": "Seuils réglables, à ajuster après les premiers retours ; aucun seuil public de contrôle n'existe."
+  },
+
+  "valeurs_prudentes_je_ne_sais_pas": {
+    "puissance_cv": 3,
+    "energie": "thermique",
+    "jours_travailles_temps_plein": 218,
+    "part_employeur_titre_restaurant": 0.60,
+    "prise_en_charge_abonnement_prive": 0.50,
+    "prise_en_charge_abonnement_public": 0.75,
+    "prix_repas": "forfait 5,45 € (pas de surcoût calculé)",
+    "peages_parking_interets": 0,
+    "cotisation_syndicale_en_frais_reels": 0
+  },
+
+  "aide_a_domicile": {
+    "indemnite_km_branche_associative_voiture": 0.38,
+    "indemnite_km_branche_associative_deux_roues": 0.16,
+    "indemnite_km_branche_associative_voiture_depuis_2026_06_01": 0.40,
+    "minimum_conventionnel_services_a_la_personne": 0.35,
+    "sources": [
+      "CCN branche de l'aide à domicile du 21 mai 2010 (IDCC 2941), art. 14.3, version avenant 50-2022 (agréé 19/08/2022, étendu 31/03/2023)",
+      "Avenant 76 agréé le 29/05/2026 (0,40 €/km au 1er juin 2026, revenus 2026)",
+      "CCN services à la personne IDCC 3127 ; CCN particuliers employeurs IDCC 3239 art. 57"
+    ]
+  },
+
+  "points_a_surveiller": [
+    "Amendement I-CF1500 (budget 2027) : plancher du barème km revenus 2026 = barème 2025 × 1,10 si voté ; prévoir un coefficient dans revenus-2026.json.",
+    "Plafond des frais réels hors barème pour véhicule électrique : barème 7 CV électrique ou thermique ? À confirmer dans le BOFiP en vigueur.",
+    "Limite de caractères du champ « Informations » en ligne : à vérifier au printemps 2027."
+  ]
+}

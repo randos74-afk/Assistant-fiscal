@@ -1,0 +1,475 @@
+{
+  "millesime": "revenus-2025",
+  "tolerance_euros": 0.01,
+  "cas": [
+    {
+      "id": "BAR-01",
+      "titre": "Voiture 6 CV, 4 000 km",
+      "entrees": {
+        "km": 4000,
+        "cv": 6
+      },
+      "attendu": {
+        "montant": 2660.0
+      },
+      "source": "GP 120 exemple : 2 660 €"
+    },
+    {
+      "id": "BAR-02",
+      "titre": "Voiture 5 CV, 6 000 km",
+      "entrees": {
+        "km": 6000,
+        "cv": 5
+      },
+      "attendu": {
+        "montant": 3537.0
+      },
+      "source": "GP 120 exemple : 3 537 €"
+    },
+    {
+      "id": "BAR-03",
+      "titre": "Voiture électrique 6 CV, 4 000 km",
+      "entrees": {
+        "km": 4000,
+        "cv": 6,
+        "electrique": true
+      },
+      "attendu": {
+        "montant": 3192.0
+      },
+      "source": "GP 120 exemple : 3 192 €"
+    },
+    {
+      "id": "BAR-04",
+      "titre": "Voiture électrique 5 CV, 6 000 km",
+      "entrees": {
+        "km": 6000,
+        "cv": 5,
+        "electrique": true
+      },
+      "attendu": {
+        "montant": 4242.0
+      },
+      "source": "GP 120 exemple : 4 242 €"
+    },
+    {
+      "id": "BAR-05",
+      "titre": "Moto plus de 5 CV, 5 900 km",
+      "entrees": {
+        "km": 5900,
+        "vehicule": "moto",
+        "cv": 6
+      },
+      "attendu": {
+        "montant": 2049.1,
+        "arrondi_euro": 2049
+      },
+      "source": "GP 120 exemple : 2 049 €"
+    },
+    {
+      "id": "BAR-06",
+      "titre": "Moto électrique plus de 5 CV, 5 900 km",
+      "entrees": {
+        "km": 5900,
+        "vehicule": "moto",
+        "cv": 6,
+        "electrique": true
+      },
+      "attendu": {
+        "montant": 2460.5,
+        "arrondi_euro": 2460
+      },
+      "source": "GP 120 exemple : 2 460 €"
+    },
+    {
+      "id": "BAR-07",
+      "titre": "Voiture 4 CV, 8 000 km",
+      "entrees": {
+        "km": 8000,
+        "cv": 4
+      },
+      "attendu": {
+        "montant": 4050.0
+      },
+      "source": "Tout sur mes finances : 4 050 €"
+    },
+    {
+      "id": "BAR-08",
+      "titre": "Voiture 7 CV, 25 000 km",
+      "entrees": {
+        "km": 25000,
+        "cv": 7
+      },
+      "attendu": {
+        "montant": 11750.0
+      },
+      "source": "Tout sur mes finances : 11 750 €"
+    },
+    {
+      "id": "BAR-09",
+      "titre": "Voiture 11 CV ramenée à 7 CV, 10 000 km",
+      "entrees": {
+        "km": 10000,
+        "cv": 11
+      },
+      "attendu": {
+        "montant": 5455.0,
+        "cv_retenus": 7
+      },
+      "source": "GP 120 : barème plafonné à 7 CV"
+    },
+    {
+      "id": "BAR-10",
+      "titre": "Cyclomoteur, 2 500 km",
+      "entrees": {
+        "km": 2500,
+        "vehicule": "cyclomoteur"
+      },
+      "attendu": {
+        "montant": 787.5
+      },
+      "source": "GP 120"
+    },
+    {
+      "id": "ABT-01",
+      "titre": "Salaire 45 000 €",
+      "entrees": {
+        "salaire": 45000
+      },
+      "attendu": {
+        "abattement": 4500.0
+      },
+      "source": "10 %"
+    },
+    {
+      "id": "ABT-02",
+      "titre": "Salaire 3 000 € : minimum 509 €",
+      "entrees": {
+        "salaire": 3000
+      },
+      "attendu": {
+        "abattement": 509.0
+      },
+      "source": "minimum 509 €"
+    },
+    {
+      "id": "ABT-03",
+      "titre": "Salaire 400 € : abattement limité au salaire",
+      "entrees": {
+        "salaire": 400
+      },
+      "attendu": {
+        "abattement": 400.0
+      },
+      "source": "minimum limité au salaire"
+    },
+    {
+      "id": "ABT-04",
+      "titre": "Salaire 200 000 € : plafond",
+      "entrees": {
+        "salaire": 200000
+      },
+      "attendu": {
+        "abattement": 14555.0
+      },
+      "source": "maximum 14 555 €"
+    },
+    {
+      "id": "DIS-01",
+      "titre": "55 km aller sans motif",
+      "entrees": {
+        "aller_km": 55,
+        "motif": false
+      },
+      "attendu": {
+        "distance_retenue": 40
+      },
+      "source": "règle des 40 km"
+    },
+    {
+      "id": "DIS-02",
+      "titre": "55 km aller avec motif (emploi du conjoint)",
+      "entrees": {
+        "aller_km": 55,
+        "motif": true
+      },
+      "attendu": {
+        "distance_retenue": 55
+      },
+      "source": "circonstance particulière"
+    },
+    {
+      "id": "REP-01",
+      "titre": "Restaurant 12 €, 218 jours, sans titres",
+      "entrees": {
+        "nb": 218,
+        "prix": 12
+      },
+      "attendu": {
+        "montant": 1427.9
+      },
+      "source": "Tout sur mes finances : 1 427,90 €"
+    },
+    {
+      "id": "REP-02",
+      "titre": "Restaurant 12 €, titre-restaurant part employeur 4,50 €",
+      "entrees": {
+        "nb": 218,
+        "prix": 12,
+        "part_employeur_tr": 4.5
+      },
+      "attendu": {
+        "montant": 446.9
+      },
+      "source": "Tout sur mes finances : 446,90 €"
+    },
+    {
+      "id": "REP-03",
+      "titre": "Cantine 10 €, 218 jours",
+      "entrees": {
+        "nb": 218,
+        "prix": 10
+      },
+      "attendu": {
+        "montant": 991.9
+      },
+      "source": "Tout sur mes finances annonce 991,60 € : erreur de leur part, 4,55 × 218 = 991,90 €"
+    },
+    {
+      "id": "REP-04",
+      "titre": "Gamelle, titre-restaurant part employeur 4 €",
+      "entrees": {
+        "nb": 1,
+        "prix": null,
+        "part_employeur_tr": 4
+      },
+      "attendu": {
+        "montant_par_repas": 1.45
+      },
+      "source": "Tout sur mes finances : 1,45 €"
+    },
+    {
+      "id": "TLT-01",
+      "titre": "Forfait 2 j/semaine (8 j/mois × 11 mois)",
+      "entrees": {
+        "jours_par_mois": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          0
+        ]
+      },
+      "attendu": {
+        "montant": 237.6
+      },
+      "source": "2,70 €/j"
+    },
+    {
+      "id": "TLT-02",
+      "titre": "Forfait plafonné : 25 j/mois × 12",
+      "entrees": {
+        "jours_par_mois": [
+          25,
+          25,
+          25,
+          25,
+          25,
+          25,
+          25,
+          25,
+          25,
+          25,
+          25,
+          25
+        ]
+      },
+      "attendu": {
+        "montant": 626.4
+      },
+      "source": "plafonds 59,40 €/mois et 626,40 €/an"
+    },
+    {
+      "id": "MAT-01",
+      "titre": "Ordinateur 450 € HT, usage pro 60 %",
+      "entrees": {
+        "prix_ht": 450,
+        "usage_pro": 0.6
+      },
+      "attendu": {
+        "montant": 270.0
+      },
+      "source": "déduction immédiate ≤ 500 € HT"
+    },
+    {
+      "id": "MAT-02",
+      "titre": "Ordinateur 1 200 € HT acheté en juillet, usage pro 50 %",
+      "entrees": {
+        "prix_ht": 1200,
+        "usage_pro": 0.5,
+        "mois_utilises_annee_achat": 6
+      },
+      "attendu": {
+        "montant_annee_1": 100.0
+      },
+      "source": "amortissement 3 ans prorata temporis"
+    },
+    {
+      "id": "VHB-01",
+      "titre": "Frais justifiés 9 000 € pour 15 000 km : plafond barème 7 CV",
+      "entrees": {
+        "km": 15000,
+        "frais_justifies": 9000
+      },
+      "attendu": {
+        "montant_retenu": 7425.0
+      },
+      "source": "BOI-RSA-BASE-30-50-30-20 §500-520"
+    },
+    {
+      "id": "RES-01",
+      "titre": "Exemple du résumé 1AK (spécification §10)",
+      "entrees": {
+        "aller_km": 22,
+        "jours_sur_site": 180,
+        "cv": 5,
+        "repas": {
+          "nb": 180,
+          "prix": 12
+        },
+        "teletravail_jours": 38,
+        "documentation": 211
+      },
+      "attendu": {
+        "km": 7920,
+        "frais_km": 4222.44,
+        "repas": 1179.0,
+        "teletravail": 102.6,
+        "total": 5715.04,
+        "total_arrondi_1AK": 5715
+      },
+      "source": "Spécifications fonctionnelles §10 : 5 715 €"
+    },
+    {
+      "id": "ADM-01",
+      "titre": "Aide à domicile ADMR, 40 km/jour dont 15 km remboursés, 200 jours, 4 CV, salaire 18 000 €",
+      "entrees": {
+        "km_par_jour": 40,
+        "km_rembourses_par_jour": 15,
+        "jours": 200,
+        "cv": 4,
+        "taux_ik": 0.38,
+        "salaire_prerempli": 18000
+      },
+      "attendu": {
+        "km_annuels": 8000,
+        "frais_reels": 4050.0,
+        "reintegration": 1140.0,
+        "base_abattement_10": 16200.0,
+        "base_frais_reels": 15090.0,
+        "gain_base": 1110.0
+      },
+      "source": "Spécifications F13 : 4 050 € ; 1 140 € ; gain 1 110 €"
+    },
+    {
+      "id": "ADM-02",
+      "titre": "Même cas + forfait repas 5,45 € × 200",
+      "entrees": {
+        "base": "ADM-01",
+        "repas_forfait": 200
+      },
+      "attendu": {
+        "frais_reels": 5140.0,
+        "gain_base": 2200.0
+      },
+      "source": "Spécifications F13 : gain 2 200 €"
+    },
+    {
+      "id": "ADM-03",
+      "titre": "Auxiliaire de vie via mandataire : 742 km/mois, forfaits 156,75 €/mois, 4 CV (témoignage)",
+      "entrees": {
+        "km_par_mois": 742,
+        "mois": 12,
+        "forfaits_transport_par_mois": 156.75,
+        "cv": 4
+      },
+      "attendu": {
+        "km_annuels": 8904,
+        "frais_reels": 4357.36,
+        "reintegration": 1881.0
+      },
+      "source": "Spécifications F13, cas de test n° 2"
+    },
+    {
+      "id": "SEU-20000",
+      "titre": "Distance aller minimale pour battre le 10 %, salaire 20000 €",
+      "entrees": {
+        "salaire": 20000,
+        "cv": 5,
+        "jours": 218
+      },
+      "attendu": {
+        "km_aller_min": {
+          "thermique": 8,
+          "electrique": 7
+        }
+      },
+      "source": "Simulation du 14/10/2026"
+    },
+    {
+      "id": "SEU-25000",
+      "titre": "Distance aller minimale pour battre le 10 %, salaire 25000 €",
+      "entrees": {
+        "salaire": 25000,
+        "cv": 5,
+        "jours": 218
+      },
+      "attendu": {
+        "km_aller_min": {
+          "thermique": 10,
+          "electrique": 8
+        }
+      },
+      "source": "Simulation du 14/10/2026"
+    },
+    {
+      "id": "SEU-30000",
+      "titre": "Distance aller minimale pour battre le 10 %, salaire 30000 €",
+      "entrees": {
+        "salaire": 30000,
+        "cv": 5,
+        "jours": 218
+      },
+      "attendu": {
+        "km_aller_min": {
+          "thermique": 11,
+          "electrique": 10
+        }
+      },
+      "source": "Simulation du 14/10/2026"
+    },
+    {
+      "id": "SEU-40000",
+      "titre": "Distance aller minimale pour battre le 10 %, salaire 40000 €",
+      "entrees": {
+        "salaire": 40000,
+        "cv": 5,
+        "jours": 218
+      },
+      "attendu": {
+        "km_aller_min": {
+          "thermique": 17,
+          "electrique": 13
+        }
+      },
+      "source": "Simulation du 14/10/2026"
+    }
+  ]
+}

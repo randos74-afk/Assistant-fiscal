@@ -1,0 +1,186 @@
+"""Calcul de référence FraisFit (revenus 2025).
+
+Sert UNIQUEMENT à vérifier les résultats attendus des cas de test.
+L'application (web React et Android Kotlin) doit retrouver exactement
+les mêmes montants à partir de parametres/revenus-2025.json.
+
+Usage : python3 tests/reference_calcul.py   (régénère tests/cas-de-test.json)
+"""
+import json
+import os
+
+ICI = os.path.dirname(os.path.abspath(__file__))
+P = json.load(open(os.path.join(ICI, "..", "parametres", "revenus-2025.json"), encoding="utf-8"))
+B = P["bareme_kilometrique"]
+
+
+def _tranche(d, bornes, lignes):
+    i = 0 if d <= bornes[0] else (1 if d <= bornes[1] else 2)
+    return d * lignes[i]["a"] + lignes[i]["b"]
+
+
+def bareme_km(km, vehicule="voiture", cv=5, electrique=False):
+    """Montant du barème pour le kilométrage annuel TOTAL d'un véhicule."""
+    if vehicule == "voiture":
+        t = B["voiture_electrique" if electrique else "voiture_thermique"]
+        cle = str(min(max(int(cv), 3), P["deplacements"]["puissance_max_voiture_cv"]))
+        return _tranche(km, t["tranches_km"], t["lignes"][cle])
+    if vehicule == "cyclomoteur":
+        t = B["cyclomoteur_electrique" if electrique else "cyclomoteur_thermique"]
+        return _tranche(km, t["tranches_km"], t["ligne"])
+    if vehicule == "moto":
+        t = B["moto_electrique" if electrique else "moto_thermique"]
+        cle = "1-2" if cv <= 2 else ("3-5" if cv <= 5 else "5+")
+        return _tranche(km, t["tranches_km"], t["lignes"][cle])
+    raise ValueError(vehicule)
+
+
+def abattement(salaire):
+    a = P["abattement_10_pourcent"]
+    return min(max(salaire * a["taux"], a["minimum_par_declarant"]), a["maximum_par_declarant"], salaire)
+
+
+def distance_retenue(aller_km, motif=False):
+    return aller_km if motif else min(aller_km, P["deplacements"]["distance_aller_max_sans_justification_km"])
+
+
+def repas(nb, prix=None, part_employeur_tr=0.0):
+    """prix=None -> forfait sans justificatif détaillé."""
+    r = P["repas"]
+    unit = r["forfait_sans_justificatif_detaille"] if prix is None else prix - r["valeur_repas_au_foyer"]
+    return max(unit - part_employeur_tr, 0) * nb
+
+
+def teletravail_forfait(jours_par_mois):
+    t = P["teletravail"]
+    total = sum(min(j * t["forfait_par_jour"], t["plafond_mensuel"]) for j in jours_par_mois)
+    return min(total, t["plafond_annuel"])
+
+
+def materiel(prix_ht, usage_pro=1.0, mois_utilises_annee_achat=12):
+    m = P["materiel"]
+    if prix_ht <= m["seuil_deduction_immediate_HT"]:
+        return prix_ht * usage_pro
+    annuite = prix_ht / m["duree_amortissement_informatique_ans"]
+    return annuite * mois_utilises_annee_achat / 12 * usage_pro
+
+
+def plafond_frais_reels_vehicule(km, frais_justifies_hors_peages_parking_interets):
+    return min(frais_justifies_hors_peages_parking_interets, bareme_km(km, "voiture", 7))
+
+
+def gain_base_imposable(salaire_prerempli, reintegrations, frais_reels):
+    base_10 = salaire_prerempli - abattement(salaire_prerempli)
+    base_reel = salaire_prerempli + reintegrations - frais_reels
+    return base_10, base_reel, base_10 - base_reel
+
+
+def r2(x):
+    return round(x + 1e-9, 2)
+
+
+CAS = []
+
+
+def cas(id_, titre, entrees, attendu, source):
+    CAS.append({"id": id_, "titre": titre, "entrees": entrees, "attendu": attendu, "source": source})
+
+
+# --- Barèmes : exemples officiels du dépliant GP 120 ---
+cas("BAR-01", "Voiture 6 CV, 4 000 km", {"km": 4000, "cv": 6}, {"montant": r2(bareme_km(4000, cv=6))}, "GP 120 exemple : 2 660 €")
+cas("BAR-02", "Voiture 5 CV, 6 000 km", {"km": 6000, "cv": 5}, {"montant": r2(bareme_km(6000, cv=5))}, "GP 120 exemple : 3 537 €")
+cas("BAR-03", "Voiture électrique 6 CV, 4 000 km", {"km": 4000, "cv": 6, "electrique": True}, {"montant": r2(bareme_km(4000, cv=6, electrique=True))}, "GP 120 exemple : 3 192 €")
+cas("BAR-04", "Voiture électrique 5 CV, 6 000 km", {"km": 6000, "cv": 5, "electrique": True}, {"montant": r2(bareme_km(6000, cv=5, electrique=True))}, "GP 120 exemple : 4 242 €")
+cas("BAR-05", "Moto plus de 5 CV, 5 900 km", {"km": 5900, "vehicule": "moto", "cv": 6}, {"montant": r2(bareme_km(5900, "moto", 6)), "arrondi_euro": 2049}, "GP 120 exemple : 2 049 €")
+cas("BAR-06", "Moto électrique plus de 5 CV, 5 900 km", {"km": 5900, "vehicule": "moto", "cv": 6, "electrique": True}, {"montant": r2(bareme_km(5900, "moto", 6, True)), "arrondi_euro": 2460}, "GP 120 exemple : 2 460 €")
+cas("BAR-07", "Voiture 4 CV, 8 000 km", {"km": 8000, "cv": 4}, {"montant": r2(bareme_km(8000, cv=4))}, "Tout sur mes finances : 4 050 €")
+cas("BAR-08", "Voiture 7 CV, 25 000 km", {"km": 25000, "cv": 7}, {"montant": r2(bareme_km(25000, cv=7))}, "Tout sur mes finances : 11 750 €")
+cas("BAR-09", "Voiture 11 CV ramenée à 7 CV, 10 000 km", {"km": 10000, "cv": 11}, {"montant": r2(bareme_km(10000, cv=11)), "cv_retenus": 7}, "GP 120 : barème plafonné à 7 CV")
+cas("BAR-10", "Cyclomoteur, 2 500 km", {"km": 2500, "vehicule": "cyclomoteur"}, {"montant": r2(bareme_km(2500, "cyclomoteur"))}, "GP 120")
+
+# --- Abattement 10 % ---
+cas("ABT-01", "Salaire 45 000 €", {"salaire": 45000}, {"abattement": r2(abattement(45000))}, "10 %")
+cas("ABT-02", "Salaire 3 000 € : minimum 509 €", {"salaire": 3000}, {"abattement": r2(abattement(3000))}, "minimum 509 €")
+cas("ABT-03", "Salaire 400 € : abattement limité au salaire", {"salaire": 400}, {"abattement": r2(abattement(400))}, "minimum limité au salaire")
+cas("ABT-04", "Salaire 200 000 € : plafond", {"salaire": 200000}, {"abattement": r2(abattement(200000))}, "maximum 14 555 €")
+
+# --- Distances ---
+cas("DIS-01", "55 km aller sans motif", {"aller_km": 55, "motif": False}, {"distance_retenue": distance_retenue(55)}, "règle des 40 km")
+cas("DIS-02", "55 km aller avec motif (emploi du conjoint)", {"aller_km": 55, "motif": True}, {"distance_retenue": distance_retenue(55, True)}, "circonstance particulière")
+
+# --- Repas ---
+cas("REP-01", "Restaurant 12 €, 218 jours, sans titres", {"nb": 218, "prix": 12}, {"montant": r2(repas(218, 12))}, "Tout sur mes finances : 1 427,90 €")
+cas("REP-02", "Restaurant 12 €, titre-restaurant part employeur 4,50 €", {"nb": 218, "prix": 12, "part_employeur_tr": 4.5}, {"montant": r2(repas(218, 12, 4.5))}, "Tout sur mes finances : 446,90 €")
+cas("REP-03", "Cantine 10 €, 218 jours", {"nb": 218, "prix": 10}, {"montant": r2(repas(218, 10))}, "Tout sur mes finances annonce 991,60 € : erreur de leur part, 4,55 × 218 = 991,90 €")
+cas("REP-04", "Gamelle, titre-restaurant part employeur 4 €", {"nb": 1, "prix": None, "part_employeur_tr": 4}, {"montant_par_repas": r2(repas(1, None, 4))}, "Tout sur mes finances : 1,45 €")
+
+# --- Télétravail ---
+cas("TLT-01", "Forfait 2 j/semaine (8 j/mois × 11 mois)", {"jours_par_mois": [8] * 11 + [0]}, {"montant": r2(teletravail_forfait([8] * 11 + [0]))}, "2,70 €/j")
+cas("TLT-02", "Forfait plafonné : 25 j/mois × 12", {"jours_par_mois": [25] * 12}, {"montant": r2(teletravail_forfait([25] * 12))}, "plafonds 59,40 €/mois et 626,40 €/an")
+
+# --- Matériel ---
+cas("MAT-01", "Ordinateur 450 € HT, usage pro 60 %", {"prix_ht": 450, "usage_pro": 0.6}, {"montant": r2(materiel(450, 0.6))}, "déduction immédiate ≤ 500 € HT")
+cas("MAT-02", "Ordinateur 1 200 € HT acheté en juillet, usage pro 50 %", {"prix_ht": 1200, "usage_pro": 0.5, "mois_utilises_annee_achat": 6}, {"montant_annee_1": r2(materiel(1200, 0.5, 6))}, "amortissement 3 ans prorata temporis")
+
+# --- Frais réels de véhicule hors barème ---
+cas("VHB-01", "Frais justifiés 9 000 € pour 15 000 km : plafond barème 7 CV", {"km": 15000, "frais_justifies": 9000}, {"montant_retenu": r2(plafond_frais_reels_vehicule(15000, 9000))}, "BOI-RSA-BASE-30-50-30-20 §500-520")
+
+# --- Comparaison complète et résumé 1AK (spécification §10) ---
+km_ex = 22 * 2 * 180
+f_km = bareme_km(km_ex, cv=5)
+f_rep = repas(180, 12)
+f_tlt = 38 * 2.70
+total_ex = f_km + f_rep + f_tlt + 211
+cas("RES-01", "Exemple du résumé 1AK (spécification §10)",
+    {"aller_km": 22, "jours_sur_site": 180, "cv": 5, "repas": {"nb": 180, "prix": 12}, "teletravail_jours": 38, "documentation": 211},
+    {"km": km_ex, "frais_km": r2(f_km), "repas": r2(f_rep), "teletravail": r2(f_tlt), "total": r2(total_ex), "total_arrondi_1AK": round(total_ex)},
+    "Spécifications fonctionnelles §10 : 5 715 €")
+
+# --- Aide à domicile ADMR (spécification F13) ---
+km_admr = 40 * 200
+reint_admr = 15 * 200 * 0.38
+frais_admr = bareme_km(km_admr, cv=4)
+b10, br, g = gain_base_imposable(18000, reint_admr, frais_admr)
+cas("ADM-01", "Aide à domicile ADMR, 40 km/jour dont 15 km remboursés, 200 jours, 4 CV, salaire 18 000 €",
+    {"km_par_jour": 40, "km_rembourses_par_jour": 15, "jours": 200, "cv": 4, "taux_ik": 0.38, "salaire_prerempli": 18000},
+    {"km_annuels": km_admr, "frais_reels": r2(frais_admr), "reintegration": r2(reint_admr), "base_abattement_10": r2(b10), "base_frais_reels": r2(br), "gain_base": r2(g)},
+    "Spécifications F13 : 4 050 € ; 1 140 € ; gain 1 110 €")
+frais_admr2 = frais_admr + repas(200, None)
+b10, br, g = gain_base_imposable(18000, reint_admr, frais_admr2)
+cas("ADM-02", "Même cas + forfait repas 5,45 € × 200", {"base": "ADM-01", "repas_forfait": 200},
+    {"frais_reels": r2(frais_admr2), "gain_base": r2(g)}, "Spécifications F13 : gain 2 200 €")
+km_mand = 742 * 12
+cas("ADM-03", "Auxiliaire de vie via mandataire : 742 km/mois, forfaits 156,75 €/mois, 4 CV (témoignage)",
+    {"km_par_mois": 742, "mois": 12, "forfaits_transport_par_mois": 156.75, "cv": 4},
+    {"km_annuels": km_mand, "frais_reels": r2(bareme_km(km_mand, cv=4)), "reintegration": r2(156.75 * 12)},
+    "Spécifications F13, cas de test n° 2")
+
+# --- Seuils de rentabilité thermique / électrique (5 CV, 218 jours, km seuls) ---
+for s in (20000, 25000, 30000, 40000):
+    res = {}
+    for ev in (False, True):
+        k = 1
+        while bareme_km(k * 2 * 218, cv=5, electrique=ev) <= abattement(s):
+            k += 1
+        res["electrique" if ev else "thermique"] = k
+    cas(f"SEU-{s}", f"Distance aller minimale pour battre le 10 %, salaire {s} €", {"salaire": s, "cv": 5, "jours": 218},
+        {"km_aller_min": res}, "Simulation du 14/10/2026")
+
+
+if __name__ == "__main__":
+    out = os.path.join(ICI, "cas-de-test.json")
+    json.dump({"millesime": "revenus-2025", "tolerance_euros": 0.01, "cas": CAS}, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    # Contrôles contre les exemples officiels
+    assert r2(bareme_km(4000, cv=6)) == 2660.0
+    assert r2(bareme_km(6000, cv=5)) == 3537.0
+    assert r2(bareme_km(4000, cv=6, electrique=True)) == 3192.0
+    assert r2(bareme_km(6000, cv=5, electrique=True)) == 4242.0
+    assert round(bareme_km(5900, "moto", 6)) == 2049
+    assert round(bareme_km(5900, "moto", 6, True)) == 2460
+    assert r2(bareme_km(8000, cv=4)) == 4050.0
+    assert r2(bareme_km(25000, cv=7)) == 11750.0
+    assert r2(repas(218, 12)) == 1427.90
+    assert r2(repas(218, 12, 4.5)) == 446.90
+    assert r2(repas(218, 10)) == 991.90  # l'article source annonce 991,60 € par erreur
+    assert round(total_ex) == 5715
+    print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")
