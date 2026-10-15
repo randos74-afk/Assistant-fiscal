@@ -201,6 +201,7 @@ export default function App() {
           parametres={parametres}
           joursParMois={jours ? jours.mois.map((m) => m.teletravail) : Array(12).fill(0)}
           joursTravailles={jours ? totaux(jours.mois).travailles : 0}
+          employeurs={salaire?.employeurs}
           valeurInitiale={teletravail}
           onRetour={precedent("repas")}
           onValider={(t) => (setTeletravail(t), suivant("autres"))}
@@ -218,6 +219,7 @@ export default function App() {
             // F12.7 — Allocations chômage : les frais de recherche d'emploi sont proposés d'office.
             ...(salaire?.chomage ? (["rechercheEmploi"] as const) : []),
           ]}
+          employeurs={salaire?.employeurs}
           valeurInitiale={autres}
           onRetour={precedent("teletravail")}
           onValider={(a) => (setAutres(a), setEcran("relecture"))}

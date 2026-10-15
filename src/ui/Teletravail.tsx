@@ -17,6 +17,8 @@ import {
 } from "../parcours/teletravail";
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
+import { MontantsParEmployeur, totalParEmployeur } from "./MontantsParEmployeur";
+import { nomEmployeur, type Employeur } from "../parcours/employeurs";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
 import { ListeAchats, lignesValides, versAchats, versLignes, type LigneAchat } from "./ListeAchats";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
@@ -28,6 +30,8 @@ interface Props {
   parametres: Parametres;
   joursParMois: number[];
   joursTravailles: number;
+  /** F12 — Deux employeurs ou plus : une allocation par employeur. */
+  employeurs?: Employeur[];
   valeurInitiale?: SaisieTeletravail;
   onValider: (t: SaisieTeletravail) => void;
   onRetour: () => void;
@@ -51,7 +55,7 @@ const CHARGES = [
   { cle: "impots", libelle: "Taxe foncière ou impôts locaux de l'année" },
 ] as const;
 
-export function Teletravail({ parametres: p, joursParMois, joursTravailles, valeurInitiale: v, onValider, onRetour }: Props) {
+export function Teletravail({ parametres: p, joursParMois, joursTravailles, employeurs, valeurInitiale: v, onValider, onRetour }: Props) {
   const annee = p.millesime.revenus;
   const joursTeletravail = joursParMois.reduce((s, j) => s + j, 0);
 
@@ -59,6 +63,11 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
   const [aAllocation, setAAllocation] = useState<string | undefined>(v ? (v.allocation > 0 ? "oui" : "non") : undefined);
   const [allocation, setAllocation] = useState(v && !v.allocationPrudente ? texte(v.allocation) : "");
   const [allocPrudente, setAllocPrudente] = useState(v?.allocationPrudente ?? false);
+  const plusieurs = employeurs && employeurs.length > 1 ? employeurs : null;
+  const [allocParEmp, setAllocParEmp] = useState<string[]>(
+    plusieurs ? plusieurs.map((_, i) => texte(v?.allocationParEmployeur?.[i]?.montant)) : [],
+  );
+  const totalAllocEmp = plusieurs ? totalParEmployeur(allocParEmp) : null;
   const [comparer, setComparer] = useState<string | undefined>(v ? (v.comparer ? "oui" : "non") : undefined);
   const [usage, setUsage] = useState<UsageLocal | "studio" | undefined>(v ? (v.studio ? "studio" : v.usage) : undefined);
   const [surfaceBureau, setSurfaceBureau] = useState(v?.surfaceBureau ? String(v.surfaceBureau) : "");
@@ -80,8 +89,11 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
   function saisie(m: "forfait" | "reel" = methode ?? "forfait"): SaisieTeletravail {
     const u = usage ?? "aucun";
     return {
-      allocation: aAllocation === "oui" ? (allocPrudente ? prudente : montant(allocation)) : 0,
+      allocation: aAllocation === "oui" ? (allocPrudente ? prudente : plusieurs ? (totalAllocEmp ?? 0) : montant(allocation)) : 0,
       allocationPrudente: aAllocation === "oui" && allocPrudente,
+      ...(plusieurs && aAllocation === "oui" && !allocPrudente
+        ? { allocationParEmployeur: plusieurs.map((e, i) => ({ nom: nomEmployeur(e, i), montant: montant(allocParEmp[i] ?? "") })) }
+        : {}),
       comparer: comparer === "oui",
       usage: u === "studio" ? "mixte" : u,
       studio: u === "studio",
@@ -130,7 +142,8 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
     case "allocation":
       titre = "Votre employeur vous verse-t-il une indemnité de télétravail ?";
       fiche = completerFiche(FICHES.allocationTeletravail, { forfait: eurosCentimes(p.teletravail.forfait_par_jour) });
-      peutContinuer = aAllocation === "non" || (aAllocation === "oui" && (allocPrudente || montant(allocation) > 0));
+      peutContinuer =
+        aAllocation === "non" || (aAllocation === "oui" && (allocPrudente || (plusieurs ? (totalAllocEmp ?? 0) > 0 : montant(allocation) > 0)));
       contenu = (
         <>
           <p className="texte-secondaire sous-question">
@@ -160,7 +173,17 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
               </>
             ) : (
               <>
-                <ChampMontant compact libelleVisible libelle="Total reçu dans l'année" valeur={allocation} onChange={setAllocation} />
+                {plusieurs ? (
+                  <MontantsParEmployeur
+                    employeurs={plusieurs}
+                    libelle="Reçu dans l'année, par employeur"
+                    detail="Laissez vide pour un employeur qui ne vous a rien versé."
+                    valeurs={allocParEmp}
+                    onChange={setAllocParEmp}
+                  />
+                ) : (
+                  <ChampMontant compact libelleVisible libelle="Total reçu dans l'année" valeur={allocation} onChange={setAllocation} />
+                )}
                 <LienJeNeSaisPas onClick={() => setAllocPrudente(true)} />
               </>
             ))}

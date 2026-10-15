@@ -307,6 +307,7 @@ Le client ne fait aucune addition lui-même : l'application les fait et les mont
 | F12.6 | Kilomètres | Trajets de chaque employeur additionnés par véhicule avant application du barème (une seule tranche) ; trajet direct d'un employeur à un autre dans la même journée = déplacement professionnel |
 | F12.7 | Allocation chômage entre deux emplois | Saisie à part (attestation France Travail ou case 1AP préremplie) ; la déduction de 10 % porte sur les salaires et les allocations ensemble, l'option frais réels la remplace pour le tout (BOI-RSA-BASE-30-50-20) : la comparaison inclut donc les allocations, la case 1AJ non. Le minimum majoré des demandeurs d'emploi de longue durée a été supprimé (loi de finances pour 2019) : minimum de droit commun. Ouvre d'office les frais de recherche d'emploi (F6.5). Cas CHO-01 |
 | F12.8 | Résumé 1AK | Une ligne par employeur (période, salaire, km, remboursements réintégrés), puis le total |
+| F12.9 | Remboursements par employeur (mise en œuvre) | Allocation télétravail et remboursement de l'abonnement de transport saisis employeur par employeur, l'application additionne ; l'allocation réintégrée apparaît par employeur dans le résumé. Titres-restaurant et prime de panier restent saisis une fois, nombres pré-remplis avec tous les jours sur site |
 
 ## 15. F13 — Parcours « aide à domicile » (intervenants chez plusieurs bénéficiaires)
 

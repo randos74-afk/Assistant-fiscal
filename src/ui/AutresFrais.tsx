@@ -17,6 +17,8 @@ import { FICHES, type FicheAide as Fiche } from "../parcours/fichesAide";
 import { afficherMontant, lireEntier, lireMontant } from "../parcours/saisie";
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
+import { MontantsParEmployeur, totalParEmployeur } from "./MontantsParEmployeur";
+import type { Employeur } from "../parcours/employeurs";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
 import { ListeAchats, lignesValides, versAchats, versLignes, type LigneAchat } from "./ListeAchats";
 import { BandeauConfidentialite, Encadre, EnTeteEtape } from "./Question";
@@ -32,6 +34,8 @@ interface Props {
   aVehicule: boolean;
   /** Postes ouverts d'office par le métier. */
   postesOuvertsDOffice: IdAutreFrais[];
+  /** F12 — Deux employeurs ou plus : un remboursement de transport par employeur. */
+  employeurs?: Employeur[];
   valeurInitiale?: SaisieAutresFrais;
   onValider: (s: SaisieAutresFrais) => void;
   onRetour: () => void;
@@ -43,7 +47,7 @@ const montant = (t: string) => {
 };
 const texte = (n: number | undefined) => (n ? afficherMontant(n) : "");
 
-export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuvertsDOffice, valeurInitiale: v, onValider, onRetour }: Props) {
+export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuvertsDOffice, employeurs, valeurInitiale: v, onValider, onRetour }: Props) {
   const [question, setQuestion] = useState<Question>(v ? "bilan" : enTransports ? "transport" : "postes");
   const [ouverts, setOuverts] = useState<IdAutreFrais[]>(v?.ouverts ?? postesOuvertsDOffice);
   const [montants, setMontants] = useState<Record<string, string>>(
@@ -59,11 +63,18 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
   const [abonnement, setAbonnement] = useState(texte(v?.transport?.abonnement));
   const [priseEnCharge, setPriseEnCharge] = useState(v?.transport && !v.transport.priseEnChargePrudente ? texte(v.transport.priseEnCharge) : "");
   const [pecPrudente, setPecPrudente] = useState(v?.transport?.priseEnChargePrudente ?? false);
+  const plusieurs = employeurs && employeurs.length > 1 ? employeurs : null;
+  const [pecParEmp, setPecParEmp] = useState<string[]>(plusieurs ? plusieurs.map((_, i) => texte(v?.transport?.priseEnChargeParEmployeur?.[i])) : []);
+  const totalPecEmp = plusieurs ? totalParEmployeur(pecParEmp) : null;
   const [agentPublic, setAgentPublic] = useState(false);
   const [aide, setAide] = useState<Fiche | null>(null);
 
   const etape = libelleEtape("vos autres frais");
-  const pecRetenue = pecPrudente ? priseEnChargePrudente(p, montant(abonnement), agentPublic) : montant(priseEnCharge);
+  const pecRetenue = pecPrudente
+    ? priseEnChargePrudente(p, montant(abonnement), agentPublic)
+    : plusieurs
+      ? (totalPecEmp ?? 0)
+      : montant(priseEnCharge);
 
   function saisie(): SaisieAutresFrais {
     const km = lireEntier(kmDR);
@@ -76,7 +87,15 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
       doubleResidence: ouverts.includes("doubleResidence")
         ? { motif: motifDR.trim(), logement: montant(logementDR), billets: montant(billetsDR), kmVehicule: km && !Number.isNaN(km) ? km : 0 }
         : null,
-      transport: enTransports && montant(abonnement) > 0 ? { abonnement: montant(abonnement), priseEnCharge: pecRetenue, priseEnChargePrudente: pecPrudente } : null,
+      transport:
+        enTransports && montant(abonnement) > 0
+          ? {
+              abonnement: montant(abonnement),
+              priseEnCharge: pecRetenue,
+              priseEnChargePrudente: pecPrudente,
+              ...(plusieurs && !pecPrudente ? { priseEnChargeParEmployeur: pecParEmp.map(montant) } : {}),
+            }
+          : null,
     };
   }
 
@@ -183,7 +202,7 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
       fiche = FICHES.transport;
       peutContinuer =
         montant(abonnement) > 0 &&
-        (pecPrudente || lireMontant(priseEnCharge) !== null) &&
+        (pecPrudente || (plusieurs ? totalPecEmp !== null : lireMontant(priseEnCharge) !== null)) &&
         [abonnement, priseEnCharge].every((t) => !Number.isNaN(lireMontant(t)));
       contenu = (
         <>
@@ -201,14 +220,24 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
             </>
           ) : (
             <>
-              <ChampMontant
-                compact
-                libelleVisible
-                libelle="Remboursé par votre employeur sur l'année"
-                detail="Écrivez 0 si rien n'est remboursé."
-                valeur={priseEnCharge}
-                onChange={setPriseEnCharge}
-              />
+              {plusieurs ? (
+                <MontantsParEmployeur
+                  employeurs={plusieurs}
+                  libelle="Remboursé sur l'année, par employeur"
+                  detail="Laissez vide pour un employeur qui n'a rien remboursé."
+                  valeurs={pecParEmp}
+                  onChange={setPecParEmp}
+                />
+              ) : (
+                <ChampMontant
+                  compact
+                  libelleVisible
+                  libelle="Remboursé par votre employeur sur l'année"
+                  detail="Écrivez 0 si rien n'est remboursé."
+                  valeur={priseEnCharge}
+                  onChange={setPriseEnCharge}
+                />
+              )}
               <LienJeNeSaisPas onClick={() => setPecPrudente(true)} />
             </>
           )}

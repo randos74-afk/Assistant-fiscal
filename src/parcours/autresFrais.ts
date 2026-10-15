@@ -94,6 +94,8 @@ export interface Transport {
   abonnement: number;
   priseEnCharge: number;
   priseEnChargePrudente: boolean;
+  /** F12 — Plusieurs employeurs : remboursement de chacun (la somme fait priseEnCharge). */
+  priseEnChargeParEmployeur?: number[];
 }
 
 export interface SaisieAutresFrais {

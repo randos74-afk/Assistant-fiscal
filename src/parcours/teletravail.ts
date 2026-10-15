@@ -15,6 +15,8 @@ export interface SaisieTeletravail {
   /** Allocation de télétravail versée par l'employeur dans l'année, à réintégrer. */
   allocation: number;
   allocationPrudente: boolean;
+  /** F12 — Plusieurs employeurs : allocation de chacun (la somme fait allocation), reprise dans le résumé. */
+  allocationParEmployeur?: { nom: string; montant: number }[];
   /** La personne a voulu comparer avec ses frais réels. */
   comparer: boolean;
   usage: UsageLocal;
@@ -67,5 +69,8 @@ export function comparerMethodes(
 }
 
 export function reintegrationsTeletravail(s: SaisieTeletravail): MontantLibelle[] {
+  if (s.allocationParEmployeur && !s.allocationPrudente) {
+    return s.allocationParEmployeur.filter((a) => a.montant > 0).map((a) => ({ libelle: `allocation télétravail ${a.nom}`, montant: a.montant }));
+  }
   return s.allocation > 0 ? [{ libelle: "allocation télétravail", montant: s.allocation }] : [];
 }

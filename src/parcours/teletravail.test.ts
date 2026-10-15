@@ -80,4 +80,16 @@ describe("Le télétravail (F5)", () => {
     expect(reintegrationsTeletravail({ ...base, allocation: 300 })).toEqual([{ libelle: "allocation télétravail", montant: 300 }]);
     expect(allocationPrudente(p, 88)).toBeCloseTo(237.6, 2);
   });
+
+  it("plusieurs employeurs : une réintégration par employeur qui a versé une allocation (F12.8)", () => {
+    const s = {
+      ...base,
+      allocation: 250,
+      allocationParEmployeur: [
+        { nom: "Garage Dupuis", montant: 250 },
+        { nom: "Employeur 2", montant: 0 },
+      ],
+    };
+    expect(reintegrationsTeletravail(s)).toEqual([{ libelle: "allocation télétravail Garage Dupuis", montant: 250 }]);
+  });
 });
