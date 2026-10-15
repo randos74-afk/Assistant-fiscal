@@ -40,7 +40,6 @@ export interface Parametres {
     distance_aller_max_sans_justification_km: number;
     allers_retours_par_jour_par_defaut: number;
     puissance_max_voiture_cv: number;
-    puissance_max_deux_roues_cv: number;
   };
   bareme_kilometrique: {
     voiture_thermique: BaremeParPuissance;

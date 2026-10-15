@@ -52,7 +52,6 @@
     "distance_aller_max_sans_justification_km": 40,
     "allers_retours_par_jour_par_defaut": 1,
     "puissance_max_voiture_cv": 7,
-    "puissance_max_deux_roues_cv": 5,
     "majoration_electrique": 0.20,
     "note_electrique": "Les barèmes électriques ci-dessous sont recopiés tels que publiés par la DGFiP ; ne PAS les recalculer en ×1,20 (arrondis officiels). Recharge et location de batterie sont incluses dans le barème.",
     "source": "Dépliant DGFiP GP 120 (barème reconduit à l'identique depuis l'arrêté de mars 2023)"
