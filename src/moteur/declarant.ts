@@ -6,6 +6,7 @@ import {
   comparer,
   distanceRetenue,
   kmDomicileTravail,
+  kmPlusieursEmployeurs,
   repas,
   teletravailForfait,
   type Comparaison,
@@ -39,6 +40,8 @@ export interface EntreeVehicule {
    * (plafonnés sauf motif), tronçons entre personnes aidées en professionnel. Remplace allerKm.
    */
   journeesTypes?: JourneeType[];
+  /** F12.6 — Un trajet par employeur ; remplace allerKm et joursSurSite. */
+  trajetsEmployeurs?: TrajetEmployeur[];
   /** F3.8 — Kilométrage annuel saisi directement (relevé), remplace le calcul. */
   kmForce?: number;
   /** F3.9 — Péages et parking, part professionnelle. */
@@ -46,6 +49,12 @@ export interface EntreeVehicule {
   /** F3.10 — Intérêts annuels du crédit auto, proratisés par kmPro / kmTotauxCompteur. */
   interetsCredit?: number;
   kmTotauxCompteur?: number;
+}
+
+export interface TrajetEmployeur {
+  nom: string;
+  allerKm: number;
+  joursSurSite: number;
 }
 
 export interface JourneeType {
@@ -144,7 +153,10 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
   for (const v of vehicules) {
     const allersRetours = v.allersRetoursParJour ?? p.deplacements.allers_retours_par_jour_par_defaut;
     const aller = distanceRetenue(p, v.allerKm, Boolean(v.motifDistance));
-    let kmTrajets = kmDomicileTravail(p, aller, v.joursSurSite, allersRetours);
+    const parEmployeur = v.trajetsEmployeurs?.length ? v.trajetsEmployeurs : null;
+    let kmTrajets = parEmployeur
+      ? kmPlusieursEmployeurs(p, parEmployeur, Boolean(v.motifDistance), allersRetours)
+      : kmDomicileTravail(p, aller, v.joursSurSite, allersRetours);
     let kmDT = 0;
     let kmPro = 0;
     if (v.journeesTypes?.length) {
@@ -172,20 +184,33 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
       detail = `${nombre(jours)} j d'intervention : domicile-travail ${nombre(kmDT)} km, entre personnes aidées ${nombre(kmPro)} km`;
       if (v.kmMissions) detail += ` + autres trajets professionnels ${nombre(v.kmMissions)} km`;
       if (v.kmDoubleResidence) detail += ` + trajets double résidence ${nombre(v.kmDoubleResidence)} km`;
+    } else if (parEmployeur) {
+      const fois = allersRetours > 1 ? ` × ${allersRetours} allers-retours` : "";
+      detail = parEmployeur
+        .map((t) => `${t.nom} ${nombre(distanceRetenue(p, t.allerKm, Boolean(v.motifDistance)))} km × 2${fois} × ${nombre(t.joursSurSite)} j sur site`)
+        .join(" + ");
+      if (v.kmMissions) detail += ` + missions ${nombre(v.kmMissions)} km`;
+      if (v.kmDoubleResidence) detail += ` + trajets double résidence ${nombre(v.kmDoubleResidence)} km`;
     } else {
       detail = `domicile-travail ${nombre(aller)} km × 2` + (allersRetours > 1 ? ` × ${allersRetours} allers-retours` : "");
       detail += ` × ${nombre(v.joursSurSite)} j sur site`;
       if (v.kmMissions) detail += ` + missions ${nombre(v.kmMissions)} km`;
       if (v.kmDoubleResidence) detail += ` + trajets double résidence ${nombre(v.kmDoubleResidence)} km`;
     }
-    if (v.allerKm > aller) {
+    const plafond = p.deplacements.distance_aller_max_sans_justification_km;
+    for (const t of parEmployeur ?? []) {
+      if (!v.motifDistance && t.allerKm > plafond) {
+        alertes.push(`Distance de ${t.nom} ramenée de ${nombre(t.allerKm)} à ${nombre(plafond)} km : indiquez un motif pour retenir la distance réelle.`);
+      }
+    }
+    if (!parEmployeur && v.allerKm > aller) {
       alertes.push(
         `Distance ramenée de ${nombre(v.allerKm)} à ${nombre(aller)} km : indiquez un motif pour retenir la distance réelle.`,
       );
     }
     if (v.motifDistance) {
       motifs.push(
-        v.kmForce !== undefined && !v.allerKm
+        (v.kmForce !== undefined || parEmployeur) && !v.allerKm
           ? `distance réelle au-delà de ${nombre(p.deplacements.distance_aller_max_sans_justification_km)} km retenue (${v.motifDistance})`
           : `distance de ${nombre(v.allerKm)} km retenue (${v.motifDistance})`,
       );

@@ -13,6 +13,7 @@ import {
   distanceAllerMinimale,
   distanceRetenue,
   kmDomicileTravail,
+  kmPlusieursEmployeurs,
   materiel,
   plafondFraisReelsVehicule,
   repartirJoursParMois,
@@ -58,6 +59,11 @@ function calculer(c: Cas): Record<string, unknown> {
       }
       const m = materiel(p, e.prix_ht, e.usage_pro, e.mois_utilises_annee_achat).montant;
       return { montant: m, montant_annee_1: m };
+    }
+    case "EMP": {
+      const trajets = (e.trajets as number[][]).map(([allerKm, joursSurSite]) => ({ allerKm, joursSurSite }));
+      const km = kmPlusieursEmployeurs(p, trajets, e.motif ?? false);
+      return { km, montant: baremeKm(p, { km, cv: e.cv }).montant };
     }
     case "IMP": {
       const foyer = { couple: e.couple, enfants: e.enfants, parentIsole: e.parent_isole ?? false, veuf: e.veuf ?? false };
@@ -195,8 +201,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 52 cas", () => {
-    expect(casDeTest.cas.length).toBe(52);
+  it("contient bien les 54 cas", () => {
+    expect(casDeTest.cas.length).toBe(54);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

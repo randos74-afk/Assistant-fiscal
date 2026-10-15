@@ -45,6 +45,12 @@ def distance_retenue(aller_km, motif=False):
     return aller_km if motif else min(aller_km, P["deplacements"]["distance_aller_max_sans_justification_km"])
 
 
+def km_plusieurs_employeurs(trajets, motif=False):
+    """F12.6 : trajets domicile-travail de chaque employeur (aller_km, jours sur site), chacun plafonné à 40 km
+    sauf motif, additionnés pour le même véhicule avant application du barème (une seule tranche)."""
+    return sum(distance_retenue(aller, motif) * 2 * jours for aller, jours in trajets)
+
+
 def repas(nb, prix=None, part_employeur_tr=0.0, taux_employeur_cantine=0.0, part_employeur_repas=0.0):
     """prix=None -> forfait sans justificatif détaillé.
     Repas apporté alors que seuls des distributeurs de dépannage existent sur place (pas une cantine) :
@@ -210,6 +216,14 @@ cas("ABT-04", "Salaire 200 000 € : plafond", {"salaire": 200000}, {"abattement
 cas("DIS-01", "55 km aller sans motif", {"aller_km": 55, "motif": False}, {"distance_retenue": distance_retenue(55)}, "règle des 40 km")
 cas("DIS-02", "55 km aller avec motif (emploi du conjoint)", {"aller_km": 55, "motif": True}, {"distance_retenue": distance_retenue(55, True)}, "circonstance particulière")
 
+# --- Plusieurs employeurs (F12.6) ---
+km_emp = km_plusieurs_employeurs([(22, 100), (50, 110)])
+cas("EMP-01", "Deux employeurs, voiture 5 CV : 22 km × 100 j puis 50 km (ramenés à 40) × 110 j", {"trajets": [[22, 100], [50, 110]], "cv": 5},
+    {"km": km_emp, "montant": r2(bareme_km(km_emp, cv=5))}, "F12.6 : 4 400 + 8 800 = 13 200 km, barème appliqué une seule fois au total")
+km_emp2 = km_plusieurs_employeurs([(22, 100), (50, 110)], motif=True)
+cas("EMP-02", "Mêmes employeurs avec motif : distance réelle de 50 km retenue", {"trajets": [[22, 100], [50, 110]], "cv": 5, "motif": True},
+    {"km": km_emp2, "montant": r2(bareme_km(km_emp2, cv=5))}, "F12.6 et F3.4 : 4 400 + 11 000 = 15 400 km")
+
 # --- Repas ---
 cas("REP-01", "Restaurant 12 €, 218 jours, sans titres", {"nb": 218, "prix": 12}, {"montant": r2(repas(218, 12))}, "Tout sur mes finances : 1 427,90 €")
 cas("REP-02", "Restaurant 12 €, titre-restaurant part employeur 4,50 €", {"nb": 218, "prix": 12, "part_employeur_tr": 4.5}, {"montant": r2(repas(218, 12, 4.5))}, "Tout sur mes finances : 446,90 €")
@@ -352,6 +366,7 @@ if __name__ == "__main__":
     assert arrondi_euro(bareme_km(5900, "moto", 6, True)) == 2460  # 2 460,50 € exactement
     assert r2(bareme_km(8000, cv=4)) == 4050.0
     assert r2(bareme_km(25000, cv=7)) == 11750.0
+    assert km_emp == 13200 and km_emp2 == 15400
     assert r2(repas(218, 12)) == 1427.90
     assert r2(repas(218, 12, 4.5)) == 446.90
     assert r2(repas(200, None, 0, 0.5)) == 545.0

@@ -105,6 +105,16 @@ export function kmDomicileTravail(
   return allerKm * 2 * allersRetoursParJour * joursSurSite;
 }
 
+/** F12.6 — Trajets de plusieurs employeurs : chacun plafonné sauf motif, additionnés avant le barème. */
+export function kmPlusieursEmployeurs(
+  p: Parametres,
+  trajets: { allerKm: number; joursSurSite: number }[],
+  motif: boolean,
+  allersRetoursParJour = p.deplacements.allers_retours_par_jour_par_defaut,
+): number {
+  return trajets.reduce((s, t) => s + kmDomicileTravail(p, distanceRetenue(p, t.allerKm, motif), t.joursSurSite, allersRetoursParJour), 0);
+}
+
 // ---------------------------------------------------------------------------
 // F4 — Repas
 // ---------------------------------------------------------------------------

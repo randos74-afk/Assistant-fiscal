@@ -199,6 +199,51 @@
       "source": "circonstance particulière"
     },
     {
+      "id": "EMP-01",
+      "titre": "Deux employeurs, voiture 5 CV : 22 km × 100 j puis 50 km (ramenés à 40) × 110 j",
+      "entrees": {
+        "trajets": [
+          [
+            22,
+            100
+          ],
+          [
+            50,
+            110
+          ]
+        ],
+        "cv": 5
+      },
+      "attendu": {
+        "km": 13200,
+        "montant": 6107.4
+      },
+      "source": "F12.6 : 4 400 + 8 800 = 13 200 km, barème appliqué une seule fois au total"
+    },
+    {
+      "id": "EMP-02",
+      "titre": "Mêmes employeurs avec motif : distance réelle de 50 km retenue",
+      "entrees": {
+        "trajets": [
+          [
+            22,
+            100
+          ],
+          [
+            50,
+            110
+          ]
+        ],
+        "cv": 5,
+        "motif": true
+      },
+      "attendu": {
+        "km": 15400,
+        "montant": 6892.8
+      },
+      "source": "F12.6 et F3.4 : 4 400 + 11 000 = 15 400 km"
+    },
+    {
       "id": "REP-01",
       "titre": "Restaurant 12 €, 218 jours, sans titres",
       "entrees": {
