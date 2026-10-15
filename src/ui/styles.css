@@ -245,3 +245,168 @@ a {
   font-family: "Inter", sans-serif;
   font-variant-numeric: tabular-nums;
 }
+
+.bouton-principal:disabled {
+  background: var(--bordure);
+  color: var(--texte-secondaire);
+  cursor: not-allowed;
+}
+
+.visuellement-cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* En-tête des écrans de question : retour, étape nommée, barre de progression. */
+.entete-etape {
+  padding: 16px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.entete-etape-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bouton-retour {
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  border: 0;
+  background: transparent;
+  color: var(--primaire);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: var(--rayon);
+}
+
+.entete-etape-libelle {
+  font-size: var(--taille-texte-min);
+  font-weight: 600;
+  color: var(--primaire-fonce);
+  text-align: center;
+}
+
+.barre-progression {
+  display: grid;
+  gap: 4px;
+}
+
+.segment {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--bordure);
+}
+
+.segment-fait {
+  background: var(--primaire);
+}
+
+.titre-question {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.sous-question {
+  margin-top: -6px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+/* Choix en cartes : toute la ligne est cliquable. */
+.choix {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choix-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 16px;
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon);
+  font-size: var(--taille-texte);
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.choix-option input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  accent-color: var(--primaire);
+}
+
+.choix-option-coche {
+  border: 2px solid var(--primaire);
+  background: var(--bleu-tres-clair);
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.choix-option:has(input:focus-visible) {
+  outline: 3px solid var(--primaire);
+  outline-offset: 2px;
+}
+
+.encadre {
+  border-radius: var(--rayon);
+  padding: 14px 16px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: var(--taille-texte-min);
+  line-height: 1.4;
+}
+
+.encadre svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.encadre-info {
+  background: var(--fond-secondaire);
+  color: var(--texte);
+}
+
+.encadre-info svg {
+  color: var(--primaire);
+}
+
+.encadre-attention {
+  background: var(--orange-attention-fond);
+  color: var(--orange-attention-texte);
+}
+
+.bandeau-confidentialite {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--texte-secondaire);
+}
+
+.bandeau-confidentialite svg {
+  color: var(--vert-economie);
+}
