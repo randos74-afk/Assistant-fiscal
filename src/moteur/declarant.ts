@@ -12,13 +12,16 @@ import {
 } from "./calcul";
 import { arrondiEuro, euros, nombre } from "./format";
 
-export type Energie = "essence" | "diesel" | "hybride" | "GPL" | "hydrogène" | "électrique";
+/** « thermique » : énergie inconnue, valeur prudente (barème non majoré). */
+export type Energie = "essence" | "diesel" | "hybride" | "GPL" | "hydrogène" | "électrique" | "thermique";
 
 export interface EntreeVehicule {
   type: TypeVehicule;
   energie: Energie;
   /** Puissance fiscale de la carte grise (ignorée pour un cyclomoteur). */
   cv?: number;
+  /** Libellé de la ligne choisie (« 7 CV et plus », « 3 à 5 CV »), repris dans le résumé. */
+  libellePuissance?: string;
   allerKm: number;
   joursSurSite: number;
   allersRetoursParJour?: number;
@@ -90,6 +93,7 @@ function brut(texte: string): string {
 function libelleVehicule(v: EntreeVehicule, ligneBareme: string): string {
   const nom = { voiture: "voiture", moto: "moto", cyclomoteur: "cyclomoteur" }[v.type];
   if (v.type === "cyclomoteur") return `${nom} ${v.energie}`;
+  if (v.libellePuissance) return `${nom} ${v.energie} ${v.libellePuissance}`;
   const cv = v.type === "voiture" && ligneBareme !== String(v.cv) ? `${v.cv} CV (barème ${ligneBareme} CV)` : `${v.cv} CV`;
   return `${nom} ${v.energie} ${cv}`;
 }

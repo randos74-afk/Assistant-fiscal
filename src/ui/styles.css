@@ -899,3 +899,29 @@ a {
   gap: 8px;
   margin-top: 12px;
 }
+
+/* Carte grise fictive (maquette 03). */
+.carte-grise-cases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  font-size: 12px;
+}
+
+.carte-grise-case {
+  background: var(--fond);
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.carte-grise-code {
+  color: var(--texte-secondaire);
+}
+
+.bulletin-a-lire .carte-grise-code {
+  color: var(--ambre-aide);
+}

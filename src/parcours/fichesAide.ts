@@ -1,6 +1,12 @@
 // Fiches « Où trouver ce chiffre ? » (docs/02 §4). Texte seulement ; l'illustration est désignée par son nom.
 
-export type IdIllustration = "bulletin-net-imposable" | "bulletin-compteurs" | "avenant-teletravail";
+export type IdIllustration =
+  | "bulletin-net-imposable"
+  | "bulletin-compteurs"
+  | "avenant-teletravail"
+  | "carte-grise-puissance"
+  | "carte-grise-energie"
+  | "itineraire";
 
 export interface FicheAide {
   titre: string;
@@ -45,6 +51,37 @@ export const FICHES = {
     motsAChercher: ["Télétravail", "Travail à distance", "Jours à domicile"],
     siIntrouvable:
       "Indiquez votre habitude : les jours où vous travaillez chez vous, en temps normal. Vous pourrez corriger chaque mois ensuite.",
+  },
+  distance: {
+    titre: "Comment mesurer cette distance ?",
+    illustration: "itineraire",
+    texteAlternatif:
+      "Schéma d'un itinéraire entre la maison et le travail : le trajet le plus court est tracé en bleu et mesure 22 km.",
+    ouRegarder:
+      "Sur un site ou une application de carte, demandez l'itinéraire de chez vous à votre travail. Retenez le trajet le plus court en kilomètres, pas le plus rapide.",
+    motsAChercher: ["Itinéraire le plus court", "Distance", "km"],
+    siIntrouvable:
+      "Comptez sur le compteur de votre véhicule un jour de trajet normal. Arrondissez toujours vers le bas : c'est le choix prudent.",
+  },
+  energie: {
+    titre: "Où trouver ce renseignement ?",
+    illustration: "carte-grise-energie",
+    texteAlternatif:
+      "Exemple de carte grise : la case P.3, Énergie, est entourée en orange. Elle indique ES, pour essence.",
+    ouRegarder: "Sur votre carte grise, case P.3. EL veut dire 100 % électrique.",
+    motsAChercher: ["P.3", "Type de carburant ou source d'énergie", "ES (essence)", "GO (diesel)", "EL (électrique)", "EE ou EH (hybride)"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » : nous appliquerons le barème des véhicules thermiques, le plus prudent. Vous pourrez le corriger plus tard.",
+  },
+  puissance: {
+    titre: "Où trouver ce chiffre ?",
+    illustration: "carte-grise-puissance",
+    texteAlternatif:
+      "Exemple de carte grise : la case P.6, Puissance administrative nationale, est entourée en orange. Elle indique 5.",
+    ouRegarder: "Sur votre carte grise, case P.6. Le chiffre est le nombre de chevaux.",
+    motsAChercher: ["Puissance administrative nationale", "P.6"],
+    siIntrouvable:
+      "Demandez au vendeur ou au garage, ou choisissez « Je ne sais pas » : nous retiendrons {lignePrudente}, la valeur la plus prudente. Vous pourrez la corriger plus tard.",
   },
 } satisfies Record<string, FicheAide>;
 

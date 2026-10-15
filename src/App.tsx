@@ -8,10 +8,13 @@ import { Filtrage } from "./ui/Filtrage";
 import { Metier } from "./ui/Metier";
 import { Jours, type SaisieJours } from "./ui/Jours";
 import { Salaire, type SaisieSalaire } from "./ui/Salaire";
+import { Trajet } from "./ui/Trajet";
+import { totaux } from "./parcours/calendrier";
+import type { SaisieTrajet } from "./parcours/trajet";
 import { existeSauvegarde } from "./ui/sauvegarde";
 import AncienSimulateur from "./ancien/AncienSimulateur.jsx";
 
-type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "ancien-simulateur";
+type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "ancien-simulateur";
 
 export default function App() {
   const [ecran, setEcran] = useState<Ecran>("accueil");
@@ -20,6 +23,7 @@ export default function App() {
   const [metier, setMetier] = useState<IdProfil | undefined>();
   const [salaire, setSalaire] = useState<SaisieSalaire | undefined>();
   const [jours, setJours] = useState<SaisieJours | undefined>();
+  const [trajet, setTrajet] = useState<SaisieTrajet | undefined>();
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
 
@@ -79,7 +83,21 @@ export default function App() {
           onRetour={() => setEcran("salaire")}
           onValider={(j) => {
             setJours(j);
-            // Provisoire : « Votre trajet » n'existe pas encore.
+            setEcran("trajet");
+          }}
+        />
+      );
+
+    case "trajet":
+      return (
+        <Trajet
+          parametres={parametres}
+          joursSurSite={jours ? totaux(jours.mois).site : 0}
+          valeurInitiale={trajet}
+          onRetour={() => setEcran("jours")}
+          onValider={(t) => {
+            setTrajet(t);
+            // Provisoire : « Vos repas » n'existe pas encore.
             setEcran("ancien-simulateur");
           }}
         />
