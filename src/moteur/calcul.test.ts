@@ -65,6 +65,10 @@ function calculer(c: Cas): Record<string, unknown> {
       const km = kmPlusieursEmployeurs(p, trajets, e.motif ?? false);
       return { km, montant: baremeKm(p, { km, cv: e.cv }).montant };
     }
+    case "CHO": {
+      const c = comparer(p, e.salaire + e.chomage, e.reintegrations, e.frais_reels);
+      return { base_abattement: c.baseAbattement10, base_frais_reels: c.baseFraisReels, gain_base: c.gainBase };
+    }
     case "IMP": {
       const foyer = { couple: e.couple, enfants: e.enfants, parentIsole: e.parent_isole ?? false, veuf: e.veuf ?? false };
       if (e.base_abattement !== undefined) {
@@ -201,8 +205,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 54 cas", () => {
-    expect(casDeTest.cas.length).toBe(54);
+  it("contient bien les 55 cas", () => {
+    expect(casDeTest.cas.length).toBe(55);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

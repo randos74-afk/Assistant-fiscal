@@ -64,7 +64,7 @@ export function htmlPdf({ parametres: p, resultat: r, prudentes, justificatifs, 
 <h2>Comparaison des revenus imposables</h2>
 <table>
   <tr><th></th><th class="m">Abattement ${taux}</th><th class="m">Frais réels</th></tr>
-  <tr><td>Salaire déclaré</td><td class="m">${euros(c.salaireCorrige - r.totalReintegrations)}</td><td class="m">${euros(c.salaireCorrige)}</td></tr>
+  <tr><td>${r.allocationsChomage > 0 ? "Salaire et chômage déclarés" : "Salaire déclaré"}</td><td class="m">${euros(c.salaireCorrige - r.totalReintegrations)}</td><td class="m">${euros(c.salaireCorrige)}</td></tr>
   <tr><td>Déduction</td><td class="m">- ${euros(c.abattement)}</td><td class="m">- ${euros(r.montantCase)}</td></tr>
   <tfoot><tr><td>Revenu imposable</td><td class="m">${euros(c.baseAbattement10)}</td><td class="m">${euros(c.baseFraisReels)}</td></tr></tfoot>
 </table>
@@ -75,7 +75,7 @@ export function htmlPdf({ parametres: p, resultat: r, prudentes, justificatifs, 
 <table>${lignes || `<tr><td>Aucun frais réel saisi.</td><td></td></tr>`}
   <tfoot><tr><td>Case ${r.caseFraisReels}</td><td class="m">${nombre(r.montantCase)} €</td></tr></tfoot>
 </table>
-${r.totalReintegrations > 0 ? `<p>Salaire de la case 1AJ à porter à ${nombre(Math.ceil(c.salaireCorrige))} € (remboursements de l'employeur : ${euros(r.totalReintegrations)}).</p>` : ""}
+${r.totalReintegrations > 0 ? `<p>Salaire de la case 1AJ à porter à ${nombre(Math.ceil(c.salaireCorrige - r.allocationsChomage))} € (remboursements de l'employeur : ${euros(r.totalReintegrations)}).</p>` : ""}
 ${prudentes.length ? `<p><strong>Valeur prudente retenue pour :</strong> ${echapper(prudentes.join(", "))}.</p>` : ""}
 ${r.alertes.length ? `<p><strong>Points d'attention :</strong> ${echapper(r.alertes.join(" "))}</p>` : ""}
 </section>

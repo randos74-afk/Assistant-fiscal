@@ -41,7 +41,7 @@ export function Relecture({ reponses: r, foyer, resultat, vraisemblance: v, onMo
               : r.salaire.employeurs && r.salaire.employeurs.length > 1
                 ? `, ${r.salaire.employeurs.length} employeurs`
                 : ""
-          }`
+          }${r.salaire.chomage ? `, plus ${euros(r.salaire.chomage)} d'allocations chômage` : ""}`
         : "À compléter",
     },
     {

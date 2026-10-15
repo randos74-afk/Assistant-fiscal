@@ -91,6 +91,8 @@ export interface EntreeDeclarant {
   /** 1 à 4 : déclarant 1, déclarant 2, personnes à charge (cases 1AK à 1DK). */
   numero: number;
   salairePrerempli: number;
+  /** F12.7 — Allocations chômage de l'année : la déduction de 10 % porte aussi sur elles (BOI-RSA-BASE-30-50-20). */
+  allocationsChomage?: number;
   vehicules?: EntreeVehicule[];
   repas?: EntreeRepasDeclarant[];
   teletravailJoursParMois?: number[];
@@ -122,6 +124,8 @@ export interface ResultatDeclarant {
   alertes: string[];
   /** Kilométrage annuel retenu pour chaque véhicule (contrôles de vraisemblance). */
   kmVehicules: number[];
+  /** Allocations chômage comprises dans la comparaison (à retirer pour la case 1AJ). */
+  allocationsChomage: number;
 }
 
 const CASES = ["1AK", "1BK", "1CK", "1DK"];
@@ -291,11 +295,12 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     lignes,
     montantCase,
     totalReintegrations,
-    comparaison: comparer(p, e.salairePrerempli, totalReintegrations, montantCase),
+    comparaison: comparer(p, e.salairePrerempli + (e.allocationsChomage ?? 0), totalReintegrations, montantCase),
     texte,
     nbCaracteres: texte.length,
     depasseLongueurCible: texte.length > p.resume_1ak.longueur_cible_caracteres,
     alertes,
     kmVehicules,
+    allocationsChomage: e.allocationsChomage ?? 0,
   };
 }

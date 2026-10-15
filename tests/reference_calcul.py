@@ -172,9 +172,12 @@ def plafond_frais_reels_vehicule(km, frais_justifies_hors_peages_parking_interet
     return min(frais_justifies_hors_peages_parking_interets, bareme_km(km, "voiture", 7))
 
 
-def gain_base_imposable(salaire_prerempli, reintegrations, frais_reels):
-    base_10 = salaire_prerempli - abattement(salaire_prerempli)
-    base_reel = salaire_prerempli + reintegrations - frais_reels
+def gain_base_imposable(salaire_prerempli, reintegrations, frais_reels, chomage=0.0):
+    """chomage : allocations chômage de l'année (F12.7). La déduction de 10 % porte sur les salaires et les
+    allocations ensemble (BOI-RSA-BASE-30-50-20) ; l'option frais réels la remplace pour le tout."""
+    revenus = salaire_prerempli + chomage
+    base_10 = revenus - abattement(revenus)
+    base_reel = revenus + reintegrations - frais_reels
     return base_10, base_reel, base_10 - base_reel
 
 
@@ -223,6 +226,11 @@ cas("EMP-01", "Deux employeurs, voiture 5 CV : 22 km × 100 j puis 50 km (ramen�
 km_emp2 = km_plusieurs_employeurs([(22, 100), (50, 110)], motif=True)
 cas("EMP-02", "Mêmes employeurs avec motif : distance réelle de 50 km retenue", {"trajets": [[22, 100], [50, 110]], "cv": 5, "motif": True},
     {"km": km_emp2, "montant": r2(bareme_km(km_emp2, cv=5))}, "F12.6 et F3.4 : 4 400 + 11 000 = 15 400 km")
+
+# --- Chômage entre deux emplois (F12.7) ---
+cho = gain_base_imposable(15000, 0, 2500, chomage=8000)
+cas("CHO-01", "Salaire 15 000 €, chômage 8 000 €, frais réels 2 500 € : 10 % calculés sur 23 000 €", {"salaire": 15000, "chomage": 8000, "reintegrations": 0, "frais_reels": 2500},
+    {"base_abattement": r2(cho[0]), "base_frais_reels": r2(cho[1]), "gain_base": r2(cho[2])}, "BOI-RSA-BASE-30-50-20 : la déduction de 10 % porte aussi sur les allocations chômage ; 2 300 contre 2 500")
 
 # --- Repas ---
 cas("REP-01", "Restaurant 12 €, 218 jours, sans titres", {"nb": 218, "prix": 12}, {"montant": r2(repas(218, 12))}, "Tout sur mes finances : 1 427,90 €")
@@ -367,6 +375,7 @@ if __name__ == "__main__":
     assert r2(bareme_km(8000, cv=4)) == 4050.0
     assert r2(bareme_km(25000, cv=7)) == 11750.0
     assert km_emp == 13200 and km_emp2 == 15400
+    assert cho == (20700, 20500, 200)
     assert r2(repas(218, 12)) == 1427.90
     assert r2(repas(218, 12, 4.5)) == 446.90
     assert r2(repas(1, 12, 0, 6)) == 0.55

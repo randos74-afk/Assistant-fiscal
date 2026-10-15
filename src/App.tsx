@@ -213,7 +213,11 @@ export default function App() {
           parametres={parametres}
           enTransports={!estDomicile && trajet?.mode === "transports"}
           aVehicule={estDomicile ? domicile !== undefined : trajet ? estVehicule(trajet.mode) : false}
-          postesOuvertsDOffice={metier ? postesDuProfil(profil(metier).postesOuverts) : []}
+          postesOuvertsDOffice={[
+            ...(metier ? postesDuProfil(profil(metier).postesOuverts) : []),
+            // F12.7 — Allocations chômage : les frais de recherche d'emploi sont proposés d'office.
+            ...(salaire?.chomage ? (["rechercheEmploi"] as const) : []),
+          ]}
           valeurInitiale={autres}
           onRetour={precedent("teletravail")}
           onValider={(a) => (setAutres(a), setEcran("relecture"))}

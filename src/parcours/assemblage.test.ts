@@ -108,4 +108,13 @@ describe("Parcours complet", () => {
     );
     expect(r.alertes.some((a) => a.includes("Trajet vers Employeur 2 ramené de 50 à 40 km"))).toBe(true);
   });
+
+  it("allocations chômage : comparées avec les salaires, sans changer la case 1AK (F12.7, CHO-01)", () => {
+    const sans = calculerParcours(p, exemple);
+    const avec = calculerParcours(p, { ...exemple, salaire: { ...exemple.salaire!, chomage: 8000 } });
+    expect(avec.montantCase).toBe(sans.montantCase);
+    expect(avec.comparaison.abattement).toBe(4000); // 10 % de 40 000 €
+    expect(avec.comparaison.gainBase).toBe(sans.comparaison.gainBase - 800);
+    expect(avec.allocationsChomage).toBe(8000);
+  });
 });

@@ -11,7 +11,7 @@ import { domicilePourMoteur, type SaisieDomicile } from "./domicile";
 import { resumeEmployeurs, type Employeur } from "./employeurs";
 
 export interface Reponses {
-  salaire?: { montant: number; source: string; employeurs?: Employeur[] };
+  salaire?: { montant: number; source: string; employeurs?: Employeur[]; chomage?: number };
   jours?: { prudent: boolean; mois: JoursDuMois[]; joursParSemaine?: number };
   trajet?: SaisieTrajet;
   /** Parcours aide à domicile : remplace le trajet. */
@@ -37,6 +37,7 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
   return {
     numero,
     salairePrerempli: r.salaire?.montant ?? 0,
+    allocationsChomage: r.salaire?.chomage,
     vehicules: vehicule ? [vehicule] : [],
     repas: repas.repas ? [repas.repas] : [],
     teletravailJoursParMois: teletravailParMois,

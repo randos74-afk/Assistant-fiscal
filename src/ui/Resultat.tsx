@@ -32,6 +32,7 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisem
   const resteAVerifier = v.postesAVerifier.filter((l) => !verifies.includes(l.texte));
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
+  const libelleRevenus = r.allocationsChomage > 0 ? "Salaire et chômage" : "Salaire";
   const impot = foyer ? comparerImpot(p, c.baseAbattement10, c.baseFraisReels, autresRevenusFoyer(p, foyer), foyer) : null;
   const conseille = c.fraisReelsConseilles;
   const cible = p.resume_1ak.longueur_cible_caracteres;
@@ -69,7 +70,7 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisem
       {r.totalReintegrations > 0 && (
         <BlocACopier
           titre="Case 1AJ : salaire à déclarer"
-          texte={nombre(Math.ceil(c.salaireCorrige))}
+          texte={nombre(Math.ceil(c.salaireCorrige - r.allocationsChomage))}
           grand
           pied={typographie(`Votre salaire prérempli plus ${euros(r.totalReintegrations)} de remboursements de l'employeur.`)}
         />
@@ -141,14 +142,18 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisem
         <div className="colonnes-comparaison">
           <section className={conseille ? "colonne" : "colonne colonne-gagnante"}>
             <h2>{`Abattement ${taux}`}</h2>
-            <p className="detail-calcul">Salaire {euros(r.comparaison.salaireCorrige - r.totalReintegrations)}</p>
+            <p className="detail-calcul">
+              {libelleRevenus} {euros(r.comparaison.salaireCorrige - r.totalReintegrations)}
+            </p>
             <p className="detail-calcul">− abattement {euros(c.abattement)}</p>
             <p className="colonne-base montant">{euros(c.baseAbattement10)}</p>
             <p className="detail-calcul">revenu imposable</p>
           </section>
           <section className={conseille ? "colonne colonne-gagnante" : "colonne"}>
             <h2>Frais réels</h2>
-            <p className="detail-calcul">Salaire {euros(c.salaireCorrige)}</p>
+            <p className="detail-calcul">
+              {libelleRevenus} {euros(c.salaireCorrige)}
+            </p>
             <p className="detail-calcul">− frais {euros(r.montantCase)}</p>
             <p className="colonne-base montant">{euros(c.baseFraisReels)}</p>
             <p className="detail-calcul">revenu imposable</p>

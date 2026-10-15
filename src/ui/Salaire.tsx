@@ -21,6 +21,8 @@ export interface SaisieSalaire {
   employeurs?: Employeur[];
   /** F12.3 et F12.4 — Montant prérempli case 1AJ ; il fait foi s'il est indiqué. */
   preRempli?: number;
+  /** F12.7 — Allocations chômage de l'année (déclarées à part) : la déduction de 10 % porte aussi sur elles. */
+  chomage?: number;
 }
 
 interface FicheTexte {
@@ -59,6 +61,11 @@ export function Salaire({ millesime, valeurInitiale, onValider, onRetour }: Prop
     Boolean(valeurInitiale?.employeurs && valeurInitiale.employeurs.some((e) => e.salaire === null)),
   );
   const plusieurs = fiches.length > 1;
+  const [avecChomage, setAvecChomage] = useState(Boolean(valeurInitiale?.chomage));
+  const [chomage, setChomage] = useState(valeurInitiale?.chomage ? afficherMontant(valeurInitiale.chomage) : "");
+  const chomageNb = lireMontant(chomage);
+  const chomageValide = !avecChomage || (chomageNb !== null && !Number.isNaN(chomageNb) && chomageNb > 0);
+  const avecLeChomage = <T extends SaisieSalaire>(s: T): T => (avecChomage && chomageNb ? { ...s, chomage: chomageNb } : s);
 
   function nombreEmployeurs(n: number) {
     setFiches(Array.from({ length: n }, (_, i) => fiches[i] ?? ficheVide(i)));
@@ -98,12 +105,12 @@ export function Salaire({ millesime, valeurInitiale, onValider, onRetour }: Prop
     montant !== null && !Number.isNaN(montant) && montant > 0 && (plusieurs ? fichesValides : !(modeAddition && moisInvalides));
 
   function valider() {
-    if (!valide || montant === null) return;
+    if (!valide || !chomageValide || montant === null) return;
     if (plusieurs) {
-      onValider({ montant, source: "employeurs", employeurs, ...(preRempliConnu ? { preRempli: preRempliNb } : {}) });
+      onValider(avecLeChomage({ montant, source: "employeurs", employeurs, ...(preRempliConnu && preRempliNb !== null ? { preRempli: preRempliNb } : {}) }));
       return;
     }
-    onValider(modeAddition ? { montant, source: "addition-bulletins", mois } : { montant, source: "bulletin-decembre" });
+    onValider(avecLeChomage(modeAddition ? { montant, source: "addition-bulletins", mois } : { montant, source: "bulletin-decembre" }));
   }
 
   return (
@@ -261,6 +268,28 @@ export function Salaire({ millesime, valeurInitiale, onValider, onRetour }: Prop
           </>
         )}
 
+        <label className="case-a-cocher">
+          <input type="checkbox" checked={avecChomage} onChange={(e) => setAvecChomage(e.target.checked)} />
+          {typographie(`J'ai aussi touché des allocations chômage en ${millesime}`)}
+        </label>
+        {avecChomage && (
+          <>
+            <ChampMontant
+              compact
+              libelleVisible
+              libelle="Allocations chômage de l'année"
+              detail="Sur l'attestation de France Travail, ou préremplies sur votre déclaration (case 1AP)."
+              valeur={chomage}
+              onChange={setChomage}
+            />
+            <Encadre>
+              {typographie(
+                "L'abattement de 10 % porte aussi sur ces allocations : nous en tenons compte dans la comparaison. Vos frais de recherche d'emploi seront proposés plus loin.",
+              )}
+            </Encadre>
+          </>
+        )}
+
         <details className="depliant">
           <summary>Vous êtes apprenti ou étudiant ?</summary>
           <p>
@@ -276,7 +305,7 @@ export function Salaire({ millesime, valeurInitiale, onValider, onRetour }: Prop
 
       <PiedDePage onPrecedent={onRetour}>
         <BandeauConfidentialite />
-        <button type="button" className="bouton bouton-principal" disabled={!valide} onClick={valider}>
+        <button type="button" className="bouton bouton-principal" disabled={!valide || !chomageValide} onClick={valider}>
           Continuer
         </button>
       </PiedDePage>

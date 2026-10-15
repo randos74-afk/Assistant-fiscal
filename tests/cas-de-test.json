@@ -244,6 +244,22 @@
       "source": "F12.6 et F3.4 : 4 400 + 11 000 = 15 400 km"
     },
     {
+      "id": "CHO-01",
+      "titre": "Salaire 15 000 €, chômage 8 000 €, frais réels 2 500 € : 10 % calculés sur 23 000 €",
+      "entrees": {
+        "salaire": 15000,
+        "chomage": 8000,
+        "reintegrations": 0,
+        "frais_reels": 2500
+      },
+      "attendu": {
+        "base_abattement": 20700.0,
+        "base_frais_reels": 20500.0,
+        "gain_base": 200.0
+      },
+      "source": "BOI-RSA-BASE-30-50-20 : la déduction de 10 % porte aussi sur les allocations chômage ; 2 300 contre 2 500"
+    },
+    {
       "id": "REP-01",
       "titre": "Restaurant 12 €, 218 jours, sans titres",
       "entrees": {
