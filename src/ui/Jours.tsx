@@ -29,6 +29,8 @@ export interface SaisieJours {
   alsaceMoselle: boolean;
   /** « Je ne sais pas » : valeur prudente retenue, signalée dans le récapitulatif. */
   prudent: boolean;
+  /** Nombre de jours travaillés saisi directement (fiche de paie) ; remplace le calcul par les congés. */
+  joursSaisis?: number;
   teletravailParSemaine: number;
   /** Total des jours de télétravail de l'année, quand la personne le connaît ; remplace le rythme par semaine. */
   teletravailAnnee?: number;
@@ -62,6 +64,8 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
   const [absences, setAbsences] = useState(String(v?.absences ?? 0));
   const [alsaceMoselle, setAlsaceMoselle] = useState(v?.alsaceMoselle ?? false);
   const [prudent, setPrudent] = useState(v?.prudent ?? false);
+  const [parTotal, setParTotal] = useState(v?.joursSaisis !== undefined);
+  const [totalSaisi, setTotalSaisi] = useState(v?.joursSaisis !== undefined ? String(v.joursSaisis) : "");
   const [teletravail, setTeletravail] = useState(v?.teletravailParSemaine ?? 0);
   const [parTotalTeletravail, setParTotalTeletravail] = useState(v?.teletravailAnnee !== undefined);
   const [totalTeletravail, setTotalTeletravail] = useState(v?.teletravailAnnee !== undefined ? String(v.teletravailAnnee) : "");
@@ -87,11 +91,19 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
       }),
     [millesime, joursParSemaine, conges, rtt, absences, alsaceMoselle],
   );
+  const disponibles = useMemo(
+    () => calendrierParMois(millesime, joursParSemaine, alsaceMoselle).map((m) => m.ouvres - m.feries),
+    [millesime, joursParSemaine, alsaceMoselle],
+  );
+  const maxJours = disponibles.reduce((s, x) => s + x, 0);
+  // Jours saisis directement : répartis sur le calendrier, à corriger mois par mois si besoin.
   const parMois = useMemo(() => {
-    if (!prudent) return calcul.parMois;
-    const disponibles = calendrierParMois(millesime, joursParSemaine, alsaceMoselle).map((m) => m.ouvres - m.feries);
-    return repartirAuProrata(nbPrudent, disponibles);
-  }, [prudent, calcul, millesime, joursParSemaine, alsaceMoselle, nbPrudent]);
+    if (prudent) return repartirAuProrata(nbPrudent, disponibles);
+    if (parTotal) return repartirAuProrata(Math.min(entier(totalSaisi), maxJours), disponibles);
+    return calcul.parMois;
+  }, [prudent, parTotal, totalSaisi, calcul, disponibles, maxJours, nbPrudent]);
+  const totalSaisiNb = lireEntier(totalSaisi);
+  const totalSaisiValide = totalSaisiNb !== null && !Number.isNaN(totalSaisiNb) && totalSaisiNb > 0 && totalSaisiNb <= maxJours;
 
   const automatique = repartitionSimple(
     parMois,
@@ -108,7 +120,7 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
   const moisImpossibles = mois
     .map((m, i) => (m.site + m.teletravail + m.deplacement > joursDansLeMois(millesime, i) ? i : -1))
     .filter((i) => i >= 0);
-  const saisiesQ1Valides = [conges, rtt, absences].every(entierValide);
+  const saisiesQ1Valides = prudent || (parTotal ? totalSaisiValide : [conges, rtt, absences].every(entierValide));
   const saisiesQ2Valides =
     entierValide(deplacements) &&
     (!parTotalTeletravail || entierValide(totalTeletravail)) &&
@@ -133,6 +145,7 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
       absences: entier(absences),
       alsaceMoselle,
       prudent,
+      ...(parTotal && !prudent ? { joursSaisis: entier(totalSaisi) } : {}),
       teletravailParSemaine: parTotalTeletravail ? 0 : teletravail,
       ...(parTotalTeletravail ? { teletravailAnnee: entier(totalTeletravail) } : {}),
       deplacementsAnnee: entier(deplacements),
@@ -172,8 +185,30 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
             }}
           />
 
-          {!prudent ? (
+          {!prudent && parTotal ? (
             <>
+              <ChampNombre
+                libelleVisible
+                libelle="Jours travaillés dans l'année"
+                detail="Souvent indiqué sur votre fiche de paie de décembre, ou sur l'attestation de votre employeur."
+                unite="jours"
+                valeur={totalSaisi}
+                onChange={(x) => (setTotalSaisi(x), setMoisCorriges(null))}
+              />
+              {totalSaisiNb !== null && !Number.isNaN(totalSaisiNb) && totalSaisiNb > maxJours && (
+                <p className="champ-erreur">
+                  {typographie(`C'est plus que les ${maxJours} jours possibles en ${millesime} à ce rythme. Pouvez-vous vérifier ?`)}
+                </p>
+              )}
+              <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotal(false), setMoisCorriges(null))}>
+                Calculer plutôt avec mes congés
+              </button>
+            </>
+          ) : !prudent ? (
+            <>
+              <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotal(true), setMoisCorriges(null))}>
+                Je connais mon nombre de jours travaillés (fiche de paie)
+              </button>
               <ChampNombre compact libelleVisible libelle="Semaines de congés payés" unite="semaines" valeur={conges} onChange={(x) => (setConges(x), setMoisCorriges(null))} />
               <ChampNombre compact libelleVisible libelle="Jours de RTT pris" unite="jours" valeur={rtt} onChange={(x) => (setRtt(x), setMoisCorriges(null))} />
               <ChampNombre
@@ -215,7 +250,7 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
                   `Nous retenons ${nbPrudent} jours, la valeur la plus prudente. Elle sera signalée dans votre récapitulatif, et vous pourrez la corriger.`,
                 )}
               </Encadre>
-              <button type="button" className="lien-je-ne-sais-pas" onClick={() => setPrudent(false)}>
+              <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setPrudent(false), setParTotal(false))}>
                 Finalement, je peux compter mes jours
               </button>
             </>
