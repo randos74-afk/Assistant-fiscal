@@ -141,6 +141,27 @@
     ]
   },
 
+  "impot_revenu": {
+    "tranches": [
+      {"jusqua": 11600, "taux": 0},
+      {"jusqua": 29579, "taux": 0.11},
+      {"jusqua": 84577, "taux": 0.30},
+      {"jusqua": 181917, "taux": 0.41},
+      {"jusqua": null, "taux": 0.45}
+    ],
+    "plafond_par_demi_part": 1807,
+    "plafond_deux_premieres_demi_parts_parent_isole": 4262,
+    "decote_personne_seule": 897,
+    "decote_couple": 1483,
+    "decote_taux": 0.4525,
+    "seuil_mise_en_recouvrement": 61,
+    "note": "Tranches par part de quotient familial. Hors réductions et crédits d'impôt, abattement des personnes âgées et contribution sur les hauts revenus : estimation seulement.",
+    "sources": [
+      "CGI art. 197, version en vigueur au 21/02/2026 (loi n° 2026-103 du 19/02/2026, art. 4 V), Légifrance, consulté le 15/10/2026",
+      "Aide-mémoire brochure IR 2026 (plafonds du quotient familial, décote, seuil de recouvrement), impots.gouv.fr"
+    ]
+  },
+
   "cotisations_syndicales": {
     "taux_credit_impot": 0.66,
     "note": "Crédit d'impôt perdu si les cotisations sont déduites en frais réels.",

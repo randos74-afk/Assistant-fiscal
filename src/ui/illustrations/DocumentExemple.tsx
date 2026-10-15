@@ -138,6 +138,17 @@ const BULLETIN_TRANSPORT: Modele = {
   ],
 };
 
+const AVIS_IMPOSITION: Modele = {
+  entete: "AVIS D'IMPÔT · VOS RÉFÉRENCES",
+  colonnes: ["Valeur"],
+  lignes: [
+    { libelle: "Situation de famille", valeurs: ["M (marié)"] },
+    { libelle: "Nombre de parts", valeurs: ["2,50"], aLire: true },
+    { libelle: "Revenu fiscal de référence", valeurs: ["38 000"] },
+  ],
+};
+
+export const AvisImposition = (p: { texteAlternatif: string }) => <DocumentExemple modele={AVIS_IMPOSITION} {...p} />;
 export const AttestationSyndicat = (p: { texteAlternatif: string }) => <DocumentExemple modele={ATTESTATION_SYNDICAT} {...p} />;
 export const BulletinTransport = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_TRANSPORT} {...p} />;
 export const BulletinTitres = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_TITRES} {...p} />;

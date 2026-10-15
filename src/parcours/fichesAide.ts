@@ -11,7 +11,8 @@ export type IdIllustration =
   | "releve-repas"
   | "bulletin-allocation-teletravail"
   | "attestation-syndicat"
-  | "bulletin-transport";
+  | "bulletin-transport"
+  | "avis-imposition";
 
 export interface FicheAide {
   titre: string;
@@ -142,6 +143,17 @@ export const FICHES = {
     motsAChercher: ["Remboursement transport", "Prise en charge abonnement", "Forfait mobilités durables", "Navigo", "Pass"],
     siIntrouvable:
       "Choisissez « Je ne sais pas » pour le remboursement : nous retiendrons la prise en charge habituelle la plus forte, le choix prudent.",
+  },
+  foyer: {
+    titre: "Où vérifier ces renseignements ?",
+    illustration: "avis-imposition",
+    texteAlternatif:
+      "Exemple d'avis d'impôt, cadre « Vos références » : la ligne « Nombre de parts », 2,50, est entourée en orange.",
+    ouRegarder:
+      "Sur votre dernier avis d'impôt, en haut de la première page : situation de famille et nombre de parts. Le salaire de votre conjoint est sur son bulletin de décembre.",
+    motsAChercher: ["Nombre de parts", "Situation de famille", "Vos références"],
+    siIntrouvable:
+      "Laissez ce bloc vide : nous comparons alors votre revenu imposable seulement, sans montant d'impôt.",
   },
 } satisfies Record<string, FicheAide>;
 

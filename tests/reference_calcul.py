@@ -107,6 +107,47 @@ def ratio_local(usage, jours_tt, jours_travailles):
     return jours_tt * t["heures_par_journee_teletravail_local_mixte"] / t["heures_par_an"]
 
 
+def parts_foyer(couple, enfants, parent_isole=False):
+    """Parts de quotient familial : 1 ou 2, + 0,5 pour chacun des 2 premiers enfants, + 1 au-delà, + 0,5 case T."""
+    base = 2 if couple else 1
+    demi = sum(1 if i < 2 else 2 for i in range(enfants))
+    if parent_isole and not couple and enfants > 0:
+        demi += 1
+    return base, base + demi / 2
+
+
+def impot_par_part(qf):
+    t = P["impot_revenu"]["tranches"]
+    impot, bas = 0.0, 0.0
+    for tr in t:
+        haut = tr["jusqua"] if tr["jusqua"] is not None else float("inf")
+        if qf > bas:
+            impot += (min(qf, haut) - bas) * tr["taux"]
+        bas = haut
+    return impot
+
+
+def impot_foyer(revenu, couple, enfants, parent_isole=False):
+    """Barème, plafonnement du quotient familial, décote, seuil de recouvrement (CGI art. 197)."""
+    ir = P["impot_revenu"]
+    base, parts = parts_foyer(couple, enfants, parent_isole)
+    impot = parts * impot_par_part(revenu / parts)
+    demi_parts = round((parts - base) * 2)
+    if demi_parts > 0:
+        sans = base * impot_par_part(revenu / base)
+        if parent_isole and not couple:
+            plafond = ir["plafond_deux_premieres_demi_parts_parent_isole"] + ir["plafond_par_demi_part"] * max(demi_parts - 2, 0)
+        else:
+            plafond = ir["plafond_par_demi_part"] * demi_parts
+        impot = max(impot, sans - plafond)
+    decote = (ir["decote_couple"] if couple else ir["decote_personne_seule"]) - ir["decote_taux"] * impot
+    if decote > 0:
+        impot -= min(decote, impot)
+    if impot < ir["seuil_mise_en_recouvrement"]:
+        impot = 0.0
+    return impot
+
+
 def plafond_frais_reels_vehicule(km, frais_justifies_hors_peages_parking_interets):
     return min(frais_justifies_hors_peages_parking_interets, bareme_km(km, "voiture", 7))
 
@@ -234,6 +275,20 @@ cas("RES-02", "Déclarant complet : 55 km avec motif, missions, péages, intér�
      "base_abattement_10": r2(b10), "base_frais_reels": r2(br), "gain_base": r2(g)},
     "Spécifications F3, F4, F5, F8 ; arrondi à l'euro inférieur par ligne")
 
+# --- Impôt sur le revenu (F7.4, CGI art. 197) ---
+cas("IMP-01", "Personne seule, revenu imposable 28 800 € : 1 892 € puis décote", {"revenu": 28800, "couple": False, "enfants": 0},
+    {"impot": r2(impot_foyer(28800, False, 0))}, "(28 800 - 11 600) × 11 % = 1 892 ; décote 897 - 45,25 % × 1 892")
+cas("IMP-02", "Couple, 2 enfants (3 parts), revenu 60 000 €", {"revenu": 60000, "couple": True, "enfants": 2},
+    {"parts": 3, "impot": r2(impot_foyer(60000, True, 2))}, "quotient 20 000 : 924 × 3 = 2 772, plafond non atteint, décote couple")
+cas("IMP-03", "Couple, 1 enfant, revenu 150 000 € : plafonnement du quotient familial", {"revenu": 150000, "couple": True, "enfants": 1},
+    {"impot": r2(impot_foyer(150000, True, 1))}, "avantage 3 448 € plafonné à 1 807 € : 31 207,98 - 1 807")
+cas("IMP-04", "Parent seul (case T), 1 enfant (2 parts), revenu 40 000 €", {"revenu": 40000, "couple": False, "enfants": 1, "parent_isole": True},
+    {"parts": 2, "impot": r2(impot_foyer(40000, False, 1, True))}, "plafond 4 262 € pour les deux premières demi-parts, décote personne seule")
+cas("IMP-05", "Personne seule, revenu 13 000 € : impôt effacé par la décote", {"revenu": 13000, "couple": False, "enfants": 0},
+    {"impot": r2(impot_foyer(13000, False, 0))}, "décote supérieure à l'impôt brut")
+cas("IMP-06", "Exemple de la spécification : gain d'impôt d'une personne seule", {"base_abattement": 28800, "base_frais_reels": 26286, "couple": False, "enfants": 0},
+    {"gain_impot": r2(impot_foyer(28800, False, 0) - impot_foyer(26286, False, 0))}, "IMP-01 moins impôt sur 26 286 €")
+
 # --- Aide à domicile ADMR (spécification F13) ---
 km_admr = 40 * 200
 reint_admr = 15 * 200 * 0.38
@@ -287,4 +342,9 @@ if __name__ == "__main__":
     assert r2(materiel_annee(1200, 0.5, 2024, 7, 2025)) == 200.0
     assert r2(materiel_annee(1200, 0.5, 2024, 7, 2027)) == 100.0
     assert r2(tr1) == 800.0
+    assert r2(impot_foyer(28800, False, 0)) == 1851.13
+    assert r2(impot_foyer(60000, True, 2)) == 2543.33
+    assert r2(impot_foyer(150000, True, 1)) == 29400.98
+    assert r2(impot_foyer(40000, False, 1, True)) == 1787.22
+    assert impot_foyer(13000, False, 0) == 0.0
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

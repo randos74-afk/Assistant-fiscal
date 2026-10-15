@@ -54,6 +54,15 @@ export interface Parametres {
   };
   resume_1ak: { longueur_cible_caracteres: number };
   cotisations_syndicales: { taux_credit_impot: number };
+  impot_revenu: {
+    tranches: { jusqua: number | null; taux: number }[];
+    plafond_par_demi_part: number;
+    plafond_deux_premieres_demi_parts_parent_isole: number;
+    decote_personne_seule: number;
+    decote_couple: number;
+    decote_taux: number;
+    seuil_mise_en_recouvrement: number;
+  };
   grand_deplacement_reperes: {
     logement_petit_dejeuner_paris_petite_couronne_par_jour: number;
     logement_petit_dejeuner_autres_departements_par_jour: number;

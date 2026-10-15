@@ -31,3 +31,5 @@
 - Autrement Senior, CESU et frais réels : https://www.autrementsenior.fr/actualites/optimisation-fiscale-cesu-frais-reels-guide
 - SOLA, indemnités kilométriques des intervenants 2026 : https://sola-saas.fr/indemnites-kilometriques-intervenants/
 - Aladom, avenants 75 et 76 : https://www.aladom.fr/actualites/podcast/11194/aide-a-domicile-le-gouvernement-valide-la-hausse-des-salaires-les-indemnites-kilometriques-et-laide-carburant/
+
+- CGI art. 197 (barème, quotient familial, décote), version au 21/02/2026, loi n° 2026-103 : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051212954 (consulté le 15/10/2026)

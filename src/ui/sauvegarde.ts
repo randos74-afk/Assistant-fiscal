@@ -2,6 +2,7 @@
 // Un dossier par année de revenus. Le stockage peut être indisponible (navigation privée) :
 // chaque accès est protégé et l'application fonctionne sans.
 import type { SaisieAutresFrais } from "../parcours/autresFrais";
+import type { SaisieFoyer } from "../parcours/foyer";
 import type { Reponses as ReponsesFiltrage } from "../parcours/filtrage";
 import type { IdProfil } from "../parcours/metiers";
 import type { SaisieRepas } from "../parcours/repas";
@@ -27,6 +28,7 @@ export interface Dossier {
   repas?: SaisieRepas;
   teletravail?: SaisieTeletravail;
   autres?: SaisieAutresFrais;
+  foyer?: SaisieFoyer;
 }
 
 export type ContenuDossier = Omit<Dossier, "application" | "version" | "enregistreLe">;

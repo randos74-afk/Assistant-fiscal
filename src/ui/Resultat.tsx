@@ -3,7 +3,10 @@ import { useState } from "react";
 import type { ResultatDeclarant } from "../moteur/declarant";
 import { euros, nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
+import { comparerImpot } from "../moteur/impot";
+import { autresRevenusFoyer, type SaisieFoyer } from "../parcours/foyer";
 import { PiedDePage } from "./Cadre";
+import { EstimationImpot } from "./EstimationImpot";
 import { BlocACopier } from "./Copier";
 import { Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
@@ -12,6 +15,8 @@ interface Props {
   parametres: Parametres;
   resultat: ResultatDeclarant;
   prudentes: string[];
+  foyer?: SaisieFoyer;
+  onFoyer: (f: SaisieFoyer) => void;
   /** Renvoie false si le navigateur a bloqué la fenêtre. */
   onPdf: () => boolean;
   onEnregistrerFichier: () => void;
@@ -19,10 +24,11 @@ interface Props {
   onRecommencer: () => void;
 }
 
-export function Resultat({ parametres: p, resultat: r, prudentes, onPdf, onEnregistrerFichier, onModifier, onRecommencer }: Props) {
+export function Resultat({ parametres: p, resultat: r, prudentes, foyer, onFoyer, onPdf, onEnregistrerFichier, onModifier, onRecommencer }: Props) {
   const [pdfBloque, setPdfBloque] = useState(false);
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
+  const impot = foyer ? comparerImpot(p, c.baseAbattement10, c.baseFraisReels, autresRevenusFoyer(p, foyer), foyer) : null;
   const conseille = c.fraisReelsConseilles;
   const cible = p.resume_1ak.longueur_cible_caracteres;
 
@@ -61,16 +67,45 @@ export function Resultat({ parametres: p, resultat: r, prudentes, onPdf, onEnreg
 
       <main className="ecran-contenu" style={{ gap: 16 }}>
         <section className={conseille ? "verdict verdict-reel" : "verdict verdict-abattement"} aria-live="polite">
-          <p className="verdict-phrase">
-            {typographie(
-              conseille
-                ? "Bonne nouvelle : avec vos frais réels, votre revenu imposable baisse de"
-                : `Ne changez rien : l'abattement automatique de ${taux} est plus avantageux pour vous.`,
-            )}
-          </p>
-          {conseille && <p className="verdict-montant montant">{euros(c.gainBase)}</p>}
-          {conseille && <p className="detail-calcul">{typographie("par rapport à l'abattement automatique.")}</p>}
+          {!conseille ? (
+            <p className="verdict-phrase">
+              {typographie(`Ne changez rien : l'abattement automatique de ${taux} est plus avantageux pour vous.`)}
+            </p>
+          ) : impot && impot.gain > 0 ? (
+            <>
+              <p className="verdict-phrase">{typographie("Bonne nouvelle : avec vos frais réels, vous payez environ")}</p>
+              <p className="verdict-montant montant">{euros(impot.gain)}</p>
+              <p className="detail-calcul">
+                {typographie(
+                  `d'impôt en moins. Impôt estimé : ${euros(impot.avecAbattement.impot)} avec l'abattement, ${euros(impot.avecFraisReels.impot)} avec les frais réels.`,
+                )}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="verdict-phrase">{typographie("Bonne nouvelle : avec vos frais réels, votre revenu imposable baisse de")}</p>
+              <p className="verdict-montant montant">{euros(c.gainBase)}</p>
+              <p className="detail-calcul">
+                {typographie(
+                  impot
+                    ? `Votre impôt estimé ne change pas (${euros(impot.avecAbattement.impot)}), mais votre revenu fiscal de référence baisse : cela peut compter pour certaines aides.`
+                    : "par rapport à l'abattement automatique.",
+                )}
+              </p>
+            </>
+          )}
         </section>
+
+        {foyer ? (
+          <details className="depliant">
+            <summary>Modifier les renseignements sur mon foyer</summary>
+            <div style={{ marginTop: 12 }}>
+              <EstimationImpot valeurInitiale={foyer} onValider={onFoyer} />
+            </div>
+          </details>
+        ) : (
+          conseille && <EstimationImpot onValider={onFoyer} />
+        )}
 
         <div className="colonnes-comparaison">
           <section className={conseille ? "colonne" : "colonne colonne-gagnante"}>

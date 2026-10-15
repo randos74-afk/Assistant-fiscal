@@ -565,6 +565,88 @@
       "source": "Spécifications F3, F4, F5, F8 ; arrondi à l'euro inférieur par ligne"
     },
     {
+      "id": "IMP-01",
+      "titre": "Personne seule, revenu imposable 28 800 € : 1 892 € puis décote",
+      "entrees": {
+        "revenu": 28800,
+        "couple": false,
+        "enfants": 0
+      },
+      "attendu": {
+        "impot": 1851.13
+      },
+      "source": "(28 800 - 11 600) × 11 % = 1 892 ; décote 897 - 45,25 % × 1 892"
+    },
+    {
+      "id": "IMP-02",
+      "titre": "Couple, 2 enfants (3 parts), revenu 60 000 €",
+      "entrees": {
+        "revenu": 60000,
+        "couple": true,
+        "enfants": 2
+      },
+      "attendu": {
+        "parts": 3,
+        "impot": 2543.33
+      },
+      "source": "quotient 20 000 : 924 × 3 = 2 772, plafond non atteint, décote couple"
+    },
+    {
+      "id": "IMP-03",
+      "titre": "Couple, 1 enfant, revenu 150 000 € : plafonnement du quotient familial",
+      "entrees": {
+        "revenu": 150000,
+        "couple": true,
+        "enfants": 1
+      },
+      "attendu": {
+        "impot": 29400.98
+      },
+      "source": "avantage 3 448 € plafonné à 1 807 € : 31 207,98 - 1 807"
+    },
+    {
+      "id": "IMP-04",
+      "titre": "Parent seul (case T), 1 enfant (2 parts), revenu 40 000 €",
+      "entrees": {
+        "revenu": 40000,
+        "couple": false,
+        "enfants": 1,
+        "parent_isole": true
+      },
+      "attendu": {
+        "parts": 2,
+        "impot": 1787.22
+      },
+      "source": "plafond 4 262 € pour les deux premières demi-parts, décote personne seule"
+    },
+    {
+      "id": "IMP-05",
+      "titre": "Personne seule, revenu 13 000 € : impôt effacé par la décote",
+      "entrees": {
+        "revenu": 13000,
+        "couple": false,
+        "enfants": 0
+      },
+      "attendu": {
+        "impot": 0.0
+      },
+      "source": "décote supérieure à l'impôt brut"
+    },
+    {
+      "id": "IMP-06",
+      "titre": "Exemple de la spécification : gain d'impôt d'une personne seule",
+      "entrees": {
+        "base_abattement": 28800,
+        "base_frais_reels": 26286,
+        "couple": false,
+        "enfants": 0
+      },
+      "attendu": {
+        "gain_impot": 401.67
+      },
+      "source": "IMP-01 moins impôt sur 26 286 €"
+    },
+    {
       "id": "ADM-01",
       "titre": "Aide à domicile ADMR, 40 km/jour dont 15 km remboursés, 200 jours, 4 CV, salaire 18 000 €",
       "entrees": {

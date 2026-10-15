@@ -20,6 +20,8 @@ import { Resultat } from "./ui/Resultat";
 import { Salaire, type SaisieSalaire } from "./ui/Salaire";
 import { charger, effacer, enregistrer, existeSauvegarde, telechargerDossier, type ContenuDossier, type Dossier } from "./ui/sauvegarde";
 import { justificatifs } from "./parcours/justificatifs";
+import { autresRevenusFoyer, type SaisieFoyer } from "./parcours/foyer";
+import { comparerImpot } from "./moteur/impot";
 import { ouvrirPdf } from "./ui/pdf";
 import { Teletravail } from "./ui/Teletravail";
 import { Trajet } from "./ui/Trajet";
@@ -38,19 +40,20 @@ export default function App() {
   const [repas, setRepas] = useState<SaisieRepas | undefined>();
   const [teletravail, setTeletravail] = useState<SaisieTeletravail | undefined>();
   const [autres, setAutres] = useState<SaisieAutresFrais | undefined>();
+  const [foyer, setFoyer] = useState<SaisieFoyer | undefined>();
 
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
   const joursSurSite = jours ? totaux(jours.mois).site : 0;
   const reponses = { salaire, jours, trajet, repas, teletravail, autres };
 
-  const contenu: ContenuDossier = { millesime, ecran, reponsesFiltrage, metier, salaire, jours, trajet, repas, teletravail, autres };
+  const contenu: ContenuDossier = { millesime, ecran, reponsesFiltrage, metier, salaire, jours, trajet, repas, teletravail, autres, foyer };
 
   // F9.3 — Sauvegarde automatique sur l'appareil dès que le parcours a commencé.
   useEffect(() => {
     if (metier !== undefined) enregistrer(contenu);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ecran, metier, salaire, jours, trajet, repas, teletravail, autres]);
+  }, [ecran, metier, salaire, jours, trajet, repas, teletravail, autres, foyer]);
 
   function reprendre(d: Dossier) {
     setReponsesFiltrage(d.reponsesFiltrage ?? {});
@@ -61,8 +64,16 @@ export default function App() {
     setRepas(d.repas);
     setTeletravail(d.teletravail);
     setAutres(d.autres);
+    setFoyer(d.foyer);
     setDepuisRelecture(false);
     setEcran(d.metier ? (d.ecran as Ecran) : "filtrage");
+  }
+
+  function estimationImpot() {
+    if (!foyer) return null;
+    const c = calculerParcours(parametres, reponses).comparaison;
+    const i = comparerImpot(parametres, c.baseAbattement10, c.baseFraisReels, autresRevenusFoyer(parametres, foyer), foyer);
+    return { avecAbattement: i.avecAbattement.impot, avecFraisReels: i.avecFraisReels.impot, gain: i.gain };
   }
 
   /** Étape suivante, ou retour direct à la relecture si l'on corrigeait une réponse. */
@@ -79,6 +90,7 @@ export default function App() {
     setRepas(undefined);
     setTeletravail(undefined);
     setAutres(undefined);
+    setFoyer(undefined);
     setDepuisRelecture(false);
     setEcran("accueil");
   }
@@ -205,6 +217,8 @@ export default function App() {
           parametres={parametres}
           resultat={calculerParcours(parametres, reponses)}
           prudentes={valeursPrudentes(reponses)}
+          foyer={foyer}
+          onFoyer={setFoyer}
           onPdf={() =>
             ouvrirPdf({
               parametres,
@@ -212,6 +226,7 @@ export default function App() {
               prudentes: valeursPrudentes(reponses),
               justificatifs: justificatifs(reponses),
               date: new Date(),
+              impot: estimationImpot(),
             })
           }
           onEnregistrerFichier={() => telechargerDossier(contenu)}
