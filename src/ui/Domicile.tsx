@@ -48,7 +48,7 @@ const nb = (t: string, lire: (t: string) => number | null) => {
 const journeeVide = (jours: number): JourneeTexte => ({ troncons: ["", "", ""], rembourses: [true], jours: String(jours) });
 
 export function Domicile({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour }: Props) {
-  const [question, setQuestion] = useState<Question>("employeurs");
+  const [question, setQuestion] = useState<Question>(v ? "bilan" : "employeurs");
   const [employeurs, setEmployeurs] = useState<TypeEmployeur[]>(v?.employeurs ?? []);
   const [indemnites, setIndemnites] = useState(v?.indemnites ? afficherMontant(v.indemnites) : "");
   const [forfaits, setForfaits] = useState(v?.forfaitsTransport && !v.forfaitsPrudents ? afficherMontant(v.forfaitsTransport) : "");
@@ -449,7 +449,7 @@ export function Domicile({ parametres: p, joursSurSite, valeurInitiale: v, onVal
         {contenu}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={reculer}>
         <BandeauConfidentialite />
         <button
           type="button"

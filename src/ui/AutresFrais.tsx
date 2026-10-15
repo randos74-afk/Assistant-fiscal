@@ -44,7 +44,7 @@ const montant = (t: string) => {
 const texte = (n: number | undefined) => (n ? afficherMontant(n) : "");
 
 export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuvertsDOffice, valeurInitiale: v, onValider, onRetour }: Props) {
-  const [question, setQuestion] = useState<Question>(enTransports ? "transport" : "postes");
+  const [question, setQuestion] = useState<Question>(v ? "bilan" : enTransports ? "transport" : "postes");
   const [ouverts, setOuverts] = useState<IdAutreFrais[]>(v?.ouverts ?? postesOuvertsDOffice);
   const [montants, setMontants] = useState<Record<string, string>>(
     Object.fromEntries(Object.entries(v?.montants ?? {}).map(([k, n]) => [k, texte(n)])),
@@ -297,7 +297,7 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
         {contenu}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={reculer}>
         <BandeauConfidentialite />
         <button
           type="button"

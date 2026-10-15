@@ -55,7 +55,7 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
   const annee = p.millesime.revenus;
   const joursTeletravail = joursParMois.reduce((s, j) => s + j, 0);
 
-  const [question, setQuestion] = useState<Question>("allocation");
+  const [question, setQuestion] = useState<Question>(v ? "bilan" : "allocation");
   const [aAllocation, setAAllocation] = useState<string | undefined>(v ? (v.allocation > 0 ? "oui" : "non") : undefined);
   const [allocation, setAllocation] = useState(v && !v.allocationPrudente ? texte(v.allocation) : "");
   const [allocPrudente, setAllocPrudente] = useState(v?.allocationPrudente ?? false);
@@ -111,7 +111,7 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
           <h1 className="titre-question">Le télétravail</h1>
           <Encadre>{typographie("Vous n'avez indiqué aucun jour de télétravail à l'étape « Vos jours ». Rien à compter ici.")}</Encadre>
         </main>
-        <PiedDePage>
+        <PiedDePage onPrecedent={onRetour}>
           <BandeauConfidentialite />
           <button type="button" className="bouton bouton-principal" onClick={() => onValider(saisie("forfait"))}>
             Continuer
@@ -341,7 +341,7 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
         {contenu}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={reculer}>
         <BandeauConfidentialite />
         <button
           type="button"

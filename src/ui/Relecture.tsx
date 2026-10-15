@@ -104,7 +104,7 @@ export function Relecture({ reponses: r, resultat, vraisemblance: v, onModifier,
         ))}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={onRetour}>
         <BandeauConfidentialite />
         <button type="button" className="bouton bouton-principal" onClick={onValider} disabled={!r.salaire}>
           Voir mon résultat

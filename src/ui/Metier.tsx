@@ -37,7 +37,7 @@ export function Metier({ parametres, valeurInitiale, onChoix, onRetour }: Props)
         {choix === "autre" && <Encadre>{typographie("Votre métier n'est pas dans la liste ? Aucun souci : toutes les questions vous seront posées.")}</Encadre>}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={onRetour}>
         <BandeauConfidentialite />
         <button type="button" className="bouton bouton-principal" disabled={!choix} onClick={() => choix && onChoix(choix)}>
           Continuer

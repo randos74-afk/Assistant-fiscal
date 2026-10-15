@@ -109,7 +109,7 @@ export function Salaire({ millesime, valeurInitiale, onValider, onRetour }: Prop
         )}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={onRetour}>
         <BandeauConfidentialite />
         <button type="button" className="bouton bouton-principal" disabled={!valide} onClick={valider}>
           Continuer

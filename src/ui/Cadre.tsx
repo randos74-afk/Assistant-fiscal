@@ -17,11 +17,16 @@ export function EnTete({ millesime }: { millesime: number }) {
   );
 }
 
-/** Bas d'écran : actions puis mention d'indépendance, toujours présente (règle d'or n° 8). */
-export function PiedDePage({ children }: { children?: ReactNode }) {
+/** Bas d'écran : actions, bouton « Précédent » éventuel, puis mention d'indépendance (règle d'or n° 8). */
+export function PiedDePage({ children, onPrecedent }: { children?: ReactNode; onPrecedent?: () => void }) {
   return (
     <footer className="pied">
       {children}
+      {onPrecedent && (
+        <button type="button" className="bouton bouton-secondaire" onClick={onPrecedent}>
+          ‹ Précédent
+        </button>
+      )}
       <p className="mention-independance">Application indépendante, non affiliée à l'administration fiscale.</p>
     </footer>
   );

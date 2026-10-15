@@ -37,7 +37,7 @@ const nombreOuZero = (n: number | null) => (n === null || Number.isNaN(n) ? 0 : 
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
 export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour }: Props) {
-  const [question, setQuestion] = useState<Question>("mode");
+  const [question, setQuestion] = useState<Question>(v ? "bilan" : "mode");
   const [mode, setMode] = useState<ModeTrajet | undefined>(v?.mode);
   const [distance, setDistance] = useState(v ? String(v.allerKm) : "");
   const [guideDistance, setGuideDistance] = useState(false);
@@ -344,7 +344,7 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
         {contenu}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={reculer}>
         <BandeauConfidentialite />
         <button
           type="button"

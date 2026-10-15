@@ -36,7 +36,7 @@ const positif = (n: number | null): n is number => n !== null && !Number.isNaN(n
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
 export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour }: Props) {
-  const [question, setQuestion] = useState<Question>("acces");
+  const [question, setQuestion] = useState<Question>(v ? "bilan" : "acces");
   const [acces, setAcces] = useState<AccesRepas | undefined>(v?.acces);
   const [lieu, setLieu] = useState<LieuRepas | undefined>(v?.lieu);
   const [cantineProche, setCantineProche] = useState<string | undefined>(
@@ -290,7 +290,7 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
         {contenu}
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={reculer}>
         <BandeauConfidentialite />
         <button
           type="button"

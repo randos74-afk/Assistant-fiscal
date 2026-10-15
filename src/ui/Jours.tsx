@@ -53,7 +53,7 @@ const entier = (t: string) => {
 const entierValide = (t: string) => !Number.isNaN(lireEntier(t));
 
 export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onRetour }: Props) {
-  const [question, setQuestion] = useState<1 | 2>(1);
+  const [question, setQuestion] = useState<1 | 2>(v ? 2 : 1);
   const [joursParSemaine, setJoursParSemaine] = useState(v?.joursParSemaine ?? 5);
   const [conges, setConges] = useState(String(v?.semainesConges ?? 5));
   const [rtt, setRtt] = useState(String(v?.rtt ?? 0));
@@ -208,7 +208,7 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
           )}
         </main>
 
-        <PiedDePage>
+        <PiedDePage onPrecedent={onRetour}>
           <BandeauConfidentialite />
           <button type="button" className="bouton bouton-principal" disabled={!saisiesQ1Valides} onClick={() => setQuestion(2)}>
             Continuer
@@ -323,7 +323,7 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
         </details>
       </main>
 
-      <PiedDePage>
+      <PiedDePage onPrecedent={() => setQuestion(1)}>
         <BandeauConfidentialite />
         <button
           type="button"
