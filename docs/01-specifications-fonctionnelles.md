@@ -32,7 +32,7 @@ Tous ces chiffres vivent dans un fichier de paramètres annuel (JSON versionné)
 | Télétravail forfait | 2,70 €/jour ; 59,40 €/mois ; 626,40 €/an | [Tissot](https://www.editions-tissot.fr/actualite/droit-du-travail/teletravail-lindemnite-est-exoneree-dimpot-sur-les-revenus), notice 2041 GP |
 | Barème kilométrique | Barème de l'arrêté de mars 2023, reconduit à l'identique pour les revenus 2025 | Dépliant GP 120, Tout sur mes finances |
 | Majoration véhicule 100 % électrique | + 20 % | Dépliant GP 120 |
-| Plafond de puissance | 7 CV voiture ; 5 CV deux-roues | Dépliant GP 120 |
+| Plafond de puissance | Voiture : ligne « 7 CV et plus » ; moto : ligne « plus de 5 CV » pour toute puissance au-delà | Dépliant GP 120 |
 | Distance domicile-travail admise sans justification | 40 km aller (80 km par jour) | Dépliant GP 120 |
 | Matériel déductible immédiatement | jusqu'à 500 € HT ; au-delà amortissement linéaire (informatique : 3 ans) | [WebLex](https://www.weblex.fr/weblex-actualite/impot-sur-le-revenu-deduire-l-achat-de-votre-ordinateur), BOI-RSA-BASE-30-50-30-40 |
 | Jours de référence télétravail (règle pratique) | 47 semaines travaillées ; 12 h par journée de télétravail en local à usage mixte | Notice 2041 GP |
