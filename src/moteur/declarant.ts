@@ -89,6 +89,8 @@ export interface ResultatDeclarant {
   nbCaracteres: number;
   depasseLongueurCible: boolean;
   alertes: string[];
+  /** Kilométrage annuel retenu pour chaque véhicule (contrôles de vraisemblance). */
+  kmVehicules: number[];
 }
 
 const CASES = ["1AK", "1BK", "1CK", "1DK"];
@@ -115,12 +117,14 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
   const vehicules = e.vehicules ?? [];
   let peages = 0;
   let interets = 0;
+  const kmVehicules: number[] = [];
   for (const v of vehicules) {
     const allersRetours = v.allersRetoursParJour ?? p.deplacements.allers_retours_par_jour_par_defaut;
     const aller = distanceRetenue(p, v.allerKm, Boolean(v.motifDistance));
     const kmTrajets = kmDomicileTravail(p, aller, v.joursSurSite, allersRetours);
     const km = v.kmForce ?? kmTrajets + (v.kmMissions ?? 0) + (v.kmDoubleResidence ?? 0);
     const b = baremeKm(p, { km, vehicule: v.type, cv: v.cv, electrique: v.energie === "électrique" });
+    kmVehicules.push(km);
 
     let detail: string;
     if (v.kmForce !== undefined) {
@@ -209,10 +213,6 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
   );
   const texte = brut(texteLignes.join("\n"));
 
-  if (montantCase > e.salairePrerempli + totalReintegrations) {
-    alertes.push("Vos frais réels dépassent votre salaire : vérifiez les montants saisis.");
-  }
-
   return {
     caseFraisReels,
     lignes,
@@ -223,5 +223,6 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     nbCaracteres: texte.length,
     depasseLongueurCible: texte.length > p.resume_1ak.longueur_cible_caracteres,
     alertes,
+    kmVehicules,
   };
 }

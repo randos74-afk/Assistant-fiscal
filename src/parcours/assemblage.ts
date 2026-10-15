@@ -1,6 +1,7 @@
 // Assemble les réponses des sept étapes en une entrée unique du moteur, puis liste les valeurs prudentes.
 import { calculerDeclarant, type EntreeDeclarant, type ResultatDeclarant } from "../moteur/declarant";
 import type { Parametres } from "../moteur/types";
+import { evaluerVraisemblance, type Vraisemblance } from "../moteur/vraisemblance";
 import { autresFraisPourMoteur, type SaisieAutresFrais } from "./autresFrais";
 import { totaux, type JoursDuMois } from "./calendrier";
 import { repasPourMoteur, type SaisieRepas } from "./repas";
@@ -9,7 +10,7 @@ import { vehiculePourMoteur, type SaisieTrajet } from "./trajet";
 
 export interface Reponses {
   salaire?: { montant: number; source: string };
-  jours?: { prudent: boolean; mois: JoursDuMois[] };
+  jours?: { prudent: boolean; mois: JoursDuMois[]; joursParSemaine?: number };
   trajet?: SaisieTrajet;
   repas?: SaisieRepas;
   teletravail?: SaisieTeletravail;
@@ -56,4 +57,15 @@ export function valeursPrudentes(r: Reponses): string[] {
   if (r.teletravail?.allocationPrudente) liste.push("indemnité de télétravail");
   if (r.autres?.transport?.priseEnChargePrudente) liste.push("remboursement de l'abonnement de transport");
   return liste;
+}
+
+/** F11 — Contexte des contrôles ciblés ; la situation familiale n'est connue que si elle a été renseignée. */
+export function vraisemblance(p: Parametres, r: Reponses, resultat: ResultatDeclarant, couple?: boolean): Vraisemblance {
+  return evaluerVraisemblance(p, resultat, {
+    joursSurSite: totaux(r.jours?.mois ?? []).site,
+    joursParSemaine: r.jours?.joursParSemaine ?? 5,
+    couple,
+    doubleResidence: Boolean(r.autres?.ouverts.includes("doubleResidence")),
+    motifEmploiConjoint: r.trajet?.motifDistance === "emploi du conjoint",
+  });
 }

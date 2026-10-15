@@ -1,7 +1,7 @@
 // Parcours FraisFit : accueil, filtrage, métier, sept étapes, relecture et résultat.
 import { useEffect, useState } from "react";
 import { chargerParametres, millesimesDisponibles } from "./moteur/parametres";
-import { calculerParcours, valeursPrudentes } from "./parcours/assemblage";
+import { calculerParcours, valeursPrudentes, vraisemblance } from "./parcours/assemblage";
 import { postesDuProfil, type SaisieAutresFrais } from "./parcours/autresFrais";
 import { totaux } from "./parcours/calendrier";
 import { QUESTIONS_FILTRAGE, type Reponses as ReponsesFiltrage } from "./parcours/filtrage";
@@ -199,6 +199,7 @@ export default function App() {
         <Relecture
           reponses={reponses}
           resultat={calculerParcours(parametres, reponses)}
+          vraisemblance={vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple)}
           onRetour={() => setEcran("autres")}
           onModifier={(e) => {
             setDepuisRelecture(true);
@@ -218,6 +219,7 @@ export default function App() {
           resultat={calculerParcours(parametres, reponses)}
           prudentes={valeursPrudentes(reponses)}
           foyer={foyer}
+          vraisemblance={vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple)}
           onFoyer={setFoyer}
           onPdf={() =>
             ouvrirPdf({

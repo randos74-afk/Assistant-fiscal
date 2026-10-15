@@ -4,6 +4,7 @@ import type { ResultatDeclarant } from "../moteur/declarant";
 import { euros, nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
 import { comparerImpot } from "../moteur/impot";
+import type { Vraisemblance } from "../moteur/vraisemblance";
 import { autresRevenusFoyer, type SaisieFoyer } from "../parcours/foyer";
 import { PiedDePage } from "./Cadre";
 import { EstimationImpot } from "./EstimationImpot";
@@ -16,6 +17,7 @@ interface Props {
   resultat: ResultatDeclarant;
   prudentes: string[];
   foyer?: SaisieFoyer;
+  vraisemblance: Vraisemblance;
   onFoyer: (f: SaisieFoyer) => void;
   /** Renvoie false si le navigateur a bloqué la fenêtre. */
   onPdf: () => boolean;
@@ -24,16 +26,45 @@ interface Props {
   onRecommencer: () => void;
 }
 
-export function Resultat({ parametres: p, resultat: r, prudentes, foyer, onFoyer, onPdf, onEnregistrerFichier, onModifier, onRecommencer }: Props) {
+export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisemblance: v, onFoyer, onPdf, onEnregistrerFichier, onModifier, onRecommencer }: Props) {
   const [pdfBloque, setPdfBloque] = useState(false);
+  const [verifies, setVerifies] = useState<string[]>([]);
+  const resteAVerifier = v.postesAVerifier.filter((l) => !verifies.includes(l.texte));
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
   const impot = foyer ? comparerImpot(p, c.baseAbattement10, c.baseFraisReels, autresRevenusFoyer(p, foyer), foyer) : null;
   const conseille = c.fraisReelsConseilles;
   const cible = p.resume_1ak.longueur_cible_caracteres;
 
-  const blocs = (
+  // F11 niveaux 2 et 3 : le texte à copier n'apparaît qu'après vérification des postes listés.
+  const verification = v.postesAVerifier.length > 0 && (
+    <section className="carte" aria-labelledby="titre-verification">
+      <h2 id="titre-verification">{v.niveau === 3 ? "Confirmez chaque poste" : "Relisez vos postes les plus lourds"}</h2>
+      {v.postesAVerifier.map((l) => (
+        <label key={l.texte} className="case-a-cocher">
+          <input
+            type="checkbox"
+            checked={verifies.includes(l.texte)}
+            onChange={(e) => setVerifies(e.target.checked ? [...verifies, l.texte] : verifies.filter((x) => x !== l.texte))}
+          />
+          <span>
+            {typographie(`J'ai vérifié : ${l.texte}`)}
+            <small className="choix-detail">{typographie("Montant juste et justificatifs gardés.")}</small>
+          </span>
+        </label>
+      ))}
+      {resteAVerifier.length > 0 && (
+        <p className="champ-detail">{typographie("Le texte à copier s'affichera quand tout sera coché. Pour corriger, touchez « Modifier mes réponses ».")}</p>
+      )}
+    </section>
+  );
+
+  const blocs =
+    resteAVerifier.length > 0 ? (
+      verification
+    ) : (
     <>
+      {verification}
       <BlocACopier titre={`Case ${r.caseFraisReels} : frais réels`} texte={nombre(r.montantCase)} grand />
       {r.totalReintegrations > 0 && (
         <BlocACopier
@@ -59,7 +90,7 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, onFoyer
         </ol>
       </section>
     </>
-  );
+    );
 
   return (
     <div className="ecran">
@@ -123,6 +154,13 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, onFoyer
             <p className="detail-calcul">revenu imposable</p>
           </section>
         </div>
+
+        {v.message && <Encadre ton={v.niveau >= 2 ? "attention" : "info"}>{typographie(v.message)}</Encadre>}
+        {v.alertes.map((a) => (
+          <Encadre key={a} ton="attention">
+            {typographie(a)}
+          </Encadre>
+        ))}
 
         {!conseille && (
           <Encadre>

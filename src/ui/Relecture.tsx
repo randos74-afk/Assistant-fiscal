@@ -1,5 +1,6 @@
 // Étape 7 : relecture. Récapitulatif modifiable étape par étape, valeurs prudentes signalées.
 import type { ResultatDeclarant } from "../moteur/declarant";
+import type { Vraisemblance } from "../moteur/vraisemblance";
 import { euros, nombre } from "../moteur/format";
 import { totaux } from "../parcours/calendrier";
 import { libelleEtape } from "../parcours/etapes";
@@ -13,12 +14,13 @@ export type EcranModifiable = "salaire" | "jours" | "trajet" | "repas" | "teletr
 interface Props {
   reponses: Reponses;
   resultat: ResultatDeclarant;
+  vraisemblance: Vraisemblance;
   onModifier: (ecran: EcranModifiable) => void;
   onValider: () => void;
   onRetour: () => void;
 }
 
-export function Relecture({ reponses: r, resultat, onModifier, onValider, onRetour }: Props) {
+export function Relecture({ reponses: r, resultat, vraisemblance: v, onModifier, onValider, onRetour }: Props) {
   const etape = libelleEtape("relecture");
   const t = totaux(r.jours?.mois ?? []);
   const lignes = (categories: string[]) => resultat.lignes.filter((l) => categories.includes(l.categorie));
@@ -94,7 +96,8 @@ export function Relecture({ reponses: r, resultat, onModifier, onValider, onReto
         {prudentes.length > 0 && (
           <Encadre>{typographie(`Valeur prudente retenue pour : ${prudentes.join(", ")}. Corrigez-la si vous retrouvez le chiffre.`)}</Encadre>
         )}
-        {resultat.alertes.map((a) => (
+        {v.message && <Encadre ton={v.niveau >= 2 ? "attention" : "info"}>{typographie(v.message)}</Encadre>}
+        {[...resultat.alertes, ...v.alertes].map((a) => (
           <Encadre key={a} ton="attention">
             {typographie(a)}
           </Encadre>
