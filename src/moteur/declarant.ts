@@ -34,6 +34,11 @@ export interface EntreeVehicule {
   kmMissions?: number;
   /** F6.8 — Allers-retours vers le domicile familial (double résidence), même véhicule. */
   kmDoubleResidence?: number;
+  /**
+   * F13 — Journées types d'intervention : premier et dernier tronçon en domicile-travail
+   * (plafonnés sauf motif), tronçons entre personnes aidées en professionnel. Remplace allerKm.
+   */
+  journeesTypes?: JourneeType[];
   /** F3.8 — Kilométrage annuel saisi directement (relevé), remplace le calcul. */
   kmForce?: number;
   /** F3.9 — Péages et parking, part professionnelle. */
@@ -41,6 +46,22 @@ export interface EntreeVehicule {
   /** F3.10 — Intérêts annuels du crédit auto, proratisés par kmPro / kmTotauxCompteur. */
   interetsCredit?: number;
   kmTotauxCompteur?: number;
+}
+
+export interface JourneeType {
+  /** Distances des tronçons : maison → personne 1, personne 1 → 2, …, dernière personne → maison. */
+  troncons: number[];
+  jours: number;
+}
+
+/** Kilomètres d'une journée type : domicile-travail (plafonné sauf motif) et professionnels. */
+export function kmJournee(p: Parametres, j: JourneeType, motif: boolean): { domicileTravail: number; professionnels: number } {
+  const t = j.troncons;
+  if (t.length === 0) return { domicileTravail: 0, professionnels: 0 };
+  const plafond = (km: number) => distanceRetenue(p, km, motif);
+  const domicileTravail = t.length === 1 ? plafond(t[0]) : plafond(t[0]) + plafond(t[t.length - 1]);
+  const professionnels = t.slice(1, -1).reduce((s, km) => s + km, 0);
+  return { domicileTravail, professionnels };
 }
 
 export interface EntreeRepasDeclarant {
@@ -121,7 +142,22 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
   for (const v of vehicules) {
     const allersRetours = v.allersRetoursParJour ?? p.deplacements.allers_retours_par_jour_par_defaut;
     const aller = distanceRetenue(p, v.allerKm, Boolean(v.motifDistance));
-    const kmTrajets = kmDomicileTravail(p, aller, v.joursSurSite, allersRetours);
+    let kmTrajets = kmDomicileTravail(p, aller, v.joursSurSite, allersRetours);
+    let kmDT = 0;
+    let kmPro = 0;
+    if (v.journeesTypes?.length) {
+      for (const j of v.journeesTypes) {
+        const extremes = [j.troncons[0], j.troncons[j.troncons.length - 1]];
+        const plafond = p.deplacements.distance_aller_max_sans_justification_km;
+        if (!v.motifDistance && extremes.some((km) => km > plafond)) {
+          alertes.push(`Un trajet entre la maison et une personne aidée dépasse ${plafond} km : il est ramené à ${plafond} km sans motif.`);
+        }
+        const k = kmJournee(p, j, Boolean(v.motifDistance));
+        kmDT += k.domicileTravail * j.jours;
+        kmPro += k.professionnels * j.jours;
+      }
+      kmTrajets = kmDT + kmPro;
+    }
     const km = v.kmForce ?? kmTrajets + (v.kmMissions ?? 0) + (v.kmDoubleResidence ?? 0);
     const b = baremeKm(p, { km, vehicule: v.type, cv: v.cv, electrique: v.energie === "électrique" });
     kmVehicules.push(km);
@@ -129,6 +165,11 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     let detail: string;
     if (v.kmForce !== undefined) {
       detail = "relevé de kilométrage";
+    } else if (v.journeesTypes?.length) {
+      const jours = v.journeesTypes.reduce((s, j) => s + j.jours, 0);
+      detail = `${nombre(jours)} j d'intervention : domicile-travail ${nombre(kmDT)} km, entre personnes aidées ${nombre(kmPro)} km`;
+      if (v.kmMissions) detail += ` + autres trajets professionnels ${nombre(v.kmMissions)} km`;
+      if (v.kmDoubleResidence) detail += ` + trajets double résidence ${nombre(v.kmDoubleResidence)} km`;
     } else {
       detail = `domicile-travail ${nombre(aller)} km × 2` + (allersRetours > 1 ? ` × ${allersRetours} allers-retours` : "");
       detail += ` × ${nombre(v.joursSurSite)} j sur site`;

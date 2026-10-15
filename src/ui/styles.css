@@ -1162,3 +1162,84 @@ a {
   outline: 3px solid var(--primaire);
   outline-offset: 2px;
 }
+
+/* Journée type (maquette 04) : domicile-travail en bleu, professionnel en vert. */
+.journee {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.troncon {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--bordure);
+  border-left-width: 6px;
+  border-radius: var(--rayon);
+}
+
+.troncon-domicile {
+  border-left-color: var(--primaire);
+}
+
+.troncon-pro {
+  border-left-color: var(--vert-economie);
+}
+
+.troncon-texte {
+  flex: 1;
+  min-width: 0;
+}
+
+.troncon-libelle {
+  font-weight: 700;
+  font-size: var(--taille-texte-min);
+}
+
+.troncon-type {
+  font-size: 13px;
+  color: var(--texte-secondaire);
+}
+
+.troncon-rembourse {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  min-height: 32px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.troncon-rembourse input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primaire);
+}
+
+.troncon-km {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 96px;
+  flex-shrink: 0;
+  color: var(--texte-secondaire);
+}
+
+.barre-journee {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  gap: 2px;
+}
+
+.barre-domicile {
+  background: var(--primaire);
+}
+
+.barre-pro {
+  background: var(--vert-economie);
+}

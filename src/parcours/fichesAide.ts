@@ -12,7 +12,8 @@ export type IdIllustration =
   | "bulletin-allocation-teletravail"
   | "attestation-syndicat"
   | "bulletin-transport"
-  | "avis-imposition";
+  | "avis-imposition"
+  | "bulletin-indemnites-km";
 
 export interface FicheAide {
   titre: string;
@@ -154,6 +155,17 @@ export const FICHES = {
     motsAChercher: ["Nombre de parts", "Situation de famille", "Vos références"],
     siIntrouvable:
       "Laissez ce bloc vide : nous comparons alors votre revenu imposable seulement, sans montant d'impôt.",
+  },
+  indemnitesKm: {
+    titre: "Où trouver ces montants ?",
+    illustration: "bulletin-indemnites-km",
+    texteAlternatif:
+      "Exemple de bulletin de paie d'aide à domicile : la ligne « Indemnités kilométriques », 250 km à 0,38 €, cumul annuel 1 140 €, est entourée en orange.",
+    ouRegarder:
+      "Sur votre bulletin de décembre, ligne « indemnités kilométriques », colonne du cumul de l'année. Avec un mandataire, regardez son récapitulatif annuel, ou la ligne « participation frais de transport » de chaque fiche.",
+    motsAChercher: ["Indemnités kilométriques", "IK", "Frais de déplacement", "Participation frais de transport", "Convention collective"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » pour les forfaits : nous comptons le montant d'une fiche, 12 mois, pour chaque personne aidée. C'est le choix le plus prudent.",
   },
 } satisfies Record<string, FicheAide>;
 

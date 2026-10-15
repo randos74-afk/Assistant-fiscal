@@ -22,6 +22,15 @@ export function justificatifs(r: Reponses): string[] {
     if (trajet.interetsCredit > 0) liste.push("Tableau d'amortissement du crédit auto");
   }
 
+  if (r.domicile) {
+    liste.push("Carte grise du véhicule (puissance et énergie)");
+    liste.push("Plannings et historique de pointage chez les personnes aidées");
+    liste.push("Itinéraires entre la maison et chaque personne aidée");
+    if (r.domicile.indemnites > 0 || r.domicile.forfaitsTransport > 0) {
+      liste.push("Bulletins ou récapitulatif annuel : indemnités kilométriques et forfaits de transport");
+    }
+  }
+
   const repas = r.repas;
   if (repas?.acces === "impossible" && t.site > 0) {
     if (repas.lieu === "gamelle") liste.push("Preuve de l'absence de cantine proche (attestation de l'employeur)");

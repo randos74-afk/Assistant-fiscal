@@ -54,6 +54,11 @@ export interface Parametres {
   };
   resume_1ak: { longueur_cible_caracteres: number };
   cotisations_syndicales: { taux_credit_impot: number };
+  aide_a_domicile: {
+    indemnite_km_branche_associative_voiture: number;
+    indemnite_km_branche_associative_deux_roues: number;
+    minimum_conventionnel_services_a_la_personne: number;
+  };
   impot_revenu: {
     tranches: { jusqua: number | null; taux: number }[];
     plafond_par_demi_part: number;

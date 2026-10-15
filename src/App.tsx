@@ -25,6 +25,8 @@ import { comparerImpot } from "./moteur/impot";
 import { ouvrirPdf } from "./ui/pdf";
 import { Teletravail } from "./ui/Teletravail";
 import { Trajet } from "./ui/Trajet";
+import { Domicile } from "./ui/Domicile";
+import type { SaisieDomicile } from "./parcours/domicile";
 
 type Ecran = "accueil" | "filtrage" | "metier" | EcranModifiable | "relecture" | "resultat";
 
@@ -37,6 +39,7 @@ export default function App() {
   const [salaire, setSalaire] = useState<SaisieSalaire | undefined>();
   const [jours, setJours] = useState<SaisieJours | undefined>();
   const [trajet, setTrajet] = useState<SaisieTrajet | undefined>();
+  const [domicile, setDomicile] = useState<SaisieDomicile | undefined>();
   const [repas, setRepas] = useState<SaisieRepas | undefined>();
   const [teletravail, setTeletravail] = useState<SaisieTeletravail | undefined>();
   const [autres, setAutres] = useState<SaisieAutresFrais | undefined>();
@@ -45,15 +48,17 @@ export default function App() {
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
   const joursSurSite = jours ? totaux(jours.mois).site : 0;
-  const reponses = { salaire, jours, trajet, repas, teletravail, autres };
+  // Parcours aide à domicile : la journée type remplace le trajet.
+  const estDomicile = metier === "domicile";
+  const reponses = { salaire, jours, trajet: estDomicile ? undefined : trajet, domicile: estDomicile ? domicile : undefined, repas, teletravail, autres };
 
-  const contenu: ContenuDossier = { millesime, ecran, reponsesFiltrage, metier, salaire, jours, trajet, repas, teletravail, autres, foyer };
+  const contenu: ContenuDossier = { millesime, ecran, reponsesFiltrage, metier, salaire, jours, trajet, domicile, repas, teletravail, autres, foyer };
 
   // F9.3 — Sauvegarde automatique sur l'appareil dès que le parcours a commencé.
   useEffect(() => {
     if (metier !== undefined) enregistrer(contenu);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ecran, metier, salaire, jours, trajet, repas, teletravail, autres, foyer]);
+  }, [ecran, metier, salaire, jours, trajet, domicile, repas, teletravail, autres, foyer]);
 
   function reprendre(d: Dossier) {
     setReponsesFiltrage(d.reponsesFiltrage ?? {});
@@ -61,6 +66,7 @@ export default function App() {
     setSalaire(d.salaire);
     setJours(d.jours);
     setTrajet(d.trajet);
+    setDomicile(d.domicile);
     setRepas(d.repas);
     setTeletravail(d.teletravail);
     setAutres(d.autres);
@@ -87,6 +93,7 @@ export default function App() {
     setSalaire(undefined);
     setJours(undefined);
     setTrajet(undefined);
+    setDomicile(undefined);
     setRepas(undefined);
     setTeletravail(undefined);
     setAutres(undefined);
@@ -148,6 +155,17 @@ export default function App() {
       );
 
     case "trajet":
+      if (estDomicile) {
+        return (
+          <Domicile
+            parametres={parametres}
+            joursSurSite={joursSurSite}
+            valeurInitiale={domicile}
+            onRetour={precedent("jours")}
+            onValider={(d) => (setDomicile(d), suivant("repas"))}
+          />
+        );
+      }
       return (
         <Trajet
           parametres={parametres}
@@ -185,8 +203,8 @@ export default function App() {
       return (
         <AutresFrais
           parametres={parametres}
-          enTransports={trajet?.mode === "transports"}
-          aVehicule={trajet ? estVehicule(trajet.mode) : false}
+          enTransports={!estDomicile && trajet?.mode === "transports"}
+          aVehicule={estDomicile ? domicile !== undefined : trajet ? estVehicule(trajet.mode) : false}
           postesOuvertsDOffice={metier ? postesDuProfil(profil(metier).postesOuverts) : []}
           valeurInitiale={autres}
           onRetour={precedent("teletravail")}

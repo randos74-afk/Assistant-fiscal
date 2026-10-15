@@ -148,6 +148,17 @@ const AVIS_IMPOSITION: Modele = {
   ],
 };
 
+const BULLETIN_INDEMNITES_KM: Modele = {
+  entete: "BULLETIN DE PAIE · AIDE À DOMICILE · DÉCEMBRE",
+  colonnes: ["Km", "Taux", "Cumul annuel"],
+  lignes: [
+    { libelle: "Convention collective", valeurs: ["", "", "IDCC 2941"] },
+    { libelle: "Indemnités kilométriques", valeurs: ["250", "0,38", "1 140,00"], aLire: true },
+    { libelle: "Participation frais de transport", valeurs: ["", "", "0,00"] },
+  ],
+};
+
+export const BulletinIndemnitesKm = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_INDEMNITES_KM} {...p} />;
 export const AvisImposition = (p: { texteAlternatif: string }) => <DocumentExemple modele={AVIS_IMPOSITION} {...p} />;
 export const AttestationSyndicat = (p: { texteAlternatif: string }) => <DocumentExemple modele={ATTESTATION_SYNDICAT} {...p} />;
 export const BulletinTransport = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_TRANSPORT} {...p} />;

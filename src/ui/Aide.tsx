@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import type { FicheAide as Fiche, IdIllustration } from "../parcours/fichesAide";
 import { CarteGriseEnergie, CarteGrisePuissance, Itineraire } from "./illustrations/CarteGrise";
 import {
+  BulletinIndemnitesKm,
   AvisImposition,
   AttestationSyndicat,
   BulletinTransport,
@@ -28,6 +29,7 @@ const ILLUSTRATIONS: Record<IdIllustration, (props: { texteAlternatif: string })
   "attestation-syndicat": AttestationSyndicat,
   "bulletin-transport": BulletinTransport,
   "avis-imposition": AvisImposition,
+  "bulletin-indemnites-km": BulletinIndemnitesKm,
 };
 
 export function BoutonAsterisque({ onClick }: { onClick: () => void }) {

@@ -8,6 +8,7 @@ import type { IdProfil } from "../parcours/metiers";
 import type { SaisieRepas } from "../parcours/repas";
 import type { SaisieTeletravail } from "../parcours/teletravail";
 import type { SaisieTrajet } from "../parcours/trajet";
+import type { SaisieDomicile } from "../parcours/domicile";
 import type { SaisieJours } from "./Jours";
 import type { SaisieSalaire } from "./Salaire";
 
@@ -25,6 +26,7 @@ export interface Dossier {
   salaire?: SaisieSalaire;
   jours?: SaisieJours;
   trajet?: SaisieTrajet;
+  domicile?: SaisieDomicile;
   repas?: SaisieRepas;
   teletravail?: SaisieTeletravail;
   autres?: SaisieAutresFrais;

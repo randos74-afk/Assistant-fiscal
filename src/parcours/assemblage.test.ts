@@ -60,6 +60,29 @@ describe("Parcours complet", () => {
     ]);
   });
 
+  it("parcours aide à domicile, ADM-02 : journée type + repas apporté = 2 200 € de revenu imposable en moins", () => {
+    const r = calculerParcours(p, {
+      salaire: { montant: 18000, source: "bulletin-decembre" },
+      jours: { prudent: false, mois: repartirAuProrata(200, Array(12).fill(1)).map((s) => ({ site: s, teletravail: 0, deplacement: 0 })) },
+      domicile: {
+        employeurs: ["association"],
+        indemnites: 1140,
+        forfaitsTransport: 0,
+        forfaitsPrudents: false,
+        journees: [{ troncons: [8, 6, 5, 7, 4, 10], rembourses: [true, true, false, true], jours: 200 }],
+        kmComplementaires: 0,
+        vehicule: "voiture",
+        energie: "essence",
+        energiePrudente: false,
+        ligne: "4",
+        puissancePrudente: false,
+      },
+      repas: { acces: "impossible", lieu: "gamelle", cantineProche: false, prix: null, titres: null, primePanier: 0 },
+    });
+    expect(r.montantCase).toBe(5140);
+    expect(r.comparaison.gainBase).toBe(2200);
+  });
+
   it("conseille l'abattement quand les frais réels sont faibles", () => {
     const r = calculerParcours(p, { salaire: exemple.salaire, jours: exemple.jours });
     expect(r.comparaison.fraisReelsConseilles).toBe(false);

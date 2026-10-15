@@ -7,11 +7,14 @@ import { totaux, type JoursDuMois } from "./calendrier";
 import { repasPourMoteur, type SaisieRepas } from "./repas";
 import { entreeReel, reintegrationsTeletravail, type SaisieTeletravail } from "./teletravail";
 import { vehiculePourMoteur, type SaisieTrajet } from "./trajet";
+import { domicilePourMoteur, type SaisieDomicile } from "./domicile";
 
 export interface Reponses {
   salaire?: { montant: number; source: string };
   jours?: { prudent: boolean; mois: JoursDuMois[]; joursParSemaine?: number };
   trajet?: SaisieTrajet;
+  /** Parcours aide à domicile : remplace le trajet. */
+  domicile?: SaisieDomicile;
   repas?: SaisieRepas;
   teletravail?: SaisieTeletravail;
   autres?: SaisieAutresFrais;
@@ -22,7 +25,8 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
   const t = totaux(mois);
   const autres = r.autres ? autresFraisPourMoteur(p, r.autres) : { autresFrais: [], motifs: [], kmVehiculeEnPlus: 0 };
 
-  const vehicule = r.trajet ? vehiculePourMoteur(p, r.trajet, t.site) : null;
+  const domicile = r.domicile ? domicilePourMoteur(p, r.domicile) : null;
+  const vehicule = domicile ? domicile.vehicule : r.trajet ? vehiculePourMoteur(p, r.trajet, t.site) : null;
   if (vehicule && autres.kmVehiculeEnPlus > 0) vehicule.kmDoubleResidence = autres.kmVehiculeEnPlus;
 
   const repas = r.repas ? repasPourMoteur(r.repas, t.site) : { repas: null, reintegrations: [] };
@@ -37,7 +41,11 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
     teletravailMethode: r.teletravail?.methode ?? "forfait",
     teletravailReel: r.teletravail ? entreeReel(r.teletravail, t.teletravail, t.travailles) : undefined,
     autresFrais: autres.autresFrais,
-    reintegrations: [...repas.reintegrations, ...(r.teletravail ? reintegrationsTeletravail(r.teletravail) : [])],
+    reintegrations: [
+      ...(domicile?.reintegrations ?? []),
+      ...repas.reintegrations,
+      ...(r.teletravail ? reintegrationsTeletravail(r.teletravail) : []),
+    ],
     motifs: autres.motifs,
   };
 }
@@ -51,7 +59,9 @@ export function valeursPrudentes(r: Reponses): string[] {
   const liste: string[] = [];
   if (r.jours?.prudent) liste.push("nombre de jours travaillés");
   if (r.trajet?.puissancePrudente) liste.push("puissance du véhicule");
-  if (r.trajet?.energiePrudente) liste.push("énergie du véhicule");
+  if (r.trajet?.energiePrudente || r.domicile?.energiePrudente) liste.push("énergie du véhicule");
+  if (r.domicile?.puissancePrudente) liste.push("puissance du véhicule");
+  if (r.domicile?.forfaitsPrudents) liste.push("forfaits de transport");
   if (r.repas && r.repas.prix === null && r.repas.lieu && r.repas.lieu !== "gamelle") liste.push("prix des repas");
   if (r.repas?.titres?.partPrudente) liste.push("part de l'employeur sur les titres-restaurant");
   if (r.teletravail?.allocationPrudente) liste.push("indemnité de télétravail");
@@ -66,6 +76,6 @@ export function vraisemblance(p: Parametres, r: Reponses, resultat: ResultatDecl
     joursParSemaine: r.jours?.joursParSemaine ?? 5,
     couple,
     doubleResidence: Boolean(r.autres?.ouverts.includes("doubleResidence")),
-    motifEmploiConjoint: r.trajet?.motifDistance === "emploi du conjoint",
+    motifEmploiConjoint: (r.domicile?.motifDistance ?? r.trajet?.motifDistance) === "emploi du conjoint",
   });
 }
