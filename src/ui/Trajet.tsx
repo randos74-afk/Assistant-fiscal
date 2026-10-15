@@ -430,7 +430,7 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
           <Encadre>
             {typographie(
               mode === "transports"
-                ? "Le calcul de l'abonnement de transport arrive bientôt. Continuez : vos repas et vos autres frais comptent déjà."
+                ? "Pas de frais de véhicule. Votre abonnement de transport se calcule à l'étape « Vos autres frais »."
                 : "Pas de frais de véhicule à compter. Continuez : vos repas et vos autres frais comptent déjà.",
             )}
           </Encadre>
