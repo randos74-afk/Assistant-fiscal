@@ -7,6 +7,7 @@ les mêmes montants à partir de parametres/revenus-2025.json.
 Usage : python3 tests/reference_calcul.py   (régénère tests/cas-de-test.json)
 """
 import json
+import math
 import os
 
 ICI = os.path.dirname(os.path.abspath(__file__))
@@ -79,6 +80,11 @@ def r2(x):
     return round(x + 1e-9, 2)
 
 
+def arrondi_euro(x):
+    """Arrondi à l'euro inférieur (décision du 15/10/2026), comme les exemples du dépliant GP 120."""
+    return math.floor(x + 1e-6)
+
+
 CAS = []
 
 
@@ -91,8 +97,8 @@ cas("BAR-01", "Voiture 6 CV, 4 000 km", {"km": 4000, "cv": 6}, {"montant": r2(ba
 cas("BAR-02", "Voiture 5 CV, 6 000 km", {"km": 6000, "cv": 5}, {"montant": r2(bareme_km(6000, cv=5))}, "GP 120 exemple : 3 537 €")
 cas("BAR-03", "Voiture électrique 6 CV, 4 000 km", {"km": 4000, "cv": 6, "electrique": True}, {"montant": r2(bareme_km(4000, cv=6, electrique=True))}, "GP 120 exemple : 3 192 €")
 cas("BAR-04", "Voiture électrique 5 CV, 6 000 km", {"km": 6000, "cv": 5, "electrique": True}, {"montant": r2(bareme_km(6000, cv=5, electrique=True))}, "GP 120 exemple : 4 242 €")
-cas("BAR-05", "Moto plus de 5 CV, 5 900 km", {"km": 5900, "vehicule": "moto", "cv": 6}, {"montant": r2(bareme_km(5900, "moto", 6)), "arrondi_euro": 2049}, "GP 120 exemple : 2 049 €")
-cas("BAR-06", "Moto électrique plus de 5 CV, 5 900 km", {"km": 5900, "vehicule": "moto", "cv": 6, "electrique": True}, {"montant": r2(bareme_km(5900, "moto", 6, True)), "arrondi_euro": 2460}, "GP 120 exemple : 2 460 €")
+cas("BAR-05", "Moto plus de 5 CV, 5 900 km", {"km": 5900, "vehicule": "moto", "cv": 6}, {"montant": r2(bareme_km(5900, "moto", 6)), "arrondi_euro": arrondi_euro(bareme_km(5900, "moto", 6))}, "GP 120 exemple : 2 049 €")
+cas("BAR-06", "Moto électrique plus de 5 CV, 5 900 km", {"km": 5900, "vehicule": "moto", "cv": 6, "electrique": True}, {"montant": r2(bareme_km(5900, "moto", 6, True)), "arrondi_euro": arrondi_euro(bareme_km(5900, "moto", 6, True))}, "GP 120 exemple : 2 460 €")
 cas("BAR-07", "Voiture 4 CV, 8 000 km", {"km": 8000, "cv": 4}, {"montant": r2(bareme_km(8000, cv=4))}, "Tout sur mes finances : 4 050 €")
 cas("BAR-08", "Voiture 7 CV, 25 000 km", {"km": 25000, "cv": 7}, {"montant": r2(bareme_km(25000, cv=7))}, "Tout sur mes finances : 11 750 €")
 cas("BAR-09", "Voiture 11 CV ramenée à 7 CV, 10 000 km", {"km": 10000, "cv": 11}, {"montant": r2(bareme_km(10000, cv=11)), "cv_retenus": 7}, "GP 120 : barème plafonné à 7 CV")
@@ -133,7 +139,7 @@ f_tlt = 38 * 2.70
 total_ex = f_km + f_rep + f_tlt + 211
 cas("RES-01", "Exemple du résumé 1AK (spécification §10)",
     {"aller_km": 22, "jours_sur_site": 180, "cv": 5, "repas": {"nb": 180, "prix": 12}, "teletravail_jours": 38, "documentation": 211},
-    {"km": km_ex, "frais_km": r2(f_km), "repas": r2(f_rep), "teletravail": r2(f_tlt), "total": r2(total_ex), "total_arrondi_1AK": round(total_ex)},
+    {"km": km_ex, "frais_km": r2(f_km), "repas": r2(f_rep), "teletravail": r2(f_tlt), "total": r2(total_ex), "total_arrondi_1AK": arrondi_euro(total_ex)},
     "Spécifications fonctionnelles §10 : 5 715 €")
 
 # --- Aide à domicile ADMR (spécification F13) ---
@@ -175,12 +181,12 @@ if __name__ == "__main__":
     assert r2(bareme_km(6000, cv=5)) == 3537.0
     assert r2(bareme_km(4000, cv=6, electrique=True)) == 3192.0
     assert r2(bareme_km(6000, cv=5, electrique=True)) == 4242.0
-    assert round(bareme_km(5900, "moto", 6)) == 2049
-    assert round(bareme_km(5900, "moto", 6, True)) == 2460
+    assert arrondi_euro(bareme_km(5900, "moto", 6)) == 2049
+    assert arrondi_euro(bareme_km(5900, "moto", 6, True)) == 2460  # 2 460,50 € exactement
     assert r2(bareme_km(8000, cv=4)) == 4050.0
     assert r2(bareme_km(25000, cv=7)) == 11750.0
     assert r2(repas(218, 12)) == 1427.90
     assert r2(repas(218, 12, 4.5)) == 446.90
     assert r2(repas(218, 10)) == 991.90  # l'article source annonce 991,60 € par erreur
-    assert round(total_ex) == 5715
+    assert arrondi_euro(total_ex) == 5715
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

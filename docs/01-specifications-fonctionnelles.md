@@ -217,7 +217,7 @@ Chaque calcul se termine systématiquement par deux blocs à copier : le montant
 | F8.4 | Motifs | Motif dépassement 40 km, double aller-retour, double résidence repris en une phrase |
 | F8.5 | Réintégrations | Ligne « salaire majoré de X € (titres-restaurant, transport, télétravail) » |
 | F8.6 | Contrôle du total | Somme des lignes = montant 1AK, au centime près, sinon blocage |
-| F8.7 | Format | Texte brut sans mise en forme, montants arrondis à l'euro, longueur cible 1 000 caractères avec compteur affiché |
+| F8.7 | Format | Texte brut sans mise en forme, montants arrondis à l'euro inférieur (décision du 15/10/2026, comme les exemples GP 120 : 2 460,50 € → 2 460 €), longueur cible 1 000 caractères avec compteur affiché |
 | F8.8 | Copie | Bouton « copier » pour la case et pour le texte, séparément, par déclarant |
 
 Modèle de texte généré (exemple fictif) :
