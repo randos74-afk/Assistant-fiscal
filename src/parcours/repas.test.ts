@@ -80,26 +80,31 @@ describe("Vos repas (F4)", () => {
 
   const gamelle: SaisieRepas = { acces: "impossible", lieu: "gamelle", prix: null, titres: null, primePanier: 0 };
 
-  it("distributeurs de dépannage, part employeur 50 % : forfait réduit de moitié (REP-05)", () => {
-    const r = calcul({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "pourcent", valeur: 50 } }, 200);
-    expect(r.montantCase).toBe(545); // 200 × 2,725
-    expect(r.texte).toContain("200 repas x forfait 5,45 € moins 50 % payés par l'employeur = 545 €");
-    expect(r.texte).toContain("seulement des distributeurs de dépannage non utilisés");
+  it("restaurant alors qu'une cantine à 6 € existe : plafonné au prix de la cantine (exemple officiel, REP-05)", () => {
+    const r = calcul({ ...restaurant, surPlace: "cantine", prixSurPlace: { prix: 6 } }, 200);
+    expect(r.montantCase).toBe(110); // 200 × 0,55
+    expect(r.texte).toContain("200 repas x (prix sur place 6,00 - 5,45) = 110 €, restaurant à 12,00 €, prix retenu plafonné");
   });
 
-  it("distributeurs : part employeur en euros par jour ou sur l'année (REP-06)", () => {
-    expect(calcul({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "jour", valeur: 2 } }, 200).montantCase).toBe(690);
-    const annee = calcul({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "annee", valeur: 400 } }, 200);
-    expect(annee.montantCase).toBe(690); // (5,45 − 400 / 200) × 200
-    expect(annee.texte).toContain("moins 2,00 € payés par l'employeur");
+  it("distributeurs : prix plein et part de l'employeur en %, par jour ou sur l'année (REP-06)", () => {
+    const base: SaisieRepas = { ...restaurant, surPlace: "distributeurs" };
+    expect(calcul({ ...base, prixSurPlace: { prix: 14, part: { mode: "pourcent", valeur: 50 } } }, 200).montantCase).toBe(310);
+    expect(calcul({ ...base, prixSurPlace: { prix: 14, part: { mode: "jour", valeur: 7 } } }, 200).montantCase).toBe(310);
+    expect(calcul({ ...base, prixSurPlace: { prix: 14, part: { mode: "annee", valeur: 1400 } } }, 200).montantCase).toBe(310);
   });
 
-  it("vraie cantine, part inconnue ou part couvrant le forfait : rien à déduire", () => {
+  it("restauration sur place : repas apporté, prix inconnu ou repas sur place bon marché = rien à déduire", () => {
     expect(repasDeductibles({ ...gamelle, surPlace: "cantine" }, p, 200).ok).toBe(false);
-    expect(repasDeductibles({ ...gamelle, surPlace: "distributeurs", partDistributeursPrudente: true }, p, 200).ok).toBe(false);
-    expect(repasDeductibles({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "jour", valeur: 6 } }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ ...gamelle, surPlace: "distributeurs" }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ ...restaurant, surPlace: "cantine", prixSurPlacePrudent: true }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ ...restaurant, surPlace: "cantine", prix: null, prixSurPlace: { prix: 8 } }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ ...restaurant, surPlace: "distributeurs", prixSurPlace: { prix: 8, part: { mode: "pourcent", valeur: 50 } } }, p, 200).ok).toBe(false);
     expect(repasDeductibles({ ...gamelle, surPlace: "aucune" }, p, 200).ok).toBe(true);
     expect(repasDeductibles({ ...gamelle, cantineProche: true }, p, 200).ok).toBe(false); // ancienne saisie
+  });
+
+  it("restaurant moins cher que la cantine : prix réel gardé", () => {
+    expect(calcul({ ...restaurant, prix: 9, surPlace: "cantine", prixSurPlace: { prix: 10 } }, 100).montantCase).toBe(355);
   });
 
   it("part employeur en pourcentage et prime de panier par jour", () => {

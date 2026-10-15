@@ -51,15 +51,15 @@ def km_plusieurs_employeurs(trajets, motif=False):
     return sum(distance_retenue(aller, motif) * 2 * jours for aller, jours in trajets)
 
 
-def repas(nb, prix=None, part_employeur_tr=0.0, taux_employeur_cantine=0.0, part_employeur_repas=0.0):
+def repas(nb, prix=None, part_employeur_tr=0.0, prix_sur_place=None):
     """prix=None -> forfait sans justificatif détaillé.
-    Repas apporté alors que seuls des distributeurs de dépannage existent sur place (pas une cantine) :
-    le forfait est réduit de la part que l'employeur y paie, soit en pourcentage (taux_employeur_cantine),
-    soit en euros par repas (part_employeur_repas, saisie par jour ou annuelle divisée par les jours).
-    Règle propre à FraisFit (décision de Marc du 15/10/2026), aucun texte officiel ne la prévoit."""
+    prix_sur_place : restauration collective (cantine, distributeurs) disponible mais non utilisée par choix
+    personnel ; prix d'un repas sur place après la part de l'employeur. La dépense est plafonnée à ce prix
+    (impots.gouv.fr, « Je suis salarié et obligé de prendre mes repas à l'extérieur », exemple officiel : restaurant 12 €, cantine 6 €, 6 - 5,45 = 0,55 € par jour)."""
     r = P["repas"]
+    if prix is not None and prix_sur_place is not None:
+        prix = min(prix, prix_sur_place)
     unit = r["forfait_sans_justificatif_detaille"] if prix is None else prix - r["valeur_repas_au_foyer"]
-    unit = unit * (1 - taux_employeur_cantine) - part_employeur_repas
     return max(unit - part_employeur_tr, 0) * nb
 
 
@@ -229,8 +229,8 @@ cas("REP-01", "Restaurant 12 €, 218 jours, sans titres", {"nb": 218, "prix": 1
 cas("REP-02", "Restaurant 12 €, titre-restaurant part employeur 4,50 €", {"nb": 218, "prix": 12, "part_employeur_tr": 4.5}, {"montant": r2(repas(218, 12, 4.5))}, "Tout sur mes finances : 446,90 €")
 cas("REP-03", "Cantine 10 €, 218 jours", {"nb": 218, "prix": 10}, {"montant": r2(repas(218, 10))}, "Tout sur mes finances annonce 991,60 € : erreur de leur part, 4,55 × 218 = 991,90 €")
 cas("REP-04", "Gamelle, titre-restaurant part employeur 4 €", {"nb": 1, "prix": None, "part_employeur_tr": 4}, {"montant_par_repas": r2(repas(1, None, 4))}, "Tout sur mes finances : 1,45 €")
-cas("REP-05", "Repas apporté, distributeurs de dépannage payés à 50 % par l'employeur, 200 jours", {"nb": 200, "prix": None, "taux_employeur_cantine": 0.5}, {"montant": r2(repas(200, None, 0, 0.5)), "montant_par_repas": r2(repas(1, None, 0, 0.5))}, "Règle FraisFit du 15/10/2026 : 5,45 € × (1 − 50 %) = 2,725 € par repas")
-cas("REP-06", "Repas apporté, distributeurs : part employeur de 400 € sur l'année, 200 jours", {"nb": 200, "prix": None, "part_employeur_repas": 2.0}, {"montant": r2(repas(200, None, 0, 0, 400 / 200))}, "Règle FraisFit du 15/10/2026 : (5,45 € − 400 € / 200 j) × 200 = 690 €")
+cas("REP-05", "Restaurant 12 € alors qu'une cantine à 6 € existe : plafonné au prix de la cantine, 200 jours", {"nb": 200, "prix": 12, "prix_sur_place": 6}, {"montant": r2(repas(200, 12, 0, 6)), "montant_par_repas": r2(repas(1, 12, 0, 6))}, "impots.gouv.fr, exemple officiel : 0,55 € par jour")
+cas("REP-06", "Restaurant 12 €, distributeurs : plat à 14 € payé à 50 % par l'employeur (7 €), 200 jours", {"nb": 200, "prix": 12, "prix_sur_place": 7}, {"montant": r2(repas(200, 12, 0, 7))}, "impots.gouv.fr : (7 - 5,45) x 200 = 310 €")
 
 # --- Télétravail ---
 cas("TLT-01", "Forfait 2 j/semaine (8 j/mois × 11 mois)", {"jours_par_mois": [8] * 11 + [0]}, {"montant": r2(teletravail_forfait([8] * 11 + [0]))}, "2,70 €/j")
@@ -369,8 +369,8 @@ if __name__ == "__main__":
     assert km_emp == 13200 and km_emp2 == 15400
     assert r2(repas(218, 12)) == 1427.90
     assert r2(repas(218, 12, 4.5)) == 446.90
-    assert r2(repas(200, None, 0, 0.5)) == 545.0
-    assert r2(repas(200, None, 0, 0, 2.0)) == 690.0
+    assert r2(repas(1, 12, 0, 6)) == 0.55
+    assert r2(repas(200, 12, 0, 7)) == 310.0
     assert r2(repas(218, 10)) == 991.90  # l'article source annonce 991,60 € par erreur
     assert r2(teletravail_forfait(tlt3)) == 594.0
     assert r2(teletravail_forfait(tlt4)) == 237.6

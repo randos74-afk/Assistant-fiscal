@@ -295,30 +295,30 @@
     },
     {
       "id": "REP-05",
-      "titre": "Repas apporté, distributeurs de dépannage payés à 50 % par l'employeur, 200 jours",
+      "titre": "Restaurant 12 € alors qu'une cantine à 6 € existe : plafonné au prix de la cantine, 200 jours",
       "entrees": {
         "nb": 200,
-        "prix": null,
-        "taux_employeur_cantine": 0.5
+        "prix": 12,
+        "prix_sur_place": 6
       },
       "attendu": {
-        "montant": 545.0,
-        "montant_par_repas": 2.73
+        "montant": 110.0,
+        "montant_par_repas": 0.55
       },
-      "source": "Règle FraisFit du 15/10/2026 : 5,45 € × (1 − 50 %) = 2,725 € par repas"
+      "source": "impots.gouv.fr, exemple officiel : 0,55 € par jour"
     },
     {
       "id": "REP-06",
-      "titre": "Repas apporté, distributeurs : part employeur de 400 € sur l'année, 200 jours",
+      "titre": "Restaurant 12 €, distributeurs : plat à 14 € payé à 50 % par l'employeur (7 €), 200 jours",
       "entrees": {
         "nb": 200,
-        "prix": null,
-        "part_employeur_repas": 2.0
+        "prix": 12,
+        "prix_sur_place": 7
       },
       "attendu": {
-        "montant": 690.0
+        "montant": 310.0
       },
-      "source": "Règle FraisFit du 15/10/2026 : (5,45 € − 400 € / 200 j) × 200 = 690 €"
+      "source": "impots.gouv.fr : (7 - 5,45) x 200 = 310 €"
     },
     {
       "id": "TLT-01",

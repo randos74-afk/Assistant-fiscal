@@ -41,7 +41,7 @@ function calculer(c: Cas): Record<string, unknown> {
     case "DIS":
       return { distance_retenue: distanceRetenue(p, e.aller_km, e.motif) };
     case "REP": {
-      const r = repas(p, { nb: e.nb, prix: e.prix, partEmployeurTitreRestaurant: e.part_employeur_tr, tauxEmployeurCantine: e.taux_employeur_cantine, partEmployeurRepas: e.part_employeur_repas });
+      const r = repas(p, { nb: e.nb, prix: e.prix, partEmployeurTitreRestaurant: e.part_employeur_tr, prixSurPlace: e.prix_sur_place });
       return { montant: r.montant, montant_par_repas: r.parRepas };
     }
     case "TLT": {

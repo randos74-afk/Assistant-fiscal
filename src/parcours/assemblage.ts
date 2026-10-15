@@ -70,9 +70,7 @@ export function valeursPrudentes(r: Reponses): string[] {
   if (r.domicile?.forfaitsPrudents) liste.push("forfaits de transport");
   if (r.repas && r.repas.prix === null && r.repas.lieu && r.repas.lieu !== "gamelle") liste.push("prix des repas");
   if (r.repas?.titres?.partPrudente) liste.push("part de l'employeur sur les titres-restaurant");
-  if (r.repas?.lieu === "gamelle" && r.repas.surPlace === "distributeurs" && r.repas.partDistributeursPrudente) {
-    liste.push("part de l'employeur sur les distributeurs");
-  }
+  if (r.repas?.lieu === "restaurant" && r.repas.prixSurPlacePrudent) liste.push("prix d'un repas sur place");
   if (r.teletravail?.allocationPrudente) liste.push("indemnité de télétravail");
   if (r.autres?.transport?.priseEnChargePrudente) liste.push("remboursement de l'abonnement de transport");
   return liste;

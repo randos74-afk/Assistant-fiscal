@@ -33,3 +33,4 @@
 - Aladom, avenants 75 et 76 : https://www.aladom.fr/actualites/podcast/11194/aide-a-domicile-le-gouvernement-valide-la-hausse-des-salaires-les-indemnites-kilometriques-et-laide-carburant/
 
 - CGI art. 197 (barème, quotient familial, décote), version au 21/02/2026, loi n° 2026-103 : https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000051212954 (consulté le 15/10/2026)
+- Frais de repas avec ou sans restauration collective (impots.gouv.fr, consulté le 15/10/2026) : https://www.impots.gouv.fr/particulier/questions/je-suis-salarie-et-oblige-de-prendre-mes-repas-lexterieur-de-mon-domicile-que
