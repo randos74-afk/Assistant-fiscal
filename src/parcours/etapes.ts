@@ -2,6 +2,7 @@
 
 export const ETAPES = [
   "votre salaire",
+  "votre foyer",
   "vos jours",
   "votre trajet",
   "vos repas",

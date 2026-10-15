@@ -5,14 +5,17 @@ import { euros, nombre } from "../moteur/format";
 import { totaux } from "../parcours/calendrier";
 import { libelleEtape } from "../parcours/etapes";
 import { valeursPrudentes, type Reponses } from "../parcours/assemblage";
+import { partsFoyer } from "../moteur/impot";
+import type { SaisieFoyer } from "../parcours/foyer";
 import { PiedDePage } from "./Cadre";
 import { BandeauConfidentialite, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
-export type EcranModifiable = "salaire" | "jours" | "trajet" | "repas" | "teletravail" | "autres";
+export type EcranModifiable = "salaire" | "foyer" | "jours" | "trajet" | "repas" | "teletravail" | "autres";
 
 interface Props {
   reponses: Reponses;
+  foyer?: SaisieFoyer;
   resultat: ResultatDeclarant;
   vraisemblance: Vraisemblance;
   onModifier: (ecran: EcranModifiable) => void;
@@ -20,7 +23,7 @@ interface Props {
   onRetour: () => void;
 }
 
-export function Relecture({ reponses: r, resultat, vraisemblance: v, onModifier, onValider, onRetour }: Props) {
+export function Relecture({ reponses: r, foyer, resultat, vraisemblance: v, onModifier, onValider, onRetour }: Props) {
   const etape = libelleEtape("relecture");
   const t = totaux(r.jours?.mois ?? []);
   const lignes = (categories: string[]) => resultat.lignes.filter((l) => categories.includes(l.categorie));
@@ -33,6 +36,13 @@ export function Relecture({ reponses: r, resultat, vraisemblance: v, onModifier,
       titre: "Votre salaire",
       resume: r.salaire
         ? `${euros(r.salaire.montant)} de net imposable${r.salaire.source === "addition-bulletins" ? ", addition de vos bulletins" : ""}`
+        : "À compléter",
+    },
+    {
+      ecran: "foyer",
+      titre: "Votre foyer",
+      resume: foyer
+        ? `${foyer.couple ? "En couple" : foyer.veuf ? "Veuf ou veuve" : "Seul"}, ${nombre(foyer.enfants)} enfant${foyer.enfants > 1 ? "s" : ""} à charge, ${String(partsFoyer(foyer).parts).replace(".", ",")} parts`
         : "À compléter",
     },
     {

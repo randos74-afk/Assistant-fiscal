@@ -26,6 +26,7 @@ import { ouvrirPdf } from "./ui/pdf";
 import { Teletravail } from "./ui/Teletravail";
 import { Trajet } from "./ui/Trajet";
 import { Domicile } from "./ui/Domicile";
+import { EstimationImpot } from "./ui/EstimationImpot";
 import type { SaisieDomicile } from "./parcours/domicile";
 
 type Ecran = "accueil" | "filtrage" | "metier" | EcranModifiable | "relecture" | "resultat";
@@ -139,9 +140,12 @@ export default function App() {
           millesime={millesime}
           valeurInitiale={salaire}
           onRetour={precedent("metier")}
-          onValider={(s) => (setSalaire(s), suivant("jours"))}
+          onValider={(s) => (setSalaire(s), suivant("foyer"))}
         />
       );
+
+    case "foyer":
+      return <EstimationImpot valeurInitiale={foyer} onRetour={precedent("salaire")} onValider={(f) => (setFoyer(f), suivant("jours"))} />;
 
     case "jours":
       return (
@@ -149,7 +153,7 @@ export default function App() {
           millesime={millesime}
           parametres={parametres}
           valeurInitiale={jours}
-          onRetour={precedent("salaire")}
+          onRetour={precedent("foyer")}
           onValider={(j) => (setJours(j), suivant("trajet"))}
         />
       );
@@ -160,6 +164,7 @@ export default function App() {
           <Domicile
             parametres={parametres}
             joursSurSite={joursSurSite}
+            couple={foyer?.couple}
             valeurInitiale={domicile}
             onRetour={precedent("jours")}
             onValider={(d) => (setDomicile(d), suivant("repas"))}
@@ -170,6 +175,7 @@ export default function App() {
         <Trajet
           parametres={parametres}
           joursSurSite={joursSurSite}
+          couple={foyer?.couple}
           valeurInitiale={trajet}
           onRetour={precedent("jours")}
           onValider={(t) => (setTrajet(t), suivant("repas"))}
@@ -216,6 +222,7 @@ export default function App() {
       return (
         <Relecture
           reponses={reponses}
+          foyer={foyer}
           resultat={calculerParcours(parametres, reponses)}
           vraisemblance={vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple)}
           onRetour={() => setEcran("autres")}

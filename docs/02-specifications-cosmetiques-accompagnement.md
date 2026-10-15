@@ -112,7 +112,7 @@ Principes appliqués partout : barre de progression nommée (« Étape 3 sur 7 :
 2. l'astérisque ambre qui montre en image où trouver le chiffre ;
 3. une solution de secours sans risque derrière « Je ne sais pas ».
 
-La solution de secours est toujours la valeur prudente : celle qui donne la déduction la plus faible ou la réintégration la plus forte, jamais l'inverse. Elle est signalée dans le récapitulatif (« valeur prudente retenue ») et reste corrigeable. Aucune question ne laisse le client bloqué. Les valeurs prudentes sont dans `parametres/revenus-2025.json` → `valeurs_prudentes_je_ne_sais_pas`.
+La solution de secours est toujours la valeur prudente : celle qui donne la déduction la plus faible ou la réintégration la plus forte, jamais l'inverse. Elle est signalée dans le récapitulatif (« valeur prudente retenue ») et reste corrigeable. Aucune question ne laisse le client bloqué. Les valeurs prudentes sont dans `parametres/revenus-2025.json` → `valeurs_prudentes_je_ne_sais_pas`. Exception assumée (décision du 15/10/2026) : pour le prix du repas, « Je ne sais pas » retient le forfait de 5,45 € admis sans justificatif détaillé, et non 0 €.
 
 **Composant.** Astérisque ambre de 20 dp dans une pastille de 44 dp minimum, placée après le libellé. La fiche s'ouvre en volet bas sur Android et en fenêtre sur le web. Elle contient : titre, image avec la zone entourée en ambre, « Où regarder », « Mots à chercher », « Si vous ne trouvez pas », bouton « J'ai trouvé ». Maquette : `design/maquettes/03-fiche-aide-carte-grise.html`.
 
@@ -171,7 +171,7 @@ Vouvoiement, phrases de moins de 15 mots, aucun sigle sans explication (PAS, TR,
 | Saisie incohérente | « Erreur de saisie » | « Ce nombre de jours dépasse une année de travail. Pouvez-vous vérifier ? » |
 | Résultat favorable | « Option frais réels recommandée » | « Bonne nouvelle : avec vos frais réels, vous payez environ 312 € d'impôt en moins. » |
 | Résultat défavorable | « Frais réels non rentables » | « Ne changez rien : l'abattement automatique de 10 % est plus avantageux pour vous. » |
-| Aide à domicile | « IK non indemnisées » | « Votre employeur en rembourse 15. Les 25 autres comptent dans vos frais réels. » |
+| Aide à domicile | « IK non indemnisées » | « Votre employeur vous en rembourse 15. Les 40 kilomètres comptent tous dans vos frais réels, et ce remboursement s'ajoute à votre salaire déclaré. » |
 | Justificatifs | « Conservation obligatoire 3 ans » | « Gardez ces papiers 3 ans, au cas où les impôts vous les demandent. Voici la liste. » |
 | Avertissement | Paragraphe juridique | « C'est une estimation. Votre déclaration sur impots.gouv.fr reste la référence. » |
 

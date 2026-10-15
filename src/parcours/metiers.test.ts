@@ -30,6 +30,6 @@ describe("Votre métier (F14)", () => {
 
 describe("Étapes du parcours", () => {
   it("nomme l'étape comme la maquette", () => {
-    expect(libelleEtape("votre trajet").libelle).toBe("Étape 3 sur 7 : votre trajet");
+    expect(libelleEtape("votre trajet").libelle).toBe("Étape 4 sur 8 : votre trajet");
   });
 });

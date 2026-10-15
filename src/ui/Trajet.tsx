@@ -11,7 +11,7 @@ import {
   libelleLigne,
   lignePrudente,
   MODES,
-  MOTIFS_DISTANCE,
+  motifsDistance,
   optionsPuissance,
   vehiculePourMoteur,
   type ModeTrajet,
@@ -28,6 +28,8 @@ type Question = "mode" | "distance" | "energie" | "puissance" | "frais" | "bilan
 interface Props {
   parametres: Parametres;
   joursSurSite: number;
+  /** Foyer connu : sans conjoint, le motif « emploi du conjoint » n'est pas proposé. */
+  couple?: boolean;
   valeurInitiale?: SaisieTrajet;
   onValider: (trajet: SaisieTrajet) => void;
   onRetour: () => void;
@@ -36,7 +38,7 @@ interface Props {
 const nombreOuZero = (n: number | null) => (n === null || Number.isNaN(n) ? 0 : n);
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
-export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour }: Props) {
+export function Trajet({ parametres: p, joursSurSite, couple, valeurInitiale: v, onValider, onRetour }: Props) {
   const [question, setQuestion] = useState<Question>(v ? "bilan" : "mode");
   const [mode, setMode] = useState<ModeTrajet | undefined>(v?.mode);
   const [distance, setDistance] = useState(v?.allerKm ? String(v.allerKm) : "");
@@ -149,7 +151,7 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
                   valeur: "aucun",
                   libelle: `Mon trajet fait ${plafond} km ou moins, ou j'ai déjà limité à ${plafond} km`,
                 },
-                ...MOTIFS_DISTANCE,
+                ...motifsDistance(couple),
               ]}
               valeur={motif}
               onChoix={setMotif}
@@ -183,7 +185,7 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
                 nom="motif"
                 legende="Raison de la distance"
                 options={[
-                  ...MOTIFS_DISTANCE,
+                  ...motifsDistance(couple),
                   {
                     valeur: "aucun",
                     libelle: `Aucune de ces raisons : compter ${plafond} km`,

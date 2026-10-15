@@ -24,6 +24,11 @@ export const MOTIFS_DISTANCE: { valeur: string; libelle: string }[] = [
   { valeur: "coût du logement près du travail hors de proportion", libelle: "Se loger près du travail coûte beaucoup trop cher" },
 ];
 
+/** F10.4 et F10.5 — Sans conjoint (personne seule ou veuve), le motif « emploi du conjoint » n'est pas proposé. */
+export function motifsDistance(couple?: boolean): { valeur: string; libelle: string }[] {
+  return couple === false ? MOTIFS_DISTANCE.filter((m) => m.valeur !== "emploi du conjoint") : MOTIFS_DISTANCE;
+}
+
 export const ENERGIES: { valeur: Energie; libelle: string }[] = [
   { valeur: "essence", libelle: "Essence" },
   { valeur: "diesel", libelle: "Diesel" },

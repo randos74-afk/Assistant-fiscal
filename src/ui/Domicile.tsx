@@ -17,7 +17,7 @@ import {
 import { libelleEtape } from "../parcours/etapes";
 import { completerFiche, FICHES, type FicheAide as Fiche } from "../parcours/fichesAide";
 import { afficherMontant, lireEntier, lireMontant } from "../parcours/saisie";
-import { ENERGIES, libelleLigne, lignePrudente, MOTIFS_DISTANCE, optionsPuissance } from "../parcours/trajet";
+import { ENERGIES, libelleLigne, lignePrudente, motifsDistance, optionsPuissance } from "../parcours/trajet";
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
@@ -29,6 +29,8 @@ type Question = "employeurs" | "indemnites" | "journees" | "vehicule" | "bilan";
 interface Props {
   parametres: Parametres;
   joursSurSite: number;
+  /** Foyer connu : sans conjoint, le motif « emploi du conjoint » n'est pas proposé. */
+  couple?: boolean;
   valeurInitiale?: SaisieDomicile;
   onValider: (s: SaisieDomicile) => void;
   onRetour: () => void;
@@ -47,7 +49,7 @@ const nb = (t: string, lire: (t: string) => number | null) => {
 
 const journeeVide = (jours: number): JourneeTexte => ({ troncons: ["", "", ""], rembourses: [true], jours: String(jours) });
 
-export function Domicile({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour }: Props) {
+export function Domicile({ parametres: p, joursSurSite, couple, valeurInitiale: v, onValider, onRetour }: Props) {
   const [question, setQuestion] = useState<Question>(v ? "bilan" : "employeurs");
   const [employeurs, setEmployeurs] = useState<TypeEmployeur[]>(v?.employeurs ?? []);
   const [indemnites, setIndemnites] = useState(v?.indemnites ? afficherMontant(v.indemnites) : "");
@@ -314,7 +316,7 @@ export function Domicile({ parametres: p, joursSurSite, valeurInitiale: v, onVal
               <ChoixUnique
                 nom="motif-domicile"
                 legende="Raison de la distance"
-                options={[...MOTIFS_DISTANCE, { valeur: "aucun", libelle: `Aucune de ces raisons : compter ${plafond} km` }]}
+                options={[...motifsDistance(couple), { valeur: "aucun", libelle: `Aucune de ces raisons : compter ${plafond} km` }]}
                 valeur={motif}
                 onChoix={setMotif}
               />
