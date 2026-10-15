@@ -250,7 +250,7 @@
     },
     {
       "id": "REP-05",
-      "titre": "Repas apporté, distributeurs subventionnés à 50 % par l'employeur, 200 jours",
+      "titre": "Repas apporté, distributeurs de dépannage payés à 50 % par l'employeur, 200 jours",
       "entrees": {
         "nb": 200,
         "prix": null,
@@ -260,7 +260,20 @@
         "montant": 545.0,
         "montant_par_repas": 2.73
       },
-      "source": "Décision du 15/10/2026 : 5,45 € × (1 − 50 %) = 2,725 € par repas"
+      "source": "Règle FraisFit du 15/10/2026 : 5,45 € × (1 − 50 %) = 2,725 € par repas"
+    },
+    {
+      "id": "REP-06",
+      "titre": "Repas apporté, distributeurs : part employeur de 400 € sur l'année, 200 jours",
+      "entrees": {
+        "nb": 200,
+        "prix": null,
+        "part_employeur_repas": 2.0
+      },
+      "attendu": {
+        "montant": 690.0
+      },
+      "source": "Règle FraisFit du 15/10/2026 : (5,45 € − 400 € / 200 j) × 200 = 690 €"
     },
     {
       "id": "TLT-01",

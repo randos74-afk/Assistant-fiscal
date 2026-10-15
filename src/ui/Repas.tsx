@@ -9,6 +9,11 @@ import {
   ACCES,
   LIEUX,
   partDepuisPourcent,
+  partEmployeurDistributeurs,
+  restaurationSurPlace,
+  SUR_PLACE,
+  type PartDistributeurs,
+  type RestaurationSurPlace,
   partEmployeurPrudente,
   primePanierAnnuelle,
   repasDeductibles,
@@ -41,13 +46,10 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
   const [question, setQuestion] = useState<Question>(v ? "bilan" : "acces");
   const [acces, setAcces] = useState<AccesRepas | undefined>(v?.acces);
   const [lieu, setLieu] = useState<LieuRepas | undefined>(v?.lieu);
-  const [cantineProche, setCantineProche] = useState<string | undefined>(
-    v?.cantineProche === undefined ? undefined : v.cantineProche ? "oui" : "non",
-  );
-  const [subvention, setSubvention] = useState(
-    v?.priseEnChargeCantine !== undefined && !v.priseEnChargeCantinePrudente ? afficherMontant(v.priseEnChargeCantine * 100) : "",
-  );
-  const [subventionPrudente, setSubventionPrudente] = useState(v?.priseEnChargeCantinePrudente ?? false);
+  const [surPlace, setSurPlace] = useState<RestaurationSurPlace | undefined>(v ? restaurationSurPlace(v) : undefined);
+  const [modePart, setModePart] = useState<PartDistributeurs["mode"]>(v?.partDistributeurs?.mode ?? "pourcent");
+  const [partDistrib, setPartDistrib] = useState(v?.partDistributeurs ? afficherMontant(v.partDistributeurs.valeur) : "");
+  const [partDistribPrudente, setPartDistribPrudente] = useState(v?.partDistributeursPrudente ?? false);
   const [prix, setPrix] = useState(v?.prix ? afficherMontant(v.prix) : "");
   const [prixPrudent, setPrixPrudent] = useState(v ? v.prix === null : false);
   const [avecTitres, setAvecTitres] = useState(Boolean(v?.titres));
@@ -84,7 +86,7 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
           ? partDepuisPourcent(valeurTitreNb, partPourcentNb)
           : null
         : lireMontant(partEmployeur);
-  const subventionNb = lireMontant(subvention);
+  const partDistribNb = lireMontant(partDistrib);
   const panierNb = lireMontant(panier);
   const joursPanierNb = lireEntier(joursPanier);
   const panierAnnuel = positif(panierNb) && positif(joursPanierNb) ? primePanierAnnuelle(panierNb, joursPanierNb) : 0;
@@ -94,11 +96,11 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
     return {
       acces: acces!,
       lieu: acces === "impossible" ? lieu : undefined,
-      cantineProche: lieu === "gamelle" ? cantineProche === "oui" : undefined,
-      ...(lieu === "gamelle" && cantineProche === "oui"
-        ? subventionPrudente
-          ? { priseEnChargeCantinePrudente: true }
-          : { priseEnChargeCantine: Math.min(Math.max(subventionNb ?? 0, 0), 100) / 100 }
+      surPlace: lieu === "gamelle" ? surPlace : undefined,
+      ...(lieu === "gamelle" && surPlace === "distributeurs"
+        ? partDistribPrudente
+          ? { partDistributeursPrudente: true }
+          : { partDistributeurs: { mode: modePart, valeur: positif(partDistribNb) ? partDistribNb : 0 } }
         : {}),
       prix: prixPrudent || !positif(prixNb) ? null : prixNb,
       titres:
@@ -121,7 +123,7 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
   if (acces === "impossible") {
     suite.push("lieu");
     if (lieu === "gamelle") suite.push("cantine");
-    if (lieu === "gamelle" && cantineProche === "oui") suite.push("subvention");
+    if (lieu === "gamelle" && surPlace === "distributeurs") suite.push("subvention");
     if (lieu === "restaurant" || lieu === "cantine") suite.push("prix");
   }
   suite.push("employeur", "bilan");
@@ -148,54 +150,72 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
       break;
 
     case "cantine":
-      titre = "Y a-t-il une cantine sur place ou à côté de votre travail ?";
-      peutContinuer = cantineProche !== undefined;
+      titre = "Y a-t-il de quoi se restaurer sur place ou à côté de votre travail ?";
+      peutContinuer = surPlace !== undefined;
       contenu = (
         <>
-          <ChoixUnique
-            nom="cantine"
-            legende={titre}
-            options={[
-              { valeur: "non", libelle: "Non" },
-              { valeur: "oui", libelle: "Oui" },
-            ]}
-            valeur={cantineProche}
-            onChoix={setCantineProche}
-          />
+          <ChoixUnique nom="surplace" legende={titre} options={SUR_PLACE} valeur={surPlace} onChoix={(x) => setSurPlace(x as RestaurationSurPlace)} />
           <Encadre>
-            {typographie(`Sans cantine proche, chaque repas apporté compte pour un forfait de ${eurosCentimes(forfait)}.`)}
+            {typographie(
+              surPlace === "cantine"
+                ? "Avec une cantine sur place, un repas apporté ne se déduit pas."
+                : `Sans cantine proche, chaque repas apporté compte pour un forfait de ${eurosCentimes(forfait)}.`,
+            )}
           </Encadre>
-          <p className="texte-secondaire">{typographie("De simples distributeurs payés en partie par l'employeur comptent comme une cantine.")}</p>
         </>
       );
       break;
 
     case "subvention": {
-      titre = "Quelle part des repas de cette cantine votre employeur paie-t-il ?";
-      const taux = subventionNb !== null && !Number.isNaN(subventionNb) ? Math.min(Math.max(subventionNb, 0), 100) : null;
-      peutContinuer = subventionPrudente || (taux !== null && subvention.trim() !== "");
-      contenu = subventionPrudente ? (
+      titre = "Quelle part des distributeurs votre employeur paie-t-il ?";
+      const saisieValide = partDistrib.trim() !== "" && partDistribNb !== null && !Number.isNaN(partDistribNb);
+      peutContinuer = partDistribPrudente || saisieValide;
+      const part = saisieValide ? partEmployeurDistributeurs(saisie(), joursSurSite) : null;
+      const parRepas = part ? Math.max(forfait * (1 - (part.taux ?? 0)) - (part.euros ?? 0), 0) : null;
+      contenu = partDistribPrudente ? (
         <>
-          <Encadre>
-            {typographie("Sans cette information, nous ne déduisons rien pour vos repas apportés. C'est le choix le plus prudent.")}
-          </Encadre>
-          <button type="button" className="lien-je-ne-sais-pas" onClick={() => setSubventionPrudente(false)}>
+          <Encadre>{typographie("Sans cette information, nous ne déduisons rien pour vos repas apportés. C'est le choix le plus prudent.")}</Encadre>
+          <button type="button" className="lien-je-ne-sais-pas" onClick={() => setPartDistribPrudente(false)}>
             Finalement, je connais cette part
           </button>
         </>
       ) : (
         <>
-          <ChampNombre libelle={titre} unite="%" valeur={subvention} onChange={setSubvention} detail="Par exemple 50 si l'employeur paie la moitié. 0 s'il ne paie rien." />
-          <LienJeNeSaisPas onClick={() => setSubventionPrudente(true)} />
-          {taux !== null && subvention.trim() !== "" && (
+          <p className="texte-secondaire sous-question">
+            {typographie("Indiquez-la comme vous la connaissez : en pourcentage, par jour, ou le total de l'année lu sur votre fiche de paie.")}
+          </p>
+          <ChoixUnique
+            nom="mode-part"
+            legende="Comment connaissez-vous cette part ?"
+            options={[
+              { valeur: "pourcent", libelle: "En pourcentage du repas" },
+              { valeur: "jour", libelle: "En euros par jour" },
+              { valeur: "annee", libelle: "En euros sur l'année", detail: "Total lu sur votre fiche de paie." },
+            ]}
+            valeur={modePart}
+            onChoix={(x) => setModePart(x as PartDistributeurs["mode"])}
+          />
+          <ChampNombre
+            compact
+            libelleVisible
+            libelle={modePart === "pourcent" ? "Part de l'employeur" : modePart === "jour" ? "Part de l'employeur par jour" : "Part de l'employeur sur l'année"}
+            unite={modePart === "pourcent" ? "%" : "€"}
+            valeur={partDistrib}
+            onChange={setPartDistrib}
+          />
+          <LienJeNeSaisPas onClick={() => setPartDistribPrudente(true)} />
+          {parRepas !== null && (
             <Encadre>
               {typographie(
-                taux >= 100
-                  ? "Si l'employeur paie tout, un repas apporté ne vous coûte rien de plus : rien à déduire."
-                  : `Vous apportez votre repas sans utiliser la cantine : nous retenons le forfait de ${eurosCentimes(forfait)} moins ${afficherMontant(taux)} %, soit ${eurosCentimes((forfait * (100 - taux)) / 100)} par jour sur site.`,
+                parRepas <= 0
+                  ? "Cette part couvre tout le forfait : rien à déduire."
+                  : `Nous retenons le forfait de ${eurosCentimes(forfait)} moins la part de l'employeur, soit ${eurosCentimes(parRepas)} par jour sur site.`,
               )}
             </Encadre>
           )}
+          <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>
+            {typographie("Cette règle est un choix prudent de FraisFit : aucun texte officiel ne traite le cas des distributeurs.")}
+          </p>
         </>
       );
       break;
@@ -345,9 +365,9 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
     case "bilan": {
       titre = "Vos frais de repas";
       const s = saisie();
-      const { repas, reintegrations } = repasPourMoteur(s, joursSurSite);
+      const { repas, reintegrations } = repasPourMoteur(s, joursSurSite, p);
       const r = calculerDeclarant(p, { numero: 1, salairePrerempli: 0, repas: repas ? [repas] : [], reintegrations });
-      const ferme = repasDeductibles(s);
+      const ferme = repasDeductibles(s, p, joursSurSite);
       contenu = (
         <>
           <section className="carte" aria-live="polite">
@@ -379,7 +399,7 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
             ))}
           {s.prix === null && s.lieu !== "gamelle" && ferme.ok && <Encadre>Valeur prudente retenue pour le prix des repas.</Encadre>}
           {s.titres?.partPrudente && <Encadre>Valeur prudente retenue pour la part de l'employeur.</Encadre>}
-          {s.priseEnChargeCantinePrudente && <Encadre>Valeur prudente retenue pour la part de l'employeur à la cantine.</Encadre>}
+          {s.partDistributeursPrudente && <Encadre>Valeur prudente retenue pour la part de l'employeur sur les distributeurs.</Encadre>}
           <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>
             {typographie(`Calculé sur vos ${joursSurSite} jours sur site. Les jours de télétravail ne comptent pas.`)}
           </p>

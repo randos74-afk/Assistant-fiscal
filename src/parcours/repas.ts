@@ -28,15 +28,35 @@ export interface TitresRestaurant {
   nombre: number;
 }
 
+export type RestaurationSurPlace = "aucune" | "cantine" | "distributeurs";
+
+export const SUR_PLACE: { valeur: RestaurationSurPlace; libelle: string; detail?: string }[] = [
+  { valeur: "aucune", libelle: "Non, rien sur place ni à côté" },
+  { valeur: "cantine", libelle: "Oui, une cantine ou un restaurant d'entreprise" },
+  {
+    valeur: "distributeurs",
+    libelle: "Seulement des distributeurs de plats",
+    detail: "Un dépannage qui ne peut pas servir tout le monde : ce n'est pas une cantine.",
+  },
+];
+
+/** Part de l'employeur sur les distributeurs : en %, en euros par jour, ou en euros sur l'année (fiche de paie). */
+export interface PartDistributeurs {
+  mode: "pourcent" | "jour" | "annee";
+  valeur: number;
+}
+
 export interface SaisieRepas {
   acces: AccesRepas;
   lieu?: LieuRepas;
-  /** Repas apporté : une cantine existe-t-elle sur place ou à proximité ? */
+  /** Repas apporté : restauration sur place ou à proximité. */
+  surPlace?: RestaurationSurPlace;
+  /** Ancienne saisie (avant le 15/10/2026) : true = cantine, false = rien. */
   cantineProche?: boolean;
-  /** Repas apporté près d'une cantine : part (0 à 1) que l'employeur paie sur les repas de cette cantine. */
-  priseEnChargeCantine?: number;
+  /** Distributeurs de dépannage : part que l'employeur y paie, sous la forme connue de la personne. */
+  partDistributeurs?: PartDistributeurs;
   /** « Je ne sais pas » pour cette part : rien n'est déduit, valeur prudente. */
-  priseEnChargeCantinePrudente?: boolean;
+  partDistributeursPrudente?: boolean;
   /** Prix moyen payé ; null = « Je ne sais pas », forfait sans surcoût calculé. */
   prix: number | null;
   titres: TitresRestaurant | null;
@@ -62,20 +82,50 @@ export function partEmployeurPrudente(p: Parametres, valeurTitre: number): numbe
   return Math.round(valeurTitre * taux * 100) / 100;
 }
 
+/** Restauration sur place, y compris pour une ancienne saisie. */
+export function restaurationSurPlace(s: SaisieRepas): RestaurationSurPlace | undefined {
+  if (s.surPlace) return s.surPlace;
+  if (s.cantineProche === undefined) return undefined;
+  return s.cantineProche ? "cantine" : "aucune";
+}
+
+/**
+ * Distributeurs de dépannage : part de l'employeur à retirer du forfait, en taux ou en euros par repas.
+ * Règle propre à FraisFit (décision du 15/10/2026, F4.3 bis) : aucun texte officiel ne la prévoit.
+ * null = part inconnue (valeur prudente : rien n'est déduit).
+ */
+export function partEmployeurDistributeurs(s: SaisieRepas, joursSurSite: number): { taux?: number; euros?: number } | null {
+  if (s.partDistributeursPrudente || !s.partDistributeurs) return null;
+  const { mode, valeur } = s.partDistributeurs;
+  if (mode === "pourcent") return { taux: Math.min(Math.max(valeur, 0), 100) / 100 };
+  if (mode === "jour") return { euros: Math.max(valeur, 0) };
+  return joursSurSite > 0 ? { euros: Math.round((Math.max(valeur, 0) / joursSurSite) * 100) / 100 } : null;
+}
+
 /** Les repas ouvrent-ils droit à déduction ? Raison en clair sinon. */
-export function repasDeductibles(s: SaisieRepas): { ok: true } | { ok: false; raison: string } {
+export function repasDeductibles(s: SaisieRepas, p: Parametres, joursSurSite: number): { ok: true } | { ok: false; raison: string } {
   if (s.acces === "domicile") {
     return { ok: false, raison: "Les repas pris chez vous ne se déduisent pas. Rien à compter ici." };
   }
-  // Repas apporté près d'une cantine : forfait réduit de la part de l'employeur (décision du 15/10/2026).
-  // Part inconnue ou totale : rien à déduire, par prudence.
-  const tauxCantine = s.priseEnChargeCantinePrudente ? 1 : (s.priseEnChargeCantine ?? 1);
-  if (s.lieu === "gamelle" && s.cantineProche && tauxCantine >= 1) {
+  if (s.lieu !== "gamelle") return { ok: true };
+  const surPlace = restaurationSurPlace(s);
+  if (surPlace === "cantine") {
     return {
       ok: false,
-      raison:
-        "Avec une cantine sur place ou à côté, un repas apporté ne coûte pas plus cher qu'à la maison. Rien à déduire, par prudence.",
+      raison: "Avec une cantine sur place ou à côté, un repas apporté ne coûte pas plus cher qu'à la maison. Rien à déduire, par prudence.",
     };
+  }
+  if (surPlace === "distributeurs") {
+    const part = partEmployeurDistributeurs(s, joursSurSite);
+    const forfait = p.repas.forfait_sans_justificatif_detaille;
+    if (!part || (part.taux ?? 0) >= 1 || (part.euros ?? 0) >= forfait) {
+      return {
+        ok: false,
+        raison: part
+          ? "La part payée par votre employeur couvre tout le forfait : rien à déduire."
+          : "Sans la part payée par votre employeur sur les distributeurs, nous ne déduisons rien. C'est le choix le plus prudent.",
+      };
+    }
   }
   return { ok: true };
 }
@@ -90,6 +140,7 @@ const JUSTIFICATIONS: Record<LieuRepas, string> = {
 export function repasPourMoteur(
   s: SaisieRepas,
   joursSurSite: number,
+  p: Parametres,
 ): { repas: EntreeRepasDeclarant | null; reintegrations: MontantLibelle[] } {
   const reintegrations: MontantLibelle[] = [];
   if (s.titres && s.titres.nombre > 0) {
@@ -97,18 +148,20 @@ export function repasPourMoteur(
   }
   if (s.primePanier > 0) reintegrations.push({ libelle: "prime de panier", montant: s.primePanier });
 
-  const deductible = repasDeductibles(s);
+  const deductible = repasDeductibles(s, p, joursSurSite);
   if (!deductible.ok || !s.lieu || joursSurSite <= 0) return { repas: null, reintegrations };
-  const avecCantine = s.lieu === "gamelle" && s.cantineProche === true;
+  const distributeurs = s.lieu === "gamelle" && restaurationSurPlace(s) === "distributeurs";
+  const part = distributeurs ? partEmployeurDistributeurs(s, joursSurSite) : null;
   return {
     repas: {
       nb: joursSurSite,
       // Repas apporté : toujours le forfait. Restaurant ou cantine : prix moyen, ou forfait si inconnu.
       prix: s.lieu === "gamelle" ? null : s.prix,
       partEmployeurTitreRestaurant: s.titres?.partEmployeur,
-      tauxEmployeurCantine: avecCantine ? s.priseEnChargeCantine : undefined,
-      justification: avecCantine
-        ? `repas apporté, cantine sur place payée à ${Math.round(s.priseEnChargeCantine! * 100)} % par l'employeur et non utilisée, déjeuner à domicile impossible`
+      tauxEmployeurCantine: part?.taux,
+      partEmployeurRepas: part?.euros,
+      justification: distributeurs
+        ? "repas apporté, pas de cantine, seulement des distributeurs de dépannage non utilisés, part de l'employeur déduite, déjeuner à domicile impossible"
         : JUSTIFICATIONS[s.lieu],
     },
     reintegrations,

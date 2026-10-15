@@ -114,8 +114,10 @@ export interface EntreeRepas {
   /** Prix moyen payé ; null = forfait sans justificatif détaillé (gamelle). */
   prix: number | null;
   partEmployeurTitreRestaurant?: number;
-  /** Repas apporté près d'une cantine subventionnée : part (0 à 1) que l'employeur paie, retirée du forfait. */
+  /** Repas apporté, distributeurs de dépannage sur place : part (0 à 1) que l'employeur y paie, retirée du forfait. */
   tauxEmployeurCantine?: number;
+  /** Même cas, part de l'employeur connue en euros par repas (par jour, ou annuelle divisée par les jours). */
+  partEmployeurRepas?: number;
 }
 
 export interface ResultatRepas {
@@ -130,7 +132,8 @@ export function repas(p: Parametres, e: EntreeRepas): ResultatRepas {
   const r = p.repas;
   const tr = e.partEmployeurTitreRestaurant ?? 0;
   const taux = e.tauxEmployeurCantine ?? 0;
-  const brut = (e.prix === null ? r.forfait_sans_justificatif_detaille : e.prix - r.valeur_repas_au_foyer) * (1 - taux);
+  const partRepas = e.partEmployeurRepas ?? 0;
+  const brut = (e.prix === null ? r.forfait_sans_justificatif_detaille : e.prix - r.valeur_repas_au_foyer) * (1 - taux) - partRepas;
   const parRepas = Math.max(brut - tr, 0);
   const montant = parRepas * e.nb;
 
@@ -139,6 +142,7 @@ export function repas(p: Parametres, e: EntreeRepas): ResultatRepas {
       ? `forfait ${eurosCentimes(r.forfait_sans_justificatif_detaille)}`
       : `(${nombre(e.prix, 2)} - ${nombre(r.valeur_repas_au_foyer, 2)})`;
   if (taux) detail = `${detail} moins ${nombre(taux * 100)} % payés par l'employeur`;
+  if (partRepas) detail = `${detail} moins ${eurosCentimes(partRepas)} payés par l'employeur`;
   if (tr) detail = `${detail} - titre-restaurant ${eurosCentimes(tr)}`;
   return {
     parRepas,

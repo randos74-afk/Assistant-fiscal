@@ -69,6 +69,7 @@ export interface EntreeRepasDeclarant {
   prix: number | null;
   partEmployeurTitreRestaurant?: number;
   tauxEmployeurCantine?: number;
+  partEmployeurRepas?: number;
   /** Phrase reprise dans le résumé, par exemple « pas de cantine, déjeuner à domicile impossible ». */
   justification?: string;
 }

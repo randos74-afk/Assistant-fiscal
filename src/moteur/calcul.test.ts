@@ -40,7 +40,7 @@ function calculer(c: Cas): Record<string, unknown> {
     case "DIS":
       return { distance_retenue: distanceRetenue(p, e.aller_km, e.motif) };
     case "REP": {
-      const r = repas(p, { nb: e.nb, prix: e.prix, partEmployeurTitreRestaurant: e.part_employeur_tr, tauxEmployeurCantine: e.taux_employeur_cantine });
+      const r = repas(p, { nb: e.nb, prix: e.prix, partEmployeurTitreRestaurant: e.part_employeur_tr, tauxEmployeurCantine: e.taux_employeur_cantine, partEmployeurRepas: e.part_employeur_repas });
       return { montant: r.montant, montant_par_repas: r.parRepas };
     }
     case "TLT": {
@@ -195,8 +195,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 51 cas", () => {
-    expect(casDeTest.cas.length).toBe(51);
+  it("contient bien les 52 cas", () => {
+    expect(casDeTest.cas.length).toBe(52);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

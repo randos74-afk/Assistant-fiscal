@@ -7,7 +7,7 @@ const p = chargerParametres(2025);
 const restaurant: SaisieRepas = { acces: "impossible", lieu: "restaurant", prix: 12, titres: null, primePanier: 0 };
 
 function calcul(s: SaisieRepas, jours: number) {
-  const r = repasPourMoteur(s, jours);
+  const r = repasPourMoteur(s, jours, p);
   return calculerDeclarant(p, {
     numero: 1,
     salairePrerempli: 30000,
@@ -45,20 +45,21 @@ describe("Vos repas (F4)", () => {
       titres: { valeur: 8, partEmployeur: 4, partPrudente: false, nombre: 100 },
       primePanier: 0,
     };
-    expect(repasPourMoteur(s, 100).repas!.partEmployeurTitreRestaurant).toBe(4);
+    expect(repasPourMoteur(s, 100, p).repas!.partEmployeurTitreRestaurant).toBe(4);
     expect(calcul(s, 100).montantCase).toBe(145);
   });
 
   it("ferme le module si l'on déjeune chez soi, ou avec un repas apporté près d'une cantine", () => {
-    expect(repasDeductibles({ ...restaurant, acces: "domicile" }).ok).toBe(false);
-    expect(repasDeductibles({ acces: "impossible", lieu: "gamelle", cantineProche: true, prix: null, titres: null, primePanier: 0 }).ok).toBe(false);
-    expect(repasPourMoteur({ ...restaurant, acces: "domicile" }, 180).repas).toBeNull();
+    expect(repasDeductibles({ ...restaurant, acces: "domicile" }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ acces: "impossible", lieu: "gamelle", cantineProche: true, prix: null, titres: null, primePanier: 0 }, p, 200).ok).toBe(false);
+    expect(repasPourMoteur({ ...restaurant, acces: "domicile" }, 180, p).repas).toBeNull();
   });
 
   it("réintègre quand même les titres et la prime de panier si les repas ne sont pas déductibles", () => {
     const r = repasPourMoteur(
       { ...restaurant, acces: "domicile", titres: { valeur: 9, partEmployeur: 5.4, partPrudente: false, nombre: 100 }, primePanier: 300 },
       180,
+      p,
     );
     expect(r.reintegrations.map((x) => x.montant)).toEqual([540, 300]);
   });
@@ -77,19 +78,28 @@ describe("Vos repas (F4)", () => {
     expect(r.alertes.some((a) => a.includes("supérieur à 21,10 €") && a.includes("susceptible d'être jugée excessive"))).toBe(true);
   });
 
-  it("repas apporté près de distributeurs payés à 50 % : forfait réduit de moitié (REP-05)", () => {
-    const s: SaisieRepas = { acces: "impossible", lieu: "gamelle", cantineProche: true, priseEnChargeCantine: 0.5, prix: null, titres: null, primePanier: 0 };
-    const r = calcul(s, 200);
+  const gamelle: SaisieRepas = { acces: "impossible", lieu: "gamelle", prix: null, titres: null, primePanier: 0 };
+
+  it("distributeurs de dépannage, part employeur 50 % : forfait réduit de moitié (REP-05)", () => {
+    const r = calcul({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "pourcent", valeur: 50 } }, 200);
     expect(r.montantCase).toBe(545); // 200 × 2,725
     expect(r.texte).toContain("200 repas x forfait 5,45 € moins 50 % payés par l'employeur = 545 €");
-    expect(r.texte).toContain("cantine sur place payée à 50 % par l'employeur et non utilisée");
+    expect(r.texte).toContain("seulement des distributeurs de dépannage non utilisés");
   });
 
-  it("cantine : part inconnue ou payée à 100 % = rien à déduire", () => {
-    const base: SaisieRepas = { acces: "impossible", lieu: "gamelle", cantineProche: true, prix: null, titres: null, primePanier: 0 };
-    expect(repasDeductibles({ ...base, priseEnChargeCantinePrudente: true }).ok).toBe(false);
-    expect(repasDeductibles({ ...base, priseEnChargeCantine: 1 }).ok).toBe(false);
-    expect(repasDeductibles(base).ok).toBe(false); // ancienne sauvegarde sans la part : comportement prudent
+  it("distributeurs : part employeur en euros par jour ou sur l'année (REP-06)", () => {
+    expect(calcul({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "jour", valeur: 2 } }, 200).montantCase).toBe(690);
+    const annee = calcul({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "annee", valeur: 400 } }, 200);
+    expect(annee.montantCase).toBe(690); // (5,45 − 400 / 200) × 200
+    expect(annee.texte).toContain("moins 2,00 € payés par l'employeur");
+  });
+
+  it("vraie cantine, part inconnue ou part couvrant le forfait : rien à déduire", () => {
+    expect(repasDeductibles({ ...gamelle, surPlace: "cantine" }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ ...gamelle, surPlace: "distributeurs", partDistributeursPrudente: true }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ ...gamelle, surPlace: "distributeurs", partDistributeurs: { mode: "jour", valeur: 6 } }, p, 200).ok).toBe(false);
+    expect(repasDeductibles({ ...gamelle, surPlace: "aucune" }, p, 200).ok).toBe(true);
+    expect(repasDeductibles({ ...gamelle, cantineProche: true }, p, 200).ok).toBe(false); // ancienne saisie
   });
 
   it("part employeur en pourcentage et prime de panier par jour", () => {
