@@ -1151,3 +1151,14 @@ a {
   gap: 6px;
   font-size: var(--taille-texte-min);
 }
+
+.lien-fichier {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+}
+
+.lien-fichier:focus-within {
+  outline: 3px solid var(--primaire);
+  outline-offset: 2px;
+}

@@ -1,4 +1,5 @@
 // Résultat (F7, F8, docs/02 §7) : verdict sur les bases imposables, détail, blocs à copier, pas-à-pas.
+import { useState } from "react";
 import type { ResultatDeclarant } from "../moteur/declarant";
 import { euros, nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
@@ -11,11 +12,15 @@ interface Props {
   parametres: Parametres;
   resultat: ResultatDeclarant;
   prudentes: string[];
+  /** Renvoie false si le navigateur a bloqué la fenêtre. */
+  onPdf: () => boolean;
+  onEnregistrerFichier: () => void;
   onModifier: () => void;
   onRecommencer: () => void;
 }
 
-export function Resultat({ parametres: p, resultat: r, prudentes, onModifier, onRecommencer }: Props) {
+export function Resultat({ parametres: p, resultat: r, prudentes, onPdf, onEnregistrerFichier, onModifier, onRecommencer }: Props) {
+  const [pdfBloque, setPdfBloque] = useState(false);
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
   const conseille = c.fraisReelsConseilles;
@@ -115,6 +120,24 @@ export function Resultat({ parametres: p, resultat: r, prudentes, onModifier, on
             <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 12 }}>{blocs}</div>
           </details>
         )}
+
+        <section className="carte" aria-labelledby="titre-garder">
+          <h2 id="titre-garder">Garder une trace</h2>
+          <button type="button" className="bouton bouton-secondaire" onClick={() => setPdfBloque(!onPdf())}>
+            Imprimer ou enregistrer en PDF
+          </button>
+          {pdfBloque && (
+            <p className="champ-erreur">{typographie("Votre navigateur a bloqué la fenêtre : autorisez les fenêtres pour ce site, puis réessayez.")}</p>
+          )}
+          <button type="button" className="bouton bouton-secondaire" onClick={onEnregistrerFichier}>
+            Enregistrer ma simulation dans un fichier
+          </button>
+          <p className="champ-detail">
+            {typographie(
+              `Le fichier reste chez vous. L'an prochain, ouvrez-le pour repartir de vos réponses. Calcul fait avec les paramètres des revenus ${p.millesime.revenus}.`,
+            )}
+          </p>
+        </section>
 
         <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>
           {typographie(

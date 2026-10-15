@@ -1,5 +1,5 @@
 // Parcours FraisFit : accueil, filtrage, métier, sept étapes, relecture et résultat.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { chargerParametres, millesimesDisponibles } from "./moteur/parametres";
 import { calculerParcours, valeursPrudentes } from "./parcours/assemblage";
 import { postesDuProfil, type SaisieAutresFrais } from "./parcours/autresFrais";
@@ -18,7 +18,9 @@ import { Relecture, type EcranModifiable } from "./ui/Relecture";
 import { Repas } from "./ui/Repas";
 import { Resultat } from "./ui/Resultat";
 import { Salaire, type SaisieSalaire } from "./ui/Salaire";
-import { existeSauvegarde } from "./ui/sauvegarde";
+import { charger, effacer, enregistrer, existeSauvegarde, telechargerDossier, type ContenuDossier, type Dossier } from "./ui/sauvegarde";
+import { justificatifs } from "./parcours/justificatifs";
+import { ouvrirPdf } from "./ui/pdf";
 import { Teletravail } from "./ui/Teletravail";
 import { Trajet } from "./ui/Trajet";
 
@@ -42,11 +44,33 @@ export default function App() {
   const joursSurSite = jours ? totaux(jours.mois).site : 0;
   const reponses = { salaire, jours, trajet, repas, teletravail, autres };
 
+  const contenu: ContenuDossier = { millesime, ecran, reponsesFiltrage, metier, salaire, jours, trajet, repas, teletravail, autres };
+
+  // F9.3 — Sauvegarde automatique sur l'appareil dès que le parcours a commencé.
+  useEffect(() => {
+    if (metier !== undefined) enregistrer(contenu);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ecran, metier, salaire, jours, trajet, repas, teletravail, autres]);
+
+  function reprendre(d: Dossier) {
+    setReponsesFiltrage(d.reponsesFiltrage ?? {});
+    setMetier(d.metier);
+    setSalaire(d.salaire);
+    setJours(d.jours);
+    setTrajet(d.trajet);
+    setRepas(d.repas);
+    setTeletravail(d.teletravail);
+    setAutres(d.autres);
+    setDepuisRelecture(false);
+    setEcran(d.metier ? (d.ecran as Ecran) : "filtrage");
+  }
+
   /** Étape suivante, ou retour direct à la relecture si l'on corrigeait une réponse. */
   const suivant = (prochain: Ecran) => setEcran(depuisRelecture ? "relecture" : prochain);
   const precedent = (ecranPrecedent: Ecran) => () => setEcran(depuisRelecture ? "relecture" : ecranPrecedent);
 
   function recommencer() {
+    effacer(millesime);
     setReponsesFiltrage({});
     setMetier(undefined);
     setSalaire(undefined);
@@ -181,6 +205,16 @@ export default function App() {
           parametres={parametres}
           resultat={calculerParcours(parametres, reponses)}
           prudentes={valeursPrudentes(reponses)}
+          onPdf={() =>
+            ouvrirPdf({
+              parametres,
+              resultat: calculerParcours(parametres, reponses),
+              prudentes: valeursPrudentes(reponses),
+              justificatifs: justificatifs(reponses),
+              date: new Date(),
+            })
+          }
+          onEnregistrerFichier={() => telechargerDossier(contenu)}
           onModifier={() => setEcran("relecture")}
           onRecommencer={recommencer}
         />
@@ -190,9 +224,14 @@ export default function App() {
       return (
         <Accueil
           millesime={millesime}
-          sauvegardeDisponible={existeSauvegarde()}
+          sauvegardeDisponible={existeSauvegarde(millesime)}
+          millesimesDisponibles={millesimesDisponibles()}
           onCommencer={() => setEcran("filtrage")}
-          onReprendre={() => setEcran("relecture")}
+          onReprendre={() => {
+            const d = charger(millesime);
+            if (d) reprendre(d);
+          }}
+          onOuvrirDossier={reprendre}
         />
       );
   }

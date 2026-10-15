@@ -16,7 +16,7 @@ export interface BaremeUnique {
 }
 
 export interface Parametres {
-  millesime: { revenus: number; declaration: number; statut: string };
+  millesime: { revenus: number; declaration: number; statut: string; date_gel: string };
   abattement_10_pourcent: {
     taux: number;
     minimum_par_declarant: number;
