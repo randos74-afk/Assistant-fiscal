@@ -30,6 +30,8 @@ export interface SaisieJours {
   /** « Je ne sais pas » : valeur prudente retenue, signalée dans le récapitulatif. */
   prudent: boolean;
   teletravailParSemaine: number;
+  /** Total des jours de télétravail de l'année, quand la personne le connaît ; remplace le rythme par semaine. */
+  teletravailAnnee?: number;
   deplacementsAnnee: number;
   /** Jours de chaque mois, après corrections éventuelles. */
   mois: JoursDuMois[];
@@ -61,6 +63,8 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
   const [alsaceMoselle, setAlsaceMoselle] = useState(v?.alsaceMoselle ?? false);
   const [prudent, setPrudent] = useState(v?.prudent ?? false);
   const [teletravail, setTeletravail] = useState(v?.teletravailParSemaine ?? 0);
+  const [parTotalTeletravail, setParTotalTeletravail] = useState(v?.teletravailAnnee !== undefined);
+  const [totalTeletravail, setTotalTeletravail] = useState(v?.teletravailAnnee !== undefined ? String(v.teletravailAnnee) : "");
   const [deplacements, setDeplacements] = useState(String(v?.deplacementsAnnee ?? 0));
   const [moisCorriges, setMoisCorriges] = useState<string[][] | null>(
     v?.corrigeMoisParMois ? v.mois.map((m) => [String(m.site), String(m.teletravail), String(m.deplacement)]) : null,
@@ -89,7 +93,13 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
     return repartirAuProrata(nbPrudent, disponibles);
   }, [prudent, calcul, millesime, joursParSemaine, alsaceMoselle, nbPrudent]);
 
-  const automatique = repartitionSimple(parMois, joursParSemaine, teletravail, entier(deplacements));
+  const automatique = repartitionSimple(
+    parMois,
+    joursParSemaine,
+    parTotalTeletravail ? 0 : teletravail,
+    entier(deplacements),
+    parTotalTeletravail ? entier(totalTeletravail) : undefined,
+  );
   const mois: JoursDuMois[] = moisCorriges
     ? moisCorriges.map(([s, t, d]) => ({ site: entier(s), teletravail: entier(t), deplacement: entier(d) }))
     : automatique;
@@ -99,7 +109,10 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
     .map((m, i) => (m.site + m.teletravail + m.deplacement > joursDansLeMois(millesime, i) ? i : -1))
     .filter((i) => i >= 0);
   const saisiesQ1Valides = [conges, rtt, absences].every(entierValide);
-  const saisiesQ2Valides = entierValide(deplacements) && (moisCorriges ?? []).every((l) => l.every(entierValide));
+  const saisiesQ2Valides =
+    entierValide(deplacements) &&
+    (!parTotalTeletravail || entierValide(totalTeletravail)) &&
+    (moisCorriges ?? []).every((l) => l.every(entierValide));
   const seuilSite = parametres.alertes_vraisemblance.jours_sur_site_max_temps_plein;
 
   function corrigerCellule(i: number, j: number, texte: string) {
@@ -120,7 +133,8 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
       absences: entier(absences),
       alsaceMoselle,
       prudent,
-      teletravailParSemaine: teletravail,
+      teletravailParSemaine: parTotalTeletravail ? 0 : teletravail,
+      ...(parTotalTeletravail ? { teletravailAnnee: entier(totalTeletravail) } : {}),
       deplacementsAnnee: entier(deplacements),
       mois,
       corrigeMoisParMois: moisCorriges !== null,
@@ -228,13 +242,35 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
       <main className="ecran-contenu" style={{ gap: 16 }}>
         <h1 className="titre-question">{titre}</h1>
 
-        <Pastilles
-          legende="Jours de télétravail par semaine"
-          aide={<BoutonAsterisque onClick={() => setAide("teletravail")} />}
-          options={Array.from({ length: joursParSemaine + 1 }, (_, i) => i)}
-          valeur={teletravail}
-          onChoix={(n) => (setTeletravail(n), setMoisCorriges(null))}
-        />
+        {parTotalTeletravail ? (
+          <>
+            <ChampNombre
+              compact
+              libelleVisible
+              libelle="Jours de télétravail dans l'année"
+              detail="Nous les répartissons sur vos mois travaillés. Corrigez mois par mois si certains mois étaient plus chargés."
+              unite="jours"
+              valeur={totalTeletravail}
+              onChange={(x) => (setTotalTeletravail(x), setMoisCorriges(null))}
+            />
+            <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotalTeletravail(false), setMoisCorriges(null))}>
+              Indiquer plutôt mes jours par semaine
+            </button>
+          </>
+        ) : (
+          <>
+            <Pastilles
+              legende="Jours de télétravail par semaine"
+              aide={<BoutonAsterisque onClick={() => setAide("teletravail")} />}
+              options={Array.from({ length: joursParSemaine + 1 }, (_, i) => i)}
+              valeur={teletravail}
+              onChoix={(n) => (setTeletravail(n), setMoisCorriges(null))}
+            />
+            <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotalTeletravail(true), setMoisCorriges(null))}>
+              Je connais mon total de jours de télétravail de l'année
+            </button>
+          </>
+        )}
 
         <ChampNombre
           compact
@@ -255,7 +291,7 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
           </p>
         </section>
 
-        {teletravail > 0 && <Encadre>Les jours de télétravail ne comptent pas pour les repas.</Encadre>}
+        {t.teletravail > 0 && <Encadre>Les jours de télétravail ne comptent pas pour les repas.</Encadre>}
         {t.site > seuilSite && (
           <Encadre ton="attention">
             {typographie(`Plus de ${seuilSite} jours sur site, c'est rare pour un temps plein. Pouvez-vous vérifier vos congés ?`)}

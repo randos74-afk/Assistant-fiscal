@@ -147,17 +147,19 @@ export interface JoursDuMois {
 }
 
 /**
- * Mode simple : télétravail habituel par semaine et jours de déplacement de l'année,
- * répartis au prorata des jours travaillés de chaque mois.
+ * Mode simple : télétravail habituel par semaine (ou total de l'année s'il est connu) et jours
+ * de déplacement de l'année, répartis au prorata des jours travaillés de chaque mois (F5.1).
  */
 export function repartitionSimple(
   joursParMois: number[],
   joursParSemaine: number,
   teletravailParSemaine: number,
   deplacementsAnnee: number,
+  teletravailAnnee?: number,
 ): JoursDuMois[] {
   const total = joursParMois.reduce((s, x) => s + x, 0);
-  const tt = repartirAuProrata(Math.round((total * teletravailParSemaine) / joursParSemaine), joursParMois);
+  const totalTeletravail = teletravailAnnee ?? Math.round((total * teletravailParSemaine) / joursParSemaine);
+  const tt = repartirAuProrata(Math.min(totalTeletravail, total), joursParMois);
   const dep = repartirAuProrata(Math.min(deplacementsAnnee, total), joursParMois);
   return joursParMois.map((j, i) => {
     const teletravail = Math.min(tt[i], j);

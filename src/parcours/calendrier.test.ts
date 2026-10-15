@@ -102,4 +102,10 @@ describe("Valeur prudente des jours", () => {
   it("proratise vers le bas pour un temps partiel", () => {
     expect(joursPrudents(p, 3)).toBe(130);
   });
+
+  it("total de télétravail de l'année connu : réparti au prorata des mois travaillés (F5.1)", () => {
+    const mois = repartitionSimple([20, 20, 0, 20, 20, 20, 20, 20, 20, 20, 20, 20], 5, 0, 0, 55);
+    expect(mois.reduce((s, m) => s + m.teletravail, 0)).toBe(55);
+    expect(mois[2].teletravail).toBe(0);
+  });
 });
