@@ -9,7 +9,9 @@ export type IdIllustration =
   | "itineraire"
   | "bulletin-titres"
   | "releve-repas"
-  | "bulletin-allocation-teletravail";
+  | "bulletin-allocation-teletravail"
+  | "attestation-syndicat"
+  | "bulletin-transport";
 
 export interface FicheAide {
   titre: string;
@@ -118,6 +120,28 @@ export const FICHES = {
     motsAChercher: ["Indemnité télétravail", "Allocation télétravail", "Forfait télétravail", "Remboursement frais internet"],
     siIntrouvable:
       "Choisissez « Je ne sais pas » : nous ajouterons {forfait} par jour de télétravail à votre salaire, le choix le plus prudent.",
+  },
+  autresFrais: {
+    titre: "Où trouver ces montants ?",
+    illustration: "attestation-syndicat",
+    texteAlternatif:
+      "Exemple d'attestation de cotisation syndicale : la ligne « Cotisations versées », 150 €, est entourée en orange.",
+    ouRegarder:
+      "Vos factures, tickets, relevés bancaires, attestations de votre syndicat, de votre ordre ou de votre organisme de formation. Additionnez les montants de l'année.",
+    motsAChercher: ["Facture", "Attestation", "Reçu", "Montant TTC"],
+    siIntrouvable:
+      "Sans justificatif, laissez le poste décoché : rien ne sera compté. C'est le choix prudent, et vous pourrez l'ajouter plus tard.",
+  },
+  transport: {
+    titre: "Où trouver ces chiffres ?",
+    illustration: "bulletin-transport",
+    texteAlternatif:
+      "Exemple de bulletin de paie de décembre : la ligne « Remboursement transport », colonne « Cumul annuel », est entourée en orange. Elle indique 450 €.",
+    ouRegarder:
+      "Le prix de l'abonnement est sur votre attestation annuelle de transport. Ce que rembourse votre employeur est sur le bulletin de décembre, colonne du cumul annuel.",
+    motsAChercher: ["Remboursement transport", "Prise en charge abonnement", "Forfait mobilités durables", "Navigo", "Pass"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » pour le remboursement : nous retiendrons la prise en charge habituelle la plus forte, le choix prudent.",
   },
 } satisfies Record<string, FicheAide>;
 

@@ -118,6 +118,28 @@ const BULLETIN_ALLOCATION_TELETRAVAIL: Modele = {
 export const BulletinAllocationTeletravail = (p: { texteAlternatif: string }) => (
   <DocumentExemple modele={BULLETIN_ALLOCATION_TELETRAVAIL} {...p} />
 );
+const ATTESTATION_SYNDICAT: Modele = {
+  entete: "ATTESTATION DE COTISATION · ANNÉE",
+  colonnes: ["Montant"],
+  lignes: [
+    { libelle: "Adhérent", valeurs: ["Salarié Exemple"] },
+    { libelle: "Période", valeurs: ["01/01 au 31/12"] },
+    { libelle: "Cotisations versées", valeurs: ["150,00 €"], aLire: true },
+  ],
+};
+
+const BULLETIN_TRANSPORT: Modele = {
+  entete: "BULLETIN DE PAIE · DÉCEMBRE",
+  colonnes: ["Mois", "Cumul annuel"],
+  lignes: [
+    { libelle: "Salaire de base", valeurs: ["2 000,00", "24 000,00"] },
+    { libelle: "Remboursement transport", valeurs: ["37,50", "450,00"], aLire: true },
+    { libelle: "Net imposable", valeurs: ["1 630,00", "19 560,00"] },
+  ],
+};
+
+export const AttestationSyndicat = (p: { texteAlternatif: string }) => <DocumentExemple modele={ATTESTATION_SYNDICAT} {...p} />;
+export const BulletinTransport = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_TRANSPORT} {...p} />;
 export const BulletinTitres = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_TITRES} {...p} />;
 export const ReleveRepas = (p: { texteAlternatif: string }) => <DocumentExemple modele={RELEVE_REPAS} {...p} />;
 

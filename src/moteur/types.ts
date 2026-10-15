@@ -53,6 +53,11 @@ export interface Parametres {
     moto_electrique: BaremeParPuissance;
   };
   resume_1ak: { longueur_cible_caracteres: number };
+  cotisations_syndicales: { taux_credit_impot: number };
+  grand_deplacement_reperes: {
+    logement_petit_dejeuner_paris_petite_couronne_par_jour: number;
+    logement_petit_dejeuner_autres_departements_par_jour: number;
+  };
   alertes_vraisemblance: Record<string, number>;
   valeurs_prudentes_je_ne_sais_pas: Record<string, number | string>;
   [cle: string]: unknown;

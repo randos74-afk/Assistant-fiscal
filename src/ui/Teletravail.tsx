@@ -3,7 +3,7 @@ import { useState } from "react";
 import { teletravailForfait } from "../moteur/calcul";
 import { calculerDeclarant } from "../moteur/declarant";
 import { euros, eurosCentimes } from "../moteur/format";
-import type { Achat, UsageLocal } from "../moteur/teletravail";
+import type { UsageLocal } from "../moteur/teletravail";
 import type { Parametres } from "../moteur/types";
 import { libelleEtape } from "../parcours/etapes";
 import { completerFiche, FICHES, type FicheAide as Fiche } from "../parcours/fichesAide";
@@ -18,6 +18,7 @@ import {
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
+import { ListeAchats, lignesValides, versAchats, versLignes, type LigneAchat } from "./ListeAchats";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
@@ -50,14 +51,6 @@ const CHARGES = [
   { cle: "impots", libelle: "Taxe foncière ou impôts locaux de l'année" },
 ] as const;
 
-interface LigneAchat {
-  libelle: string;
-  prix: string;
-  mois: string;
-  annee: string;
-  usage: string;
-}
-
 export function Teletravail({ parametres: p, joursParMois, joursTravailles, valeurInitiale: v, onValider, onRetour }: Props) {
   const annee = p.millesime.revenus;
   const joursTeletravail = joursParMois.reduce((s, j) => s + j, 0);
@@ -76,33 +69,13 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
   const [depensesBureau, setDepensesBureau] = useState(texte(v?.depensesBureau));
   const [communication, setCommunication] = useState(texte(v?.communication));
   const [fournitures, setFournitures] = useState(texte(v?.fournitures));
-  const [achats, setAchats] = useState<LigneAchat[]>(
-    (v?.achats ?? []).map((a) => ({
-      libelle: a.libelle,
-      prix: afficherMontant(a.prixHT),
-      mois: String(a.moisAchat),
-      annee: String(a.anneeAchat),
-      usage: String(Math.round(a.usagePro * 100)),
-    })),
-  );
+  const [achats, setAchats] = useState<LigneAchat[]>(versLignes(v?.achats ?? []));
   const [methode, setMethode] = useState<"forfait" | "reel" | undefined>(v?.methode);
   const [aide, setAide] = useState<Fiche | null>(null);
 
   const etape = libelleEtape("le télétravail");
   const forfait = teletravailForfait(p, joursParMois);
   const prudente = allocationPrudente(p, joursTeletravail);
-
-  function achatsSaisis(): Achat[] {
-    return achats
-      .filter((a) => montant(a.prix) > 0)
-      .map((a) => ({
-        libelle: a.libelle.trim() || "matériel",
-        prixHT: montant(a.prix),
-        usagePro: Math.min(entier(a.usage), 100) / 100,
-        anneeAchat: entier(a.annee) || annee,
-        moisAchat: Math.min(Math.max(entier(a.mois), 1), 12),
-      }));
-  }
 
   function saisie(m: "forfait" | "reel" = methode ?? "forfait"): SaisieTeletravail {
     const u = usage ?? "aucun";
@@ -119,7 +92,7 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
       depensesBureau: montant(depensesBureau),
       communication: montant(communication),
       fournitures: montant(fournitures),
-      achats: achatsSaisis(),
+      achats: versAchats(achats, annee, "matériel"),
       methode: m,
     };
   }
@@ -277,7 +250,7 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
 
     case "equipement":
       titre = "Votre équipement et vos abonnements";
-      peutContinuer = [communication, fournitures, ...achats.map((a) => a.prix)].every((t) => !Number.isNaN(lireMontant(t)));
+      peutContinuer = [communication, fournitures].every((t) => !Number.isNaN(lireMontant(t))) && lignesValides(achats);
       contenu = (
         <>
           <ChampMontant
@@ -290,50 +263,13 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, vale
           />
           <ChampMontant compact libelleVisible libelle="Fournitures" detail="Encre, papier, petites fournitures." valeur={fournitures} onChange={setFournitures} />
 
-          <section className="carte" aria-labelledby="titre-achats">
-            <h2 id="titre-achats">Matériel et mobilier achetés</h2>
-            <p style={{ margin: 0, fontSize: "var(--taille-texte-min)" }}>
-              {typographie(
-                `Ordinateur, écran, bureau, siège. Jusqu'à ${euros(p.materiel.seuil_deduction_immediate_HT)} hors taxes, déduit l'année d'achat ; au-delà, réparti sur ${p.materiel.duree_amortissement_informatique_ans} ans. Les achats des années passées comptent encore.`,
-              )}
-            </p>
-            {achats.map((a, i) => {
-              const maj = (champ: keyof LigneAchat, x: string) => setAchats(achats.map((b, j) => (j === i ? { ...b, [champ]: x } : b)));
-              return (
-                <fieldset key={i} className="achat">
-                  <legend className="champ-libelle">Achat {i + 1}</legend>
-                  <label className="champ-libelle" htmlFor={`achat-${i}`}>
-                    Quoi ?
-                  </label>
-                  <input id={`achat-${i}`} className="champ-texte" value={a.libelle} onChange={(e) => maj("libelle", e.target.value)} />
-                  <ChampMontant compact libelleVisible libelle="Prix hors taxes (HT)" valeur={a.prix} onChange={(x) => maj("prix", x)} />
-                  <div className="grille-mois">
-                    <ChampNombre compact libelleVisible libelle="Mois d'achat" unite="" valeur={a.mois} onChange={(x) => maj("mois", x)} />
-                    <ChampNombre compact libelleVisible libelle="Année d'achat" unite="" valeur={a.annee} onChange={(x) => maj("annee", x)} />
-                  </div>
-                  <ChampNombre
-                    compact
-                    libelleVisible
-                    libelle="Part d'usage pour le travail"
-                    detail="Comptez honnêtement l'usage privé : il est retiré."
-                    unite="%"
-                    valeur={a.usage}
-                    onChange={(x) => maj("usage", x)}
-                  />
-                  <button type="button" className="lien-je-ne-sais-pas" onClick={() => setAchats(achats.filter((_, j) => j !== i))}>
-                    Retirer cet achat
-                  </button>
-                </fieldset>
-              );
-            })}
-            <button
-              type="button"
-              className="bouton bouton-secondaire"
-              onClick={() => setAchats([...achats, { libelle: "", prix: "", mois: "1", annee: String(annee), usage: "100" }])}
-            >
-              Ajouter un achat
-            </button>
-          </section>
+          <ListeAchats
+            parametres={p}
+            titre="Matériel et mobilier achetés"
+            exemples="Ordinateur, écran, bureau, siège."
+            lignes={achats}
+            onChange={setAchats}
+          />
         </>
       );
       break;

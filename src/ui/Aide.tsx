@@ -3,6 +3,8 @@ import { useEffect, useRef } from "react";
 import type { FicheAide as Fiche, IdIllustration } from "../parcours/fichesAide";
 import { CarteGriseEnergie, CarteGrisePuissance, Itineraire } from "./illustrations/CarteGrise";
 import {
+  AttestationSyndicat,
+  BulletinTransport,
   AvenantTeletravail,
   BulletinAllocationTeletravail,
   BulletinCompteurs,
@@ -22,6 +24,8 @@ const ILLUSTRATIONS: Record<IdIllustration, (props: { texteAlternatif: string })
   "bulletin-titres": BulletinTitres,
   "releve-repas": ReleveRepas,
   "bulletin-allocation-teletravail": BulletinAllocationTeletravail,
+  "attestation-syndicat": AttestationSyndicat,
+  "bulletin-transport": BulletinTransport,
 };
 
 export function BoutonAsterisque({ onClick }: { onClick: () => void }) {

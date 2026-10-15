@@ -11,6 +11,10 @@ import { Salaire, type SaisieSalaire } from "./ui/Salaire";
 import { Trajet } from "./ui/Trajet";
 import { Repas } from "./ui/Repas";
 import { Teletravail } from "./ui/Teletravail";
+import { AutresFrais } from "./ui/AutresFrais";
+import { postesDuProfil, type SaisieAutresFrais } from "./parcours/autresFrais";
+import { profil } from "./parcours/metiers";
+import { estVehicule } from "./parcours/trajet";
 import type { SaisieTeletravail } from "./parcours/teletravail";
 import type { SaisieRepas } from "./parcours/repas";
 import { totaux } from "./parcours/calendrier";
@@ -18,7 +22,7 @@ import type { SaisieTrajet } from "./parcours/trajet";
 import { existeSauvegarde } from "./ui/sauvegarde";
 import AncienSimulateur from "./ancien/AncienSimulateur.jsx";
 
-type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "repas" | "teletravail" | "ancien-simulateur";
+type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "repas" | "teletravail" | "autres" | "ancien-simulateur";
 
 export default function App() {
   const [ecran, setEcran] = useState<Ecran>("accueil");
@@ -30,6 +34,7 @@ export default function App() {
   const [trajet, setTrajet] = useState<SaisieTrajet | undefined>();
   const [repas, setRepas] = useState<SaisieRepas | undefined>();
   const [teletravail, setTeletravail] = useState<SaisieTeletravail | undefined>();
+  const [autres, setAutres] = useState<SaisieAutresFrais | undefined>();
   const joursSurSite = jours ? totaux(jours.mois).site : 0;
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
@@ -133,7 +138,23 @@ export default function App() {
           onRetour={() => setEcran("repas")}
           onValider={(t) => {
             setTeletravail(t);
-            // Provisoire : « Vos autres frais » n'existe pas encore.
+            setEcran("autres");
+          }}
+        />
+      );
+
+    case "autres":
+      return (
+        <AutresFrais
+          parametres={parametres}
+          enTransports={trajet?.mode === "transports"}
+          aVehicule={trajet ? estVehicule(trajet.mode) : false}
+          postesOuvertsDOffice={metier ? postesDuProfil(profil(metier).postesOuverts) : []}
+          valeurInitiale={autres}
+          onRetour={() => setEcran("teletravail")}
+          onValider={(a) => {
+            setAutres(a);
+            // Provisoire : « Relecture » et résultat n'existent pas encore.
             setEcran("ancien-simulateur");
           }}
         />

@@ -32,6 +32,8 @@ export interface EntreeVehicule {
   motifDoubleAllerRetour?: string;
   /** F3.7 — Kilomètres de missions non remboursés. */
   kmMissions?: number;
+  /** F6.8 — Allers-retours vers le domicile familial (double résidence), même véhicule. */
+  kmDoubleResidence?: number;
   /** F3.8 — Kilométrage annuel saisi directement (relevé), remplace le calcul. */
   kmForce?: number;
   /** F3.9 — Péages et parking, part professionnelle. */
@@ -66,6 +68,8 @@ export interface EntreeDeclarant {
   teletravailReel?: EntreeTeletravailReel;
   autresFrais?: MontantLibelle[];
   reintegrations?: MontantLibelle[];
+  /** Motifs hors véhicule (double résidence…), repris dans la ligne « Motifs ». */
+  motifs?: string[];
 }
 
 export interface LigneResume {
@@ -104,7 +108,7 @@ function libelleVehicule(v: EntreeVehicule, ligneBareme: string): string {
 
 export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDeclarant {
   const lignes: LigneResume[] = [];
-  const motifs: string[] = [];
+  const motifs: string[] = [...(e.motifs ?? [])];
   const alertes: string[] = [];
 
   // Véhicules : barème sur le kilométrage annuel total de chacun.
@@ -115,7 +119,7 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     const allersRetours = v.allersRetoursParJour ?? p.deplacements.allers_retours_par_jour_par_defaut;
     const aller = distanceRetenue(p, v.allerKm, Boolean(v.motifDistance));
     const kmTrajets = kmDomicileTravail(p, aller, v.joursSurSite, allersRetours);
-    const km = v.kmForce ?? kmTrajets + (v.kmMissions ?? 0);
+    const km = v.kmForce ?? kmTrajets + (v.kmMissions ?? 0) + (v.kmDoubleResidence ?? 0);
     const b = baremeKm(p, { km, vehicule: v.type, cv: v.cv, electrique: v.energie === "électrique" });
 
     let detail: string;
@@ -125,6 +129,7 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
       detail = `domicile-travail ${nombre(aller)} km × 2` + (allersRetours > 1 ? ` × ${allersRetours} allers-retours` : "");
       detail += ` × ${nombre(v.joursSurSite)} j sur site`;
       if (v.kmMissions) detail += ` + missions ${nombre(v.kmMissions)} km`;
+      if (v.kmDoubleResidence) detail += ` + trajets double résidence ${nombre(v.kmDoubleResidence)} km`;
     }
     if (v.allerKm > aller) {
       alertes.push(

@@ -956,3 +956,30 @@ a {
   outline: 0;
   border: 2px solid var(--primaire);
 }
+
+/* Autres frais : postes groupés, champs ouverts sous la case cochée. */
+.groupe-postes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--bordure);
+}
+
+.groupe-titre {
+  margin: 0 0 4px;
+  font-size: var(--taille-texte);
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.poste .case-a-cocher {
+  font-size: var(--taille-texte);
+}
+
+.poste-champs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 0 12px 32px;
+}

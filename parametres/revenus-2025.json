@@ -141,6 +141,12 @@
     ]
   },
 
+  "cotisations_syndicales": {
+    "taux_credit_impot": 0.66,
+    "note": "Crédit d'impôt perdu si les cotisations sont déduites en frais réels.",
+    "source": "CGI art. 199 quater C ; notice 2041 GP ; ajouté le 15/10/2026 pour F6.6, à revérifier chaque année"
+  },
+
   "resume_1ak": {
     "longueur_cible_caracteres": 1000,
     "source": "Spécifications F8.7 : longueur cible, la limite réelle du champ en ligne reste à vérifier"
