@@ -126,10 +126,11 @@ Le montant déductible par repas est toujours un surcoût : prix payé moins 5,4
 | F4.1 | Condition d'accès | Question : impossibilité de déjeuner à domicile (distance ou pause trop courte) ; sinon module fermé avec explication |
 | F4.2 | Mode « avec justificatifs » | (Prix moyen du repas − 5,45 €) × nombre de repas ; restaurant, cantine ou cafétéria |
 | F4.3 | Mode « sans justificatif détaillé / gamelle » | 5,45 € × nombre de repas, si pas de restauration collective sur place ou à proximité |
-| F4.4 | Titres-restaurant | Soustraction de la part employeur par repas (exemple officiel : 12 − 5,45 − 4,50 = 2,05 €) ; réintégration liée en F1.7 |
+| F4.3 bis | Gamelle près d'une cantine subventionnée | Repas apporté alors qu'une cantine ou de simples distributeurs payés en partie par l'employeur existent sur place : 5,45 € × (1 − part employeur en %) × nombre de repas (ex. 50 % : 2,725 € par repas). Part inconnue ou de 100 % : rien n'est déduit (valeur prudente). Décision du 15/10/2026, position prudente : la notice 2041 GP ne prévoit le forfait qu'en l'absence de restauration collective ; la justification est reprise dans le résumé 1AK |
+| F4.4 | Titres-restaurant | Soustraction de la part employeur par repas (exemple officiel : 12 − 5,45 − 4,50 = 2,05 €) ; part saisie en euros ou en pourcentage de la valeur du titre ; réintégration liée en F1.7 |
 | F4.5 | Plusieurs régimes dans l'année | Un régime de repas par période (avec ou sans titres, cantine ou non) |
 | F4.6 | Repas fournis par l'employeur | Jours concernés exclus ; avantage en nature réintégré (F1.10) |
-| F4.7 | Prime de panier | Montant réintégré (F1.10), puis calcul normal |
+| F4.7 | Prime de panier | Saisie par jour, multipliée par les jours où elle est versée (pré-remplis avec les jours sur site) ; total réintégré (F1.10), puis calcul normal |
 | F4.8 | Repas en déplacement professionnel | Nombre de repas non remboursés × (prix − 5,45 €) ; alerte si prix > 21,10 € |
 | F4.9 | Seuil de vraisemblance | Prix moyen > 21,10 € : avertissement « dépense susceptible d'être jugée excessive », montant conservé sans plafonnement automatique |
 | F4.10 | Jours de télétravail | Aucun repas déductible (règle 2041 GP) |

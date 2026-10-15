@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculerDeclarant } from "../moteur/declarant";
 import { chargerParametres } from "../moteur/parametres";
-import { partEmployeurPrudente, repasDeductibles, repasPourMoteur, type SaisieRepas } from "./repas";
+import { partDepuisPourcent, partEmployeurPrudente, primePanierAnnuelle, repasDeductibles, repasPourMoteur, type SaisieRepas } from "./repas";
 
 const p = chargerParametres(2025);
 const restaurant: SaisieRepas = { acces: "impossible", lieu: "restaurant", prix: 12, titres: null, primePanier: 0 };
@@ -75,5 +75,25 @@ describe("Vos repas (F4)", () => {
     const r = calcul({ ...restaurant, prix: 25 }, 10);
     expect(r.montantCase).toBe(195); // 10 × 19,55
     expect(r.alertes.some((a) => a.includes("supérieur à 21,10 €") && a.includes("susceptible d'être jugée excessive"))).toBe(true);
+  });
+
+  it("repas apporté près de distributeurs payés à 50 % : forfait réduit de moitié (REP-05)", () => {
+    const s: SaisieRepas = { acces: "impossible", lieu: "gamelle", cantineProche: true, priseEnChargeCantine: 0.5, prix: null, titres: null, primePanier: 0 };
+    const r = calcul(s, 200);
+    expect(r.montantCase).toBe(545); // 200 × 2,725
+    expect(r.texte).toContain("200 repas x forfait 5,45 € moins 50 % payés par l'employeur = 545 €");
+    expect(r.texte).toContain("cantine sur place payée à 50 % par l'employeur et non utilisée");
+  });
+
+  it("cantine : part inconnue ou payée à 100 % = rien à déduire", () => {
+    const base: SaisieRepas = { acces: "impossible", lieu: "gamelle", cantineProche: true, prix: null, titres: null, primePanier: 0 };
+    expect(repasDeductibles({ ...base, priseEnChargeCantinePrudente: true }).ok).toBe(false);
+    expect(repasDeductibles({ ...base, priseEnChargeCantine: 1 }).ok).toBe(false);
+    expect(repasDeductibles(base).ok).toBe(false); // ancienne sauvegarde sans la part : comportement prudent
+  });
+
+  it("part employeur en pourcentage et prime de panier par jour", () => {
+    expect(partDepuisPourcent(9, 60)).toBe(5.4);
+    expect(primePanierAnnuelle(6.5, 180)).toBe(1170);
   });
 });

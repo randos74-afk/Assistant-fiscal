@@ -45,10 +45,14 @@ def distance_retenue(aller_km, motif=False):
     return aller_km if motif else min(aller_km, P["deplacements"]["distance_aller_max_sans_justification_km"])
 
 
-def repas(nb, prix=None, part_employeur_tr=0.0):
-    """prix=None -> forfait sans justificatif détaillé."""
+def repas(nb, prix=None, part_employeur_tr=0.0, taux_employeur_cantine=0.0):
+    """prix=None -> forfait sans justificatif détaillé.
+    taux_employeur_cantine : repas apporté alors qu'une cantine (ou des distributeurs) subventionnée existe ;
+    le forfait est réduit de la part que l'employeur y paie (décision de Marc du 15/10/2026,
+    position prudente, la notice 2041 GP ne prévoyant le forfait qu'en l'absence de restauration collective)."""
     r = P["repas"]
     unit = r["forfait_sans_justificatif_detaille"] if prix is None else prix - r["valeur_repas_au_foyer"]
+    unit = unit * (1 - taux_employeur_cantine)
     return max(unit - part_employeur_tr, 0) * nb
 
 
@@ -201,6 +205,7 @@ cas("REP-01", "Restaurant 12 €, 218 jours, sans titres", {"nb": 218, "prix": 1
 cas("REP-02", "Restaurant 12 €, titre-restaurant part employeur 4,50 €", {"nb": 218, "prix": 12, "part_employeur_tr": 4.5}, {"montant": r2(repas(218, 12, 4.5))}, "Tout sur mes finances : 446,90 €")
 cas("REP-03", "Cantine 10 €, 218 jours", {"nb": 218, "prix": 10}, {"montant": r2(repas(218, 10))}, "Tout sur mes finances annonce 991,60 € : erreur de leur part, 4,55 × 218 = 991,90 €")
 cas("REP-04", "Gamelle, titre-restaurant part employeur 4 €", {"nb": 1, "prix": None, "part_employeur_tr": 4}, {"montant_par_repas": r2(repas(1, None, 4))}, "Tout sur mes finances : 1,45 €")
+cas("REP-05", "Repas apporté, distributeurs subventionnés à 50 % par l'employeur, 200 jours", {"nb": 200, "prix": None, "taux_employeur_cantine": 0.5}, {"montant": r2(repas(200, None, 0, 0.5)), "montant_par_repas": r2(repas(1, None, 0, 0.5))}, "Décision du 15/10/2026 : 5,45 € × (1 − 50 %) = 2,725 € par repas")
 
 # --- Télétravail ---
 cas("TLT-01", "Forfait 2 j/semaine (8 j/mois × 11 mois)", {"jours_par_mois": [8] * 11 + [0]}, {"montant": r2(teletravail_forfait([8] * 11 + [0]))}, "2,70 €/j")
@@ -334,6 +339,7 @@ if __name__ == "__main__":
     assert r2(bareme_km(25000, cv=7)) == 11750.0
     assert r2(repas(218, 12)) == 1427.90
     assert r2(repas(218, 12, 4.5)) == 446.90
+    assert r2(repas(200, None, 0, 0.5)) == 545.0
     assert r2(repas(218, 10)) == 991.90  # l'article source annonce 991,60 € par erreur
     assert r2(teletravail_forfait(tlt3)) == 594.0
     assert r2(teletravail_forfait(tlt4)) == 237.6

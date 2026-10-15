@@ -249,6 +249,20 @@
       "source": "Tout sur mes finances : 1,45 €"
     },
     {
+      "id": "REP-05",
+      "titre": "Repas apporté, distributeurs subventionnés à 50 % par l'employeur, 200 jours",
+      "entrees": {
+        "nb": 200,
+        "prix": null,
+        "taux_employeur_cantine": 0.5
+      },
+      "attendu": {
+        "montant": 545.0,
+        "montant_par_repas": 2.73
+      },
+      "source": "Décision du 15/10/2026 : 5,45 € × (1 − 50 %) = 2,725 € par repas"
+    },
+    {
       "id": "TLT-01",
       "titre": "Forfait 2 j/semaine (8 j/mois × 11 mois)",
       "entrees": {

@@ -8,7 +8,9 @@ import { completerFiche, FICHES, type FicheAide as Fiche } from "../parcours/fic
 import {
   ACCES,
   LIEUX,
+  partDepuisPourcent,
   partEmployeurPrudente,
+  primePanierAnnuelle,
   repasDeductibles,
   repasPourMoteur,
   type AccesRepas,
@@ -22,7 +24,7 @@ import { ChampMontant, ChampNombre } from "./ChampNombre";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
-type Question = "acces" | "lieu" | "cantine" | "prix" | "employeur" | "bilan";
+type Question = "acces" | "lieu" | "cantine" | "subvention" | "prix" | "employeur" | "bilan";
 
 interface Props {
   parametres: Parametres;
@@ -42,15 +44,29 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
   const [cantineProche, setCantineProche] = useState<string | undefined>(
     v?.cantineProche === undefined ? undefined : v.cantineProche ? "oui" : "non",
   );
+  const [subvention, setSubvention] = useState(
+    v?.priseEnChargeCantine !== undefined && !v.priseEnChargeCantinePrudente ? afficherMontant(v.priseEnChargeCantine * 100) : "",
+  );
+  const [subventionPrudente, setSubventionPrudente] = useState(v?.priseEnChargeCantinePrudente ?? false);
   const [prix, setPrix] = useState(v?.prix ? afficherMontant(v.prix) : "");
   const [prixPrudent, setPrixPrudent] = useState(v ? v.prix === null : false);
   const [avecTitres, setAvecTitres] = useState(Boolean(v?.titres));
   const [valeurTitre, setValeurTitre] = useState(v?.titres ? afficherMontant(v.titres.valeur) : "");
   const [partEmployeur, setPartEmployeur] = useState(v?.titres && !v.titres.partPrudente ? afficherMontant(v.titres.partEmployeur) : "");
+  const [partEnPourcent, setPartEnPourcent] = useState(v?.titres?.partPourcent !== undefined);
+  const [partPourcent, setPartPourcent] = useState(v?.titres?.partPourcent !== undefined ? afficherMontant(v.titres.partPourcent) : "");
   const [partPrudente, setPartPrudente] = useState(v?.titres?.partPrudente ?? false);
   const [nombreTitres, setNombreTitres] = useState(String(v?.titres?.nombre ?? joursSurSite));
   const [avecPanier, setAvecPanier] = useState(Boolean(v?.primePanier));
-  const [panier, setPanier] = useState(v?.primePanier ? afficherMontant(v.primePanier) : "");
+  // Prime de panier saisie par jour ; une ancienne saisie annuelle est ramenée au jour.
+  const [panier, setPanier] = useState(
+    v?.primePanierParJour
+      ? afficherMontant(v.primePanierParJour.montant)
+      : v?.primePanier && joursSurSite > 0
+        ? afficherMontant(Math.round((v.primePanier / joursSurSite) * 100) / 100)
+        : "",
+  );
+  const [joursPanier, setJoursPanier] = useState(String(v?.primePanierParJour?.jours ?? joursSurSite));
   const [aide, setAide] = useState<Fiche | null>(null);
 
   const etape = libelleEtape("vos repas");
@@ -59,7 +75,19 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
   const tauxPrudent = Number(p.valeurs_prudentes_je_ne_sais_pas.part_employeur_titre_restaurant);
 
   const valeurTitreNb = lireMontant(valeurTitre);
-  const partNb = partPrudente && positif(valeurTitreNb) ? partEmployeurPrudente(p, valeurTitreNb) : lireMontant(partEmployeur);
+  const partPourcentNb = lireMontant(partPourcent);
+  const partNb =
+    partPrudente && positif(valeurTitreNb)
+      ? partEmployeurPrudente(p, valeurTitreNb)
+      : partEnPourcent
+        ? positif(valeurTitreNb) && positif(partPourcentNb)
+          ? partDepuisPourcent(valeurTitreNb, partPourcentNb)
+          : null
+        : lireMontant(partEmployeur);
+  const subventionNb = lireMontant(subvention);
+  const panierNb = lireMontant(panier);
+  const joursPanierNb = lireEntier(joursPanier);
+  const panierAnnuel = positif(panierNb) && positif(joursPanierNb) ? primePanierAnnuelle(panierNb, joursPanierNb) : 0;
   const prixNb = lireMontant(prix);
 
   function saisie(): SaisieRepas {
@@ -67,6 +95,11 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
       acces: acces!,
       lieu: acces === "impossible" ? lieu : undefined,
       cantineProche: lieu === "gamelle" ? cantineProche === "oui" : undefined,
+      ...(lieu === "gamelle" && cantineProche === "oui"
+        ? subventionPrudente
+          ? { priseEnChargeCantinePrudente: true }
+          : { priseEnChargeCantine: Math.min(Math.max(subventionNb ?? 0, 0), 100) / 100 }
+        : {}),
       prix: prixPrudent || !positif(prixNb) ? null : prixNb,
       titres:
         avecTitres && positif(valeurTitreNb)
@@ -74,10 +107,12 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
               valeur: valeurTitreNb,
               partEmployeur: positif(partNb) ? partNb : 0,
               partPrudente,
+              ...(partEnPourcent && !partPrudente && positif(partPourcentNb) ? { partPourcent: partPourcentNb } : {}),
               nombre: lireEntier(nombreTitres) || 0,
             }
           : null,
-      primePanier: avecPanier && positif(lireMontant(panier)) ? lireMontant(panier)! : 0,
+      primePanier: avecPanier ? panierAnnuel : 0,
+      ...(avecPanier && panierAnnuel > 0 ? { primePanierParJour: { montant: panierNb!, jours: joursPanierNb! } } : {}),
     };
   }
 
@@ -86,6 +121,7 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
   if (acces === "impossible") {
     suite.push("lieu");
     if (lieu === "gamelle") suite.push("cantine");
+    if (lieu === "gamelle" && cantineProche === "oui") suite.push("subvention");
     if (lieu === "restaurant" || lieu === "cantine") suite.push("prix");
   }
   suite.push("employeur", "bilan");
@@ -129,9 +165,41 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
           <Encadre>
             {typographie(`Sans cantine proche, chaque repas apporté compte pour un forfait de ${eurosCentimes(forfait)}.`)}
           </Encadre>
+          <p className="texte-secondaire">{typographie("De simples distributeurs payés en partie par l'employeur comptent comme une cantine.")}</p>
         </>
       );
       break;
+
+    case "subvention": {
+      titre = "Quelle part des repas de cette cantine votre employeur paie-t-il ?";
+      const taux = subventionNb !== null && !Number.isNaN(subventionNb) ? Math.min(Math.max(subventionNb, 0), 100) : null;
+      peutContinuer = subventionPrudente || (taux !== null && subvention.trim() !== "");
+      contenu = subventionPrudente ? (
+        <>
+          <Encadre>
+            {typographie("Sans cette information, nous ne déduisons rien pour vos repas apportés. C'est le choix le plus prudent.")}
+          </Encadre>
+          <button type="button" className="lien-je-ne-sais-pas" onClick={() => setSubventionPrudente(false)}>
+            Finalement, je connais cette part
+          </button>
+        </>
+      ) : (
+        <>
+          <ChampNombre libelle={titre} unite="%" valeur={subvention} onChange={setSubvention} detail="Par exemple 50 si l'employeur paie la moitié. 0 s'il ne paie rien." />
+          <LienJeNeSaisPas onClick={() => setSubventionPrudente(true)} />
+          {taux !== null && subvention.trim() !== "" && (
+            <Encadre>
+              {typographie(
+                taux >= 100
+                  ? "Si l'employeur paie tout, un repas apporté ne vous coûte rien de plus : rien à déduire."
+                  : `Vous apportez votre repas sans utiliser la cantine : nous retenons le forfait de ${eurosCentimes(forfait)} moins ${afficherMontant(taux)} %, soit ${eurosCentimes((forfait * (100 - taux)) / 100)} par jour sur site.`,
+              )}
+            </Encadre>
+          )}
+        </>
+      );
+      break;
+    }
 
     case "prix":
       titre = "Combien payez-vous en moyenne par repas ?";
@@ -173,7 +241,8 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
       fiche = completerFiche(FICHES.titres, { tauxPrudent: `${Math.round(tauxPrudent * 100)} %` });
       peutContinuer =
         (!avecTitres || (positif(valeurTitreNb) && (partPrudente || positif(partNb)) && positif(lireEntier(nombreTitres)))) &&
-        [lireMontant(partEmployeur), lireMontant(panier), lireEntier(nombreTitres)].every(valide);
+        (!avecPanier || panierAnnuel > 0) &&
+        [lireMontant(partEmployeur), partPourcentNb, panierNb, joursPanierNb, lireEntier(nombreTitres)].every(valide);
       contenu = (
         <>
           <p className="texte-secondaire sous-question">
@@ -196,13 +265,37 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
                   )}
                 </Encadre>
               ) : (
-                <ChampMontant
-                  compact
-                  libelleVisible
-                  libelle="Part payée par votre employeur, par titre"
-                  valeur={partEmployeur}
-                  onChange={setPartEmployeur}
-                />
+                <>
+                  <ChoixUnique
+                    nom="unite-part"
+                    legende="Comment connaissez-vous la part de l'employeur ?"
+                    options={[
+                      { valeur: "euros", libelle: "En euros par titre" },
+                      { valeur: "pourcent", libelle: "En pourcentage du titre" },
+                    ]}
+                    valeur={partEnPourcent ? "pourcent" : "euros"}
+                    onChoix={(x) => setPartEnPourcent(x === "pourcent")}
+                  />
+                  {partEnPourcent ? (
+                    <ChampNombre
+                      compact
+                      libelleVisible
+                      libelle="Part payée par votre employeur"
+                      unite="%"
+                      detail={positif(partNb) ? `Soit ${eurosCentimes(partNb)} par titre.` : "Souvent entre 50 et 60 %."}
+                      valeur={partPourcent}
+                      onChange={setPartPourcent}
+                    />
+                  ) : (
+                    <ChampMontant
+                      compact
+                      libelleVisible
+                      libelle="Part payée par votre employeur, par titre"
+                      valeur={partEmployeur}
+                      onChange={setPartEmployeur}
+                    />
+                  )}
+                </>
               )}
               {partPrudente ? (
                 <button type="button" className="lien-je-ne-sais-pas" onClick={() => setPartPrudente(false)}>
@@ -227,7 +320,24 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
             <input type="checkbox" checked={avecPanier} onChange={(e) => setAvecPanier(e.target.checked)} />
             Je reçois une prime de panier
           </label>
-          {avecPanier && <ChampMontant compact libelleVisible libelle="Total de la prime de panier dans l'année" valeur={panier} onChange={setPanier} />}
+          {avecPanier && (
+            <>
+              <ChampMontant compact libelleVisible libelle="Prime de panier par jour" valeur={panier} onChange={setPanier} />
+              <ChampNombre
+                compact
+                libelleVisible
+                libelle="Jours où vous l'avez reçue"
+                detail={
+                  panierAnnuel > 0
+                    ? `Soit ${eurosCentimes(panierAnnuel)} dans l'année. Pré-rempli avec vos jours sur site.`
+                    : "Pré-rempli avec vos jours sur site. Corrigez avec vos bulletins si besoin."
+                }
+                unite="jours"
+                valeur={joursPanier}
+                onChange={setJoursPanier}
+              />
+            </>
+          )}
         </>
       );
       break;
@@ -269,6 +379,7 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
             ))}
           {s.prix === null && s.lieu !== "gamelle" && ferme.ok && <Encadre>Valeur prudente retenue pour le prix des repas.</Encadre>}
           {s.titres?.partPrudente && <Encadre>Valeur prudente retenue pour la part de l'employeur.</Encadre>}
+          {s.priseEnChargeCantinePrudente && <Encadre>Valeur prudente retenue pour la part de l'employeur à la cantine.</Encadre>}
           <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>
             {typographie(`Calculé sur vos ${joursSurSite} jours sur site. Les jours de télétravail ne comptent pas.`)}
           </p>
