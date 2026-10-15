@@ -143,7 +143,7 @@ L'application calcule les deux méthodes admises par la notice 2041 GP et retien
 
 | Réf. | Fonction | Règle |
 | --- | --- | --- |
-| F5.1 | Forfait | 2,70 € × jours de télétravail, plafonné à 59,40 € par mois et 626,40 € par an |
+| F5.1 | Forfait | 2,70 € × jours de télétravail, plafonné à 59,40 € par mois et 626,40 € par an. Le plafond mensuel exige le détail des 12 mois : si la personne ne connaît que son total annuel, il est réparti à parts égales sur les mois travaillés pour pré-remplir le calendrier, avec invitation à corriger mois par mois (les mois chargés réduisent le forfait) |
 | F5.2 | Réel : local dédié (usage exclusif) | Charges du logement × (surface bureau / surface totale) × (jours télétravaillés / jours travaillés) ; studio : 50 % de la surface |
 | F5.3 | Réel : pièce à usage mixte | Charges × (surface bureau / surface totale) × (jours télétravaillés × 12 h / 8 760 h) |
 | F5.4 | Charges du local | Loyer ou intérêts d'emprunt, électricité, eau, chauffage, assurance habitation, taxe foncière ou impôts locaux de l'année, diagnostic électrique, travaux de mise en conformité |

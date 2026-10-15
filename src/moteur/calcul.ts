@@ -148,30 +148,68 @@ export function repas(p: Parametres, e: EntreeRepas): ResultatRepas {
 // F5 — Télétravail (méthode forfaitaire)
 // ---------------------------------------------------------------------------
 
+export interface MoisTeletravail {
+  /** 0 = janvier … 11 = décembre. */
+  mois: number;
+  jours: number;
+  montant: number;
+  plafonne: boolean;
+}
+
+export interface ResultatTeletravail {
+  montant: number;
+  jours: number;
+  detailMois: MoisTeletravail[];
+  /** Mois où le plafond mensuel a réduit le forfait. */
+  moisPlafonnes: number[];
+  plafondAnnuelAtteint: boolean;
+  formule: string;
+}
+
 /**
- * F5.1 — Forfait par jour, plafonné par mois puis par an.
- * Avec un total annuel seulement (sans détail mensuel), les jours sont supposés répartis
- * sur 12 mois : seul le plafond annuel peut alors jouer.
+ * F5.1 — Forfait par jour, plafonné chaque mois, puis sur l'année.
+ * Le détail des 12 mois est obligatoire : c'est lui qui permet d'appliquer le plafond mensuel.
  */
-export function teletravailForfait(p: Parametres, jours: number[] | number): { montant: number; formule: string } {
+export function teletravailForfait(p: Parametres, joursParMois: number[]): ResultatTeletravail {
   const t = p.teletravail;
-  let total: number;
-  let nbJours: number;
-  if (Array.isArray(jours)) {
-    nbJours = jours.reduce((s, j) => s + j, 0);
-    total = jours.reduce((s, j) => s + Math.min(j * t.forfait_par_jour, t.plafond_mensuel), 0);
-  } else {
-    nbJours = jours;
-    total = Math.min(jours * t.forfait_par_jour, 12 * t.plafond_mensuel);
+  if (joursParMois.length !== 12) throw new Error("Le forfait télétravail attend le nombre de jours des 12 mois.");
+
+  const detailMois = joursParMois.map((jours, mois) => {
+    const brut = jours * t.forfait_par_jour;
+    return { mois, jours, montant: Math.min(brut, t.plafond_mensuel), plafonne: brut > t.plafond_mensuel };
+  });
+  const jours = joursParMois.reduce((s, j) => s + j, 0);
+  const totalMois = detailMois.reduce((s, m) => s + m.montant, 0);
+  const montant = Math.min(totalMois, t.plafond_annuel);
+  const moisPlafonnes = detailMois.filter((m) => m.plafonne).map((m) => m.mois);
+  const plafondAnnuelAtteint = totalMois > t.plafond_annuel;
+
+  let formule = `forfait ${eurosCentimes(t.forfait_par_jour)} × ${nombre(jours)} j`;
+  if (moisPlafonnes.length) {
+    formule += `, plafonné à ${eurosCentimes(t.plafond_mensuel)} sur ${moisPlafonnes.length} mois`;
   }
-  const montant = Math.min(total, t.plafond_annuel);
-  const plafonne = montant < nbJours * t.forfait_par_jour;
-  return {
-    montant,
-    formule:
-      `forfait ${eurosCentimes(t.forfait_par_jour)} × ${nombre(nbJours)} j = ${euros(montant)}` +
-      (plafonne ? " (plafonné)" : ""),
-  };
+  if (plafondAnnuelAtteint) formule += `, plafond annuel ${eurosCentimes(t.plafond_annuel)}`;
+  formule += ` = ${euros(montant)}`;
+
+  return { montant, jours, detailMois, moisPlafonnes, plafondAnnuelAtteint, formule };
+}
+
+/**
+ * Pré-remplissage quand seul le total annuel est connu : jours répartis à parts égales
+ * (en jours entiers) sur les mois travaillés. C'est une estimation à faire corriger mois par mois.
+ */
+export function repartirJoursParMois(
+  totalJours: number,
+  moisTravailles: number[] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+): number[] {
+  const resultat = new Array(12).fill(0);
+  if (!moisTravailles.length) return resultat;
+  const base = Math.floor(totalJours / moisTravailles.length);
+  const reste = totalJours - base * moisTravailles.length;
+  moisTravailles.forEach((m, i) => {
+    resultat[m] = base + (i < reste ? 1 : 0);
+  });
+  return resultat;
 }
 
 // ---------------------------------------------------------------------------

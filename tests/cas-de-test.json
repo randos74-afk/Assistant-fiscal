@@ -297,6 +297,68 @@
       "source": "plafonds 59,40 €/mois et 626,40 €/an"
     },
     {
+      "id": "TLT-03",
+      "titre": "Total de 230 j connu seulement, 10 mois travaillés : 23 j/mois, plafond mensuel",
+      "entrees": {
+        "total_jours": 230,
+        "mois_travailles": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "attendu": {
+        "jours_par_mois": [
+          23,
+          23,
+          23,
+          23,
+          23,
+          23,
+          23,
+          23,
+          23,
+          23,
+          0,
+          0
+        ],
+        "montant": 594.0
+      },
+      "source": "plafond 59,40 €/mois : 10 × 59,40 = 594 € (et non 621 € par le seul plafond annuel)"
+    },
+    {
+      "id": "TLT-04",
+      "titre": "100 j concentrés sur 4 mois : le plafond mensuel réduit le forfait",
+      "entrees": {
+        "jours_par_mois": [
+          25,
+          25,
+          25,
+          25,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "attendu": {
+        "montant": 237.6,
+        "montant_si_reparti_sur_12_mois": 270.0
+      },
+      "source": "plafond 59,40 €/mois"
+    },
+    {
       "id": "MAT-01",
       "titre": "Ordinateur 450 € HT, usage pro 60 %",
       "entrees": {

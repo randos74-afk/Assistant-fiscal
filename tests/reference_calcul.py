@@ -58,6 +58,16 @@ def teletravail_forfait(jours_par_mois):
     return min(total, t["plafond_annuel"])
 
 
+def repartir_jours_par_mois(total, mois_travailles=range(12)):
+    """Pré-remplissage : total annuel réparti à parts égales (jours entiers) sur les mois travaillés."""
+    mois = list(mois_travailles)
+    res = [0] * 12
+    base, reste = divmod(total, len(mois))
+    for i, m in enumerate(mois):
+        res[m] = base + (1 if i < reste else 0)
+    return res
+
+
 def materiel(prix_ht, usage_pro=1.0, mois_utilises_annee_achat=12):
     m = P["materiel"]
     if prix_ht <= m["seuil_deduction_immediate_HT"]:
@@ -123,6 +133,12 @@ cas("REP-04", "Gamelle, titre-restaurant part employeur 4 €", {"nb": 1, "prix"
 # --- Télétravail ---
 cas("TLT-01", "Forfait 2 j/semaine (8 j/mois × 11 mois)", {"jours_par_mois": [8] * 11 + [0]}, {"montant": r2(teletravail_forfait([8] * 11 + [0]))}, "2,70 €/j")
 cas("TLT-02", "Forfait plafonné : 25 j/mois × 12", {"jours_par_mois": [25] * 12}, {"montant": r2(teletravail_forfait([25] * 12))}, "plafonds 59,40 €/mois et 626,40 €/an")
+tlt3 = repartir_jours_par_mois(230, range(10))
+cas("TLT-03", "Total de 230 j connu seulement, 10 mois travaillés : 23 j/mois, plafond mensuel", {"total_jours": 230, "mois_travailles": list(range(10))},
+    {"jours_par_mois": tlt3, "montant": r2(teletravail_forfait(tlt3))}, "plafond 59,40 €/mois : 10 × 59,40 = 594 € (et non 621 € par le seul plafond annuel)")
+tlt4 = [25, 25, 25, 25] + [0] * 8
+cas("TLT-04", "100 j concentrés sur 4 mois : le plafond mensuel réduit le forfait", {"jours_par_mois": tlt4},
+    {"montant": r2(teletravail_forfait(tlt4)), "montant_si_reparti_sur_12_mois": r2(teletravail_forfait(repartir_jours_par_mois(100)))}, "plafond 59,40 €/mois")
 
 # --- Matériel ---
 cas("MAT-01", "Ordinateur 450 € HT, usage pro 60 %", {"prix_ht": 450, "usage_pro": 0.6}, {"montant": r2(materiel(450, 0.6))}, "déduction immédiate ≤ 500 € HT")
@@ -135,7 +151,7 @@ cas("VHB-01", "Frais justifiés 9 000 € pour 15 000 km : plafond barème 7 CV"
 km_ex = 22 * 2 * 180
 f_km = bareme_km(km_ex, cv=5)
 f_rep = repas(180, 12)
-f_tlt = 38 * 2.70
+f_tlt = teletravail_forfait(repartir_jours_par_mois(38))
 total_ex = f_km + f_rep + f_tlt + 211
 cas("RES-01", "Exemple du résumé 1AK (spécification §10)",
     {"aller_km": 22, "jours_sur_site": 180, "cv": 5, "repas": {"nb": 180, "prix": 12}, "teletravail_jours": 38, "documentation": 211},
@@ -188,5 +204,7 @@ if __name__ == "__main__":
     assert r2(repas(218, 12)) == 1427.90
     assert r2(repas(218, 12, 4.5)) == 446.90
     assert r2(repas(218, 10)) == 991.90  # l'article source annonce 991,60 € par erreur
+    assert r2(teletravail_forfait(tlt3)) == 594.0
+    assert r2(teletravail_forfait(tlt4)) == 237.6
     assert arrondi_euro(total_ex) == 5715
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

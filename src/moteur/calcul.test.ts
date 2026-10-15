@@ -12,6 +12,7 @@ import {
   kmDomicileTravail,
   materiel,
   plafondFraisReelsVehicule,
+  repartirJoursParMois,
   repas,
   teletravailForfait,
 } from "./calcul";
@@ -39,8 +40,14 @@ function calculer(c: Cas): Record<string, unknown> {
       const r = repas(p, { nb: e.nb, prix: e.prix, partEmployeurTitreRestaurant: e.part_employeur_tr });
       return { montant: r.montant, montant_par_repas: r.parRepas };
     }
-    case "TLT":
-      return { montant: teletravailForfait(p, e.jours_par_mois).montant };
+    case "TLT": {
+      const jours_par_mois = e.jours_par_mois ?? repartirJoursParMois(e.total_jours, e.mois_travailles);
+      return {
+        jours_par_mois,
+        montant: teletravailForfait(p, jours_par_mois).montant,
+        montant_si_reparti_sur_12_mois: teletravailForfait(p, repartirJoursParMois(jours_par_mois.reduce((s: number, j: number) => s + j, 0))).montant,
+      };
+    }
     case "MAT": {
       const m = materiel(p, e.prix_ht, e.usage_pro, e.mois_utilises_annee_achat).montant;
       return { montant: m, montant_annee_1: m };
@@ -51,7 +58,7 @@ function calculer(c: Cas): Record<string, unknown> {
       const km = kmDomicileTravail(p, e.aller_km, e.jours_sur_site);
       const fraisKm = baremeKm(p, { km, cv: e.cv }).montant;
       const fraisRepas = repas(p, e.repas).montant;
-      const tlt = teletravailForfait(p, e.teletravail_jours).montant;
+      const tlt = teletravailForfait(p, repartirJoursParMois(e.teletravail_jours)).montant;
       const total = fraisKm + fraisRepas + tlt + e.documentation;
       return { km, frais_km: fraisKm, repas: fraisRepas, teletravail: tlt, total, total_arrondi_1AK: arrondiEuro(total) };
     }
@@ -115,8 +122,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien 33 cas", () => {
-    expect(casDeTest.cas.length).toBe(33);
+  it("contient bien les 35 cas", () => {
+    expect(casDeTest.cas.length).toBe(35);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));
@@ -132,7 +139,18 @@ describe("Détail des formules", () => {
     expect(r.alertePrixEleve).toBe(true);
     expect(r.montant).toBeCloseTo(10 * (30 - p.repas.valeur_repas_au_foyer), 2);
   });
-  it("applique le plafond mensuel du forfait télétravail", () => {
-    expect(teletravailForfait(p, [30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).montant).toBeCloseTo(p.teletravail.plafond_mensuel, 2);
+  it("applique le plafond mensuel du forfait télétravail et le signale", () => {
+    const r = teletravailForfait(p, [30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    expect(r.montant).toBeCloseTo(p.teletravail.plafond_mensuel, 2);
+    expect(r.moisPlafonnes).toEqual([0]);
+    expect(r.formule).toBe("forfait 2,70 € × 30 j, plafonné à 59,40 € sur 1 mois = 59 €");
+  });
+  it("refuse un forfait télétravail sans le détail des 12 mois", () => {
+    expect(() => teletravailForfait(p, [38])).toThrow();
+  });
+  it("répartit un total annuel en jours entiers sur les mois travaillés", () => {
+    const r = repartirJoursParMois(38);
+    expect(r.reduce((s, j) => s + j, 0)).toBe(38);
+    expect(Math.max(...r) - Math.min(...r)).toBeLessThanOrEqual(1);
   });
 });
