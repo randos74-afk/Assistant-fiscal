@@ -165,7 +165,7 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
 
     let detail: string;
     if (v.kmForce !== undefined) {
-      detail = "relevé de kilométrage";
+      detail = "total annuel indiqué, relevé ou carnet de bord";
     } else if (v.journeesTypes?.length) {
       const jours = v.journeesTypes.reduce((s, j) => s + j.jours, 0);
       detail = `${nombre(jours)} j d'intervention : domicile-travail ${nombre(kmDT)} km, entre personnes aidées ${nombre(kmPro)} km`;
@@ -182,7 +182,13 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
         `Distance ramenée de ${nombre(v.allerKm)} à ${nombre(aller)} km : indiquez un motif pour retenir la distance réelle.`,
       );
     }
-    if (v.motifDistance) motifs.push(`distance de ${nombre(v.allerKm)} km retenue (${v.motifDistance})`);
+    if (v.motifDistance) {
+      motifs.push(
+        v.kmForce !== undefined && !v.allerKm
+          ? `distance réelle au-delà de ${nombre(p.deplacements.distance_aller_max_sans_justification_km)} km retenue (${v.motifDistance})`
+          : `distance de ${nombre(v.allerKm)} km retenue (${v.motifDistance})`,
+      );
+    }
     if (v.motifDoubleAllerRetour) motifs.push(`second aller-retour quotidien (${v.motifDoubleAllerRetour})`);
 
     lignes.push({

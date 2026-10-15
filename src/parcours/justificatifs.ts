@@ -18,6 +18,7 @@ export function justificatifs(r: Reponses): string[] {
     liste.push("Itinéraire le plus court entre domicile et travail");
     if (trajet.motifDistance) liste.push(`Pièce justifiant la distance au-delà du plafond (${trajet.motifDistance})`);
     if (trajet.kmMissions > 0) liste.push("Carnet de bord ou relevés des trajets professionnels");
+    if (trajet.kmAnnuel) liste.push("Relevé de compteur ou carnet de bord justifiant le total de kilomètres");
     if (trajet.peagesParking > 0) liste.push("Relevés de télépéage et tickets de parking");
     if (trajet.interetsCredit > 0) liste.push("Tableau d'amortissement du crédit auto");
   }

@@ -84,6 +84,8 @@ export interface SaisieTrajet {
   peagesParking: number;
   interetsCredit: number;
   kmTotauxCompteur?: number;
+  /** F3.8 — Total des kilomètres professionnels de l'année déjà calculé par la personne ; remplace distance × jours. */
+  kmAnnuel?: number;
 }
 
 export function estVehicule(mode: ModeTrajet): mode is TypeVehicule {
@@ -106,5 +108,6 @@ export function vehiculePourMoteur(p: Parametres, t: SaisieTrajet, joursSurSite:
     peagesParking: t.peagesParking || undefined,
     interetsCredit: t.interetsCredit || undefined,
     kmTotauxCompteur: t.kmTotauxCompteur,
+    kmForce: t.kmAnnuel,
   };
 }

@@ -39,7 +39,9 @@ const valide = (n: number | null) => n === null || !Number.isNaN(n);
 export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour }: Props) {
   const [question, setQuestion] = useState<Question>(v ? "bilan" : "mode");
   const [mode, setMode] = useState<ModeTrajet | undefined>(v?.mode);
-  const [distance, setDistance] = useState(v ? String(v.allerKm) : "");
+  const [distance, setDistance] = useState(v?.allerKm ? String(v.allerKm) : "");
+  const [parTotal, setParTotal] = useState(v?.kmAnnuel !== undefined);
+  const [total, setTotal] = useState(v?.kmAnnuel ? String(v.kmAnnuel) : "");
   const [guideDistance, setGuideDistance] = useState(false);
   const [motif, setMotif] = useState<string | undefined>(v ? (v.motifDistance ?? "aucun") : undefined);
   const [energie, setEnergie] = useState<SaisieTrajet["energie"] | undefined>(v?.energie);
@@ -59,17 +61,19 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
   const plafond = p.deplacements.distance_aller_max_sans_justification_km;
   const allerKm = lireEntier(distance);
   const auDelaDuPlafond = allerKm !== null && !Number.isNaN(allerKm) && allerKm > plafond;
+  const kmTotal = lireEntier(total);
 
   function saisie(): SaisieTrajet {
     return {
       mode: mode!,
-      allerKm: nombreOuZero(allerKm),
-      motifDistance: auDelaDuPlafond && motif && motif !== "aucun" ? motif : undefined,
+      allerKm: parTotal ? 0 : nombreOuZero(allerKm),
+      motifDistance: (parTotal || auDelaDuPlafond) && motif && motif !== "aucun" ? motif : undefined,
+      ...(parTotal ? { kmAnnuel: nombreOuZero(kmTotal) } : {}),
       energie: energie ?? "thermique",
       energiePrudente,
       ligne: mode === "cyclomoteur" ? undefined : ligne,
       puissancePrudente,
-      kmMissions: avecMissions ? nombreOuZero(lireEntier(missions)) : 0,
+      kmMissions: avecMissions && !parTotal ? nombreOuZero(lireEntier(missions)) : 0,
       peagesParking: avecPeages ? nombreOuZero(lireMontant(peages)) : 0,
       interetsCredit: avecCredit ? nombreOuZero(lireMontant(interets)) : 0,
       kmTotauxCompteur: avecCredit ? nombreOuZero(lireEntier(kmCompteur)) || undefined : undefined,
@@ -120,11 +124,51 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
       break;
 
     case "distance":
+      if (parTotal) {
+        titre = "Combien de kilomètres avez-vous faits pour le travail dans l'année ?";
+        peutContinuer = kmTotal !== null && !Number.isNaN(kmTotal) && kmTotal > 0 && motif !== undefined;
+        contenu = (
+          <>
+            <ChampNombre
+              libelle={titre}
+              unite="km"
+              valeur={total}
+              onChange={setTotal}
+              detail="Avec ce véhicule : trajets maison-travail et déplacements pour le travail non remboursés."
+            />
+            <Encadre>
+              {typographie(
+                `Nous appliquons le barème officiel à ce total. Sans raison particulière, chaque trajet maison-travail compte au plus ${plafond} km aller.`,
+              )}
+            </Encadre>
+            <ChoixUnique
+              nom="motif"
+              legende="Raison de la distance"
+              options={[
+                {
+                  valeur: "aucun",
+                  libelle: `Mon trajet fait ${plafond} km ou moins, ou j'ai déjà limité à ${plafond} km`,
+                },
+                ...MOTIFS_DISTANCE,
+              ]}
+              valeur={motif}
+              onChoix={setMotif}
+            />
+            <button type="button" className="lien-je-ne-sais-pas" onClick={() => setParTotal(false)}>
+              Calculer plutôt avec ma distance
+            </button>
+          </>
+        );
+        break;
+      }
       titre = "Combien de kilomètres entre chez vous et votre travail, aller simple ?";
       peutContinuer = allerKm !== null && !Number.isNaN(allerKm) && allerKm > 0 && (!auDelaDuPlafond || motif !== undefined);
       contenu = (
         <>
           <ChampNombre libelle={titre} unite="km" valeur={distance} onChange={setDistance} />
+          <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotal(true), setMotif(undefined))}>
+            J'ai déjà calculé mes kilomètres de l'année
+          </button>
           {!guideDistance ? (
             <LienJeNeSaisPas onClick={() => setGuideDistance(true)} />
           ) : (
@@ -138,7 +182,13 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
               <ChoixUnique
                 nom="motif"
                 legende="Raison de la distance"
-                options={[...MOTIFS_DISTANCE, { valeur: "aucun", libelle: `Aucune de ces raisons : compter ${plafond} km` }]}
+                options={[
+                  ...MOTIFS_DISTANCE,
+                  {
+                    valeur: "aucun",
+                    libelle: `Aucune de ces raisons : compter ${plafond} km`,
+                  },
+                ]}
                 valeur={motif}
                 onChoix={setMotif}
               />
@@ -156,10 +206,18 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
         <>
           {energiePrudente ? (
             <Encadre>
-              {typographie("Nous appliquons le barème des véhicules thermiques, le plus prudent. Il sera signalé dans votre récapitulatif.")}
+              {typographie(
+                "Nous appliquons le barème des véhicules thermiques, le plus prudent. Il sera signalé dans votre récapitulatif.",
+              )}
             </Encadre>
           ) : (
-            <ChoixUnique nom="energie" legende={titre} options={options} valeur={energie} onChoix={(x) => setEnergie(x as SaisieTrajet["energie"])} />
+            <ChoixUnique
+              nom="energie"
+              legende={titre}
+              options={options}
+              valeur={energie}
+              onChoix={(x) => setEnergie(x as SaisieTrajet["energie"])}
+            />
           )}
           {energiePrudente ? (
             <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setEnergiePrudente(false), setEnergie(undefined))}>
@@ -169,7 +227,9 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
             <LienJeNeSaisPas onClick={() => (setEnergiePrudente(true), setEnergie("thermique"))} />
           )}
           {energie === "électrique" && (
-            <Encadre>{typographie("La recharge et la location de batterie sont déjà comprises dans le barème : ne les comptez pas en plus.")}</Encadre>
+            <Encadre>
+              {typographie("La recharge et la location de batterie sont déjà comprises dans le barème : ne les comptez pas en plus.")}
+            </Encadre>
           )}
         </>
       );
@@ -187,10 +247,21 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
           <p className="texte-secondaire sous-question">
             {typographie("C'est la puissance fiscale, en CV. Elle est écrite sur votre carte grise.")}
           </p>
-          <ChoixUnique nom="puissance" legende="Puissance fiscale" options={options} valeur={ligne} onChoix={(x) => (setLigne(x), setPuissancePrudente(false))} />
+          <ChoixUnique
+            nom="puissance"
+            legende="Puissance fiscale"
+            options={options}
+            valeur={ligne}
+            onChoix={(x) => (setLigne(x), setPuissancePrudente(false))}
+          />
           {puissancePrudente ? (
             <Encadre>
-              {typographie(`Nous retenons ${libelleLigne(prudente, options.map((o) => o.valeur))}, la valeur la plus prudente. Elle sera signalée dans votre récapitulatif.`)}
+              {typographie(
+                `Nous retenons ${libelleLigne(
+                  prudente,
+                  options.map((o) => o.valeur),
+                )}, la valeur la plus prudente. Elle sera signalée dans votre récapitulatif.`,
+              )}
             </Encadre>
           ) : (
             <LienJeNeSaisPas onClick={() => (setLigne(prudente), setPuissancePrudente(true))} />
@@ -217,11 +288,13 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
             {typographie("Cochez seulement ce qui vous concerne. Sans justificatif, laissez décoché : rien ne sera compté.")}
           </p>
 
-          <label className="case-a-cocher">
-            <input type="checkbox" checked={avecMissions} onChange={(e) => setAvecMissions(e.target.checked)} />
-            Je fais aussi des trajets pour mon travail, non remboursés
-          </label>
-          {avecMissions && (
+          {!parTotal && (
+            <label className="case-a-cocher">
+              <input type="checkbox" checked={avecMissions} onChange={(e) => setAvecMissions(e.target.checked)} />
+              Je fais aussi des trajets pour mon travail, non remboursés
+            </label>
+          )}
+          {avecMissions && !parTotal && (
             <ChampNombre
               compact
               libelleVisible
@@ -238,7 +311,14 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
             Je paie des péages ou un parking pour aller travailler
           </label>
           {avecPeages && (
-            <ChampMontant compact libelleVisible libelle="Total de l'année" detail="Seulement la part liée au travail." valeur={peages} onChange={setPeages} />
+            <ChampMontant
+              compact
+              libelleVisible
+              libelle="Total de l'année"
+              detail="Seulement la part liée au travail."
+              valeur={peages}
+              onChange={setPeages}
+            />
           )}
 
           <label className="case-a-cocher">
@@ -287,7 +367,11 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
         break;
       }
       const s = saisie();
-      const resultat = calculerDeclarant(p, { numero: 1, salairePrerempli: 0, vehicules: [vehiculePourMoteur(p, s, joursSurSite)!] });
+      const resultat = calculerDeclarant(p, {
+        numero: 1,
+        salairePrerempli: 0,
+        vehicules: [vehiculePourMoteur(p, s, joursSurSite)!],
+      });
       const lignes = resultat.lignes.filter((l) => l.montant > 0 || l.categorie === "vehicule");
       const prudences = [s.puissancePrudente && "puissance", s.energiePrudente && "énergie"].filter(Boolean);
       titre = "Vos frais de trajet";
@@ -314,7 +398,11 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
             <Encadre>{typographie(`Valeur prudente retenue pour : ${prudences.join(" et ")}. Vous pourrez la corriger.`)}</Encadre>
           )}
           <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>
-            {typographie(`Calculé sur vos ${joursSurSite} jours sur site. Le barème s'applique au total des kilomètres de l'année.`)}
+            {typographie(
+              parTotal
+                ? "Calculé sur le total de kilomètres que vous avez indiqué. Gardez votre relevé ou votre carnet de bord."
+                : `Calculé sur vos ${joursSurSite} jours sur site. Le barème s'applique au total des kilomètres de l'année.`,
+            )}
           </p>
         </>
       );
@@ -327,7 +415,12 @@ export function Trajet({ parametres: p, joursSurSite, valeurInitiale: v, onValid
     energie: FICHES.energie,
     puissance:
       mode === "voiture" || mode === "moto"
-        ? completerFiche(FICHES.puissance, { lignePrudente: libelleLigne(lignePrudente(p, mode), optionsPuissance(p, mode).map((o) => o.valeur)) })
+        ? completerFiche(FICHES.puissance, {
+            lignePrudente: libelleLigne(
+              lignePrudente(p, mode),
+              optionsPuissance(p, mode).map((o) => o.valeur),
+            ),
+          })
         : undefined,
   };
   const fiche = fichePourQuestion[question];

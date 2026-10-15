@@ -74,4 +74,19 @@ describe("Votre trajet (F3)", () => {
   it("n'envoie rien au barème pour les transports en commun", () => {
     expect(vehiculePourMoteur(p, { ...base, mode: "transports" }, 180)).toBeNull();
   });
+
+  it("total de kilomètres déjà calculé (F3.8) : barème appliqué à ce total, sans recalcul par la distance", () => {
+    const s: SaisieTrajet = { ...base, allerKm: 0, kmAnnuel: 8000, kmMissions: 0 };
+    const v = vehiculePourMoteur(p, s, 180)!;
+    expect(v.kmForce).toBe(8000);
+    const r = calculerDeclarant(p, { numero: 1, salairePrerempli: 0, vehicules: [{ ...v, cv: 4 }] });
+    expect(r.montantCase).toBe(4050); // exemple BAR-07 : 8 000 km, 4 CV
+    expect(r.texte).toContain("8 000 km dans l'année (total annuel indiqué, relevé ou carnet de bord)");
+  });
+
+  it("total de kilomètres avec un motif au-delà du plafond : motif repris dans le résumé", () => {
+    const v = vehiculePourMoteur(p, { ...base, allerKm: 0, kmAnnuel: 20000, motifDistance: "mutation" }, 180)!;
+    const r = calculerDeclarant(p, { numero: 1, salairePrerempli: 0, vehicules: [v] });
+    expect(r.texte).toContain("distance réelle au-delà de 40 km retenue (mutation)");
+  });
 });
