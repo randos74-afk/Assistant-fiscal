@@ -1,19 +1,17 @@
-# Simulateur Frais Réels 2025
+# FraisFit
 
-Outil de simulation et d'optimisation des frais réels salariés pour la déclaration de revenus française 2025. Barèmes DGFiP 2026 (GP 120).
+Savoir si l'option frais réels (case 1AK) fait payer moins d'impôt que l'abattement automatique de 10 %, puis obtenir le montant et le texte à coller dans la déclaration. Application indépendante, non affiliée à l'administration fiscale.
 
 ---
 
 ## Fonctionnalités
 
-- Arbre de questions dynamique (questions conditionnelles selon les réponses)
-- Calcul en temps réel de toutes les catégories de frais réels
-- Comparaison automatique avec l'abattement forfaitaire 10 %
-- Moteur d'optimisation avec score de pertinence
-- Alertes de conformité fiscale
-- Texte prêt à copier pour la rubrique « Informations complémentaires »
-- **Impression / export PDF** depuis l'onglet Détail
-- Remboursement repas employeur : montant fixe **ou** pourcentage
+- Filtrage des situations non couvertes, choix du métier
+- Parcours en 7 étapes : salaire, jours (calendrier réel, mois par mois), trajet, repas, télétravail, autres frais, relecture
+- Aide « astérisque » avec document d'exemple et « Je ne sais pas » qui retient la valeur prudente
+- Comparaison sur les bases imposables, réintégrations des remboursements de l'employeur comprises
+- Montant de la case 1AK et texte « Informations complémentaires » à copier
+- Calcul 100 % local : aucune donnée envoyée
 
 ---
 
@@ -75,20 +73,21 @@ Le lien généré n'est **pas indexé** par les moteurs de recherche (`noindex` 
 
 ```
 assistant-fiscal/
-├── index.html          ← Point d'entrée HTML (styles d'impression PDF inclus)
-├── vite.config.js      ← Configuration Vite
-├── package.json        ← Dépendances
+├── parametres/revenus-AAAA.json  ← Tous les chiffres fiscaux, un fichier par année
+├── tests/                        ← Cas de test de référence (Python) et résultats attendus
+├── docs/                         ← Spécifications et documents officiels
+├── design/                       ← Couleurs, maquettes, logo
 └── src/
-    ├── main.jsx        ← Point d'entrée React
-    └── App.jsx         ← Application complète (questions + calcul + résultats)
+    ├── moteur/    ← Moteur de calcul pur, sans chiffre écrit dans le code
+    ├── parcours/  ← Logique des questions (testée)
+    └── ui/        ← Écrans React
 ```
 
 ---
 
-## Mise à jour des barèmes
+## Mise à jour des chiffres fiscaux
 
-Les barèmes kilométriques sont dans `src/App.jsx`, constante `BK` en haut du fichier.
-Le forfait repas à domicile est dans la constante `REPAS_FOYER`.
+Ajouter `parametres/revenus-AAAA.json` pour une nouvelle année : aucun chiffre n'est écrit dans le code. Vérifier ensuite avec `npm test`.
 
 ---
 

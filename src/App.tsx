@@ -1,33 +1,34 @@
-// Parcours FraisFit. Les écrans du nouveau parcours remplacent l'ancien simulateur au fur et à mesure.
+// Parcours FraisFit : accueil, filtrage, métier, sept étapes, relecture et résultat.
 import { useState } from "react";
 import { chargerParametres, millesimesDisponibles } from "./moteur/parametres";
-import { QUESTIONS_FILTRAGE, type Reponses } from "./parcours/filtrage";
-import type { IdProfil } from "./parcours/metiers";
-import { Accueil } from "./ui/Accueil";
-import { Filtrage } from "./ui/Filtrage";
-import { Metier } from "./ui/Metier";
-import { Jours, type SaisieJours } from "./ui/Jours";
-import { Salaire, type SaisieSalaire } from "./ui/Salaire";
-import { Trajet } from "./ui/Trajet";
-import { Repas } from "./ui/Repas";
-import { Teletravail } from "./ui/Teletravail";
-import { AutresFrais } from "./ui/AutresFrais";
+import { calculerParcours, valeursPrudentes } from "./parcours/assemblage";
 import { postesDuProfil, type SaisieAutresFrais } from "./parcours/autresFrais";
-import { profil } from "./parcours/metiers";
-import { estVehicule } from "./parcours/trajet";
-import type { SaisieTeletravail } from "./parcours/teletravail";
-import type { SaisieRepas } from "./parcours/repas";
 import { totaux } from "./parcours/calendrier";
-import type { SaisieTrajet } from "./parcours/trajet";
+import { QUESTIONS_FILTRAGE, type Reponses as ReponsesFiltrage } from "./parcours/filtrage";
+import { profil, type IdProfil } from "./parcours/metiers";
+import type { SaisieRepas } from "./parcours/repas";
+import type { SaisieTeletravail } from "./parcours/teletravail";
+import { estVehicule, type SaisieTrajet } from "./parcours/trajet";
+import { Accueil } from "./ui/Accueil";
+import { AutresFrais } from "./ui/AutresFrais";
+import { Filtrage } from "./ui/Filtrage";
+import { Jours, type SaisieJours } from "./ui/Jours";
+import { Metier } from "./ui/Metier";
+import { Relecture, type EcranModifiable } from "./ui/Relecture";
+import { Repas } from "./ui/Repas";
+import { Resultat } from "./ui/Resultat";
+import { Salaire, type SaisieSalaire } from "./ui/Salaire";
 import { existeSauvegarde } from "./ui/sauvegarde";
-import AncienSimulateur from "./ancien/AncienSimulateur.jsx";
+import { Teletravail } from "./ui/Teletravail";
+import { Trajet } from "./ui/Trajet";
 
-type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "repas" | "teletravail" | "autres" | "ancien-simulateur";
+type Ecran = "accueil" | "filtrage" | "metier" | EcranModifiable | "relecture" | "resultat";
 
 export default function App() {
   const [ecran, setEcran] = useState<Ecran>("accueil");
-  const [reponsesFiltrage, setReponsesFiltrage] = useState<Reponses>({});
-  const [aussiEntreprise, setAussiEntreprise] = useState(false);
+  const [depuisRelecture, setDepuisRelecture] = useState(false);
+  const [reponsesFiltrage, setReponsesFiltrage] = useState<ReponsesFiltrage>({});
+  const [, setAussiEntreprise] = useState(false);
   const [metier, setMetier] = useState<IdProfil | undefined>();
   const [salaire, setSalaire] = useState<SaisieSalaire | undefined>();
   const [jours, setJours] = useState<SaisieJours | undefined>();
@@ -35,14 +36,30 @@ export default function App() {
   const [repas, setRepas] = useState<SaisieRepas | undefined>();
   const [teletravail, setTeletravail] = useState<SaisieTeletravail | undefined>();
   const [autres, setAutres] = useState<SaisieAutresFrais | undefined>();
-  const joursSurSite = jours ? totaux(jours.mois).site : 0;
+
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
+  const joursSurSite = jours ? totaux(jours.mois).site : 0;
+  const reponses = { salaire, jours, trajet, repas, teletravail, autres };
+
+  /** Étape suivante, ou retour direct à la relecture si l'on corrigeait une réponse. */
+  const suivant = (prochain: Ecran) => setEcran(depuisRelecture ? "relecture" : prochain);
+  const precedent = (ecranPrecedent: Ecran) => () => setEcran(depuisRelecture ? "relecture" : ecranPrecedent);
+
+  function recommencer() {
+    setReponsesFiltrage({});
+    setMetier(undefined);
+    setSalaire(undefined);
+    setJours(undefined);
+    setTrajet(undefined);
+    setRepas(undefined);
+    setTeletravail(undefined);
+    setAutres(undefined);
+    setDepuisRelecture(false);
+    setEcran("accueil");
+  }
 
   switch (ecran) {
-    case "ancien-simulateur":
-      return <AncienSimulateur />;
-
     case "filtrage": {
       const dejaRepondu = Object.keys(reponsesFiltrage).length === QUESTIONS_FILTRAGE.length;
       return (
@@ -51,9 +68,9 @@ export default function App() {
           reponsesInitiales={reponsesFiltrage}
           indiceInitial={dejaRepondu ? QUESTIONS_FILTRAGE.length - 1 : 0}
           onAccueil={() => setEcran("accueil")}
-          onAccepte={(entreprise, reponses) => {
+          onAccepte={(entreprise, r) => {
             setAussiEntreprise(entreprise);
-            setReponsesFiltrage(reponses);
+            setReponsesFiltrage(r);
             setEcran("metier");
           }}
         />
@@ -78,11 +95,8 @@ export default function App() {
         <Salaire
           millesime={millesime}
           valeurInitiale={salaire}
-          onRetour={() => setEcran("metier")}
-          onValider={(s) => {
-            setSalaire(s);
-            setEcran("jours");
-          }}
+          onRetour={precedent("metier")}
+          onValider={(s) => (setSalaire(s), suivant("jours"))}
         />
       );
 
@@ -92,11 +106,8 @@ export default function App() {
           millesime={millesime}
           parametres={parametres}
           valeurInitiale={jours}
-          onRetour={() => setEcran("salaire")}
-          onValider={(j) => {
-            setJours(j);
-            setEcran("trajet");
-          }}
+          onRetour={precedent("salaire")}
+          onValider={(j) => (setJours(j), suivant("trajet"))}
         />
       );
 
@@ -106,11 +117,8 @@ export default function App() {
           parametres={parametres}
           joursSurSite={joursSurSite}
           valeurInitiale={trajet}
-          onRetour={() => setEcran("jours")}
-          onValider={(t) => {
-            setTrajet(t);
-            setEcran("repas");
-          }}
+          onRetour={precedent("jours")}
+          onValider={(t) => (setTrajet(t), suivant("repas"))}
         />
       );
 
@@ -120,11 +128,8 @@ export default function App() {
           parametres={parametres}
           joursSurSite={joursSurSite}
           valeurInitiale={repas}
-          onRetour={() => setEcran("trajet")}
-          onValider={(r) => {
-            setRepas(r);
-            setEcran("teletravail");
-          }}
+          onRetour={precedent("trajet")}
+          onValider={(r) => (setRepas(r), suivant("teletravail"))}
         />
       );
 
@@ -135,11 +140,8 @@ export default function App() {
           joursParMois={jours ? jours.mois.map((m) => m.teletravail) : Array(12).fill(0)}
           joursTravailles={jours ? totaux(jours.mois).travailles : 0}
           valeurInitiale={teletravail}
-          onRetour={() => setEcran("repas")}
-          onValider={(t) => {
-            setTeletravail(t);
-            setEcran("autres");
-          }}
+          onRetour={precedent("repas")}
+          onValider={(t) => (setTeletravail(t), suivant("autres"))}
         />
       );
 
@@ -151,12 +153,36 @@ export default function App() {
           aVehicule={trajet ? estVehicule(trajet.mode) : false}
           postesOuvertsDOffice={metier ? postesDuProfil(profil(metier).postesOuverts) : []}
           valeurInitiale={autres}
-          onRetour={() => setEcran("teletravail")}
-          onValider={(a) => {
-            setAutres(a);
-            // Provisoire : « Relecture » et résultat n'existent pas encore.
-            setEcran("ancien-simulateur");
+          onRetour={precedent("teletravail")}
+          onValider={(a) => (setAutres(a), setEcran("relecture"))}
+        />
+      );
+
+    case "relecture":
+      return (
+        <Relecture
+          reponses={reponses}
+          resultat={calculerParcours(parametres, reponses)}
+          onRetour={() => setEcran("autres")}
+          onModifier={(e) => {
+            setDepuisRelecture(true);
+            setEcran(e);
           }}
+          onValider={() => {
+            setDepuisRelecture(false);
+            setEcran("resultat");
+          }}
+        />
+      );
+
+    case "resultat":
+      return (
+        <Resultat
+          parametres={parametres}
+          resultat={calculerParcours(parametres, reponses)}
+          prudentes={valeursPrudentes(reponses)}
+          onModifier={() => setEcran("relecture")}
+          onRecommencer={recommencer}
         />
       );
 
@@ -166,8 +192,7 @@ export default function App() {
           millesime={millesime}
           sauvegardeDisponible={existeSauvegarde()}
           onCommencer={() => setEcran("filtrage")}
-          // Provisoire : la sauvegarde (F9) n'existe pas encore.
-          onReprendre={() => setEcran("ancien-simulateur")}
+          onReprendre={() => setEcran("relecture")}
         />
       );
   }

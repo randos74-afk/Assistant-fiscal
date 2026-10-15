@@ -13,6 +13,14 @@
 *::before,
 *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 html,
@@ -982,4 +990,164 @@ a {
   flex-direction: column;
   gap: 10px;
   margin: 0 0 12px 32px;
+}
+
+/* Relecture. */
+.relecture-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--bordure);
+}
+
+.relecture-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.relecture-entete h2 {
+  font-size: var(--taille-texte);
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.relecture-montant {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Résultat : carte verte si les frais réels gagnent, bleue sinon. */
+.verdict {
+  border-radius: var(--rayon);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.verdict-reel {
+  border: 2px solid var(--vert-economie);
+  background: var(--fond-secondaire);
+}
+
+.verdict-abattement {
+  border: 2px solid var(--primaire);
+  background: var(--bleu-tres-clair);
+}
+
+.verdict-phrase {
+  font-size: var(--taille-texte);
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.verdict-montant {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--vert-economie);
+}
+
+.colonnes-comparaison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.colonne {
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.colonne h2 {
+  font-size: var(--taille-texte-min);
+  font-weight: 700;
+  color: var(--primaire-fonce);
+  margin-bottom: 4px;
+}
+
+.colonne-gagnante {
+  border: 2px solid var(--primaire);
+  background: var(--bleu-tres-clair);
+}
+
+.colonne-base {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* Blocs à copier. */
+.bloc-copier {
+  background: var(--bleu-tres-clair);
+  border-radius: var(--rayon);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bloc-copier-entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.bloc-copier-entete h2 {
+  font-size: var(--taille-texte-min);
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.bouton-copier {
+  min-height: var(--zone-tactile);
+  min-width: 96px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--rayon);
+  background: var(--primaire);
+  color: var(--fond);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.bouton-copier:focus-visible {
+  outline: 3px solid var(--primaire-fonce);
+  outline-offset: 2px;
+}
+
+.bloc-copier-montant {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primaire-fonce);
+}
+
+.bloc-copier-texte {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--fond);
+  border-radius: 8px;
+  padding: 10px 12px;
+  user-select: all;
+}
+
+.procedure {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: var(--taille-texte-min);
 }
