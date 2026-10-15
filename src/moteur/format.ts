@@ -4,7 +4,7 @@
 export function nombre(x: number, decimales = 0): string {
   return x
     .toLocaleString("fr-FR", { minimumFractionDigits: decimales, maximumFractionDigits: decimales })
-    .replace(/[  ]/g, " ");
+    .replace(/[\u202f\u00a0]/g, " ");
 }
 
 /** Coefficient du barème : 3 décimales, comme dans le dépliant DGFiP. */
