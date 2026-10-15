@@ -6,7 +6,9 @@ export type IdIllustration =
   | "avenant-teletravail"
   | "carte-grise-puissance"
   | "carte-grise-energie"
-  | "itineraire";
+  | "itineraire"
+  | "bulletin-titres"
+  | "releve-repas";
 
 export interface FicheAide {
   titre: string;
@@ -82,6 +84,28 @@ export const FICHES = {
     motsAChercher: ["Puissance administrative nationale", "P.6"],
     siIntrouvable:
       "Demandez au vendeur ou au garage, ou choisissez « Je ne sais pas » : nous retiendrons {lignePrudente}, la valeur la plus prudente. Vous pourrez la corriger plus tard.",
+  },
+  prixRepas: {
+    titre: "Comment trouver ce prix ?",
+    illustration: "releve-repas",
+    texteAlternatif:
+      "Exemple de relevé de badge de cantine sur trois jours : la ligne « Moyenne », 8,17 €, est entourée en orange.",
+    ouRegarder:
+      "Vos tickets de caisse, votre relevé de compte ou le relevé de votre badge de cantine. Faites la moyenne sur quelques semaines.",
+    motsAChercher: ["Ticket de caisse", "Relevé de badge", "Paiement par carte"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » : nous retiendrons le forfait de {forfait} par repas, la solution la plus prudente. Gardez vos tickets à l'avenir.",
+  },
+  titres: {
+    titre: "Où trouver ces chiffres ?",
+    illustration: "bulletin-titres",
+    texteAlternatif:
+      "Exemple de bulletin de paie : la ligne « Titres-restaurant » est entourée en orange. 20 titres, part employeur 108 €, soit 5,40 € par titre.",
+    ouRegarder:
+      "Sur votre bulletin de paie, ligne « titres-restaurant » : nombre de titres et part payée par l'employeur. Divisez la part de l'employeur par le nombre de titres.",
+    motsAChercher: ["Titres-restaurant", "Tickets restaurant", "Carte repas", "Part patronale"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » pour la part de l'employeur : nous retiendrons {tauxPrudent} de la valeur du titre, le choix le plus prudent.",
   },
 } satisfies Record<string, FicheAide>;
 

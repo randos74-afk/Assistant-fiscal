@@ -10,7 +10,7 @@ import {
   teletravailForfait,
   type Comparaison,
 } from "./calcul";
-import { arrondiEuro, euros, nombre } from "./format";
+import { arrondiEuro, euros, eurosCentimes, nombre } from "./format";
 
 /** « thermique » : énergie inconnue, valeur prudente (barème non majoré). */
 export type Energie = "essence" | "diesel" | "hybride" | "GPL" | "hydrogène" | "électrique" | "thermique";
@@ -155,7 +155,7 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     const res = repas(p, r);
     if (res.alertePrixEleve) {
       alertes.push(
-        `Prix moyen du repas supérieur à ${euros(p.repas.seuil_alerte_prix_repas)} : dépense susceptible d'être jugée excessive, gardez vos justificatifs.`,
+        `Prix moyen du repas supérieur à ${eurosCentimes(p.repas.seuil_alerte_prix_repas)} : dépense susceptible d'être jugée excessive, gardez vos justificatifs.`,
       );
     }
     lignes.push({

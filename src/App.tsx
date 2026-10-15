@@ -9,12 +9,14 @@ import { Metier } from "./ui/Metier";
 import { Jours, type SaisieJours } from "./ui/Jours";
 import { Salaire, type SaisieSalaire } from "./ui/Salaire";
 import { Trajet } from "./ui/Trajet";
+import { Repas } from "./ui/Repas";
+import type { SaisieRepas } from "./parcours/repas";
 import { totaux } from "./parcours/calendrier";
 import type { SaisieTrajet } from "./parcours/trajet";
 import { existeSauvegarde } from "./ui/sauvegarde";
 import AncienSimulateur from "./ancien/AncienSimulateur.jsx";
 
-type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "ancien-simulateur";
+type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "repas" | "ancien-simulateur";
 
 export default function App() {
   const [ecran, setEcran] = useState<Ecran>("accueil");
@@ -24,6 +26,8 @@ export default function App() {
   const [salaire, setSalaire] = useState<SaisieSalaire | undefined>();
   const [jours, setJours] = useState<SaisieJours | undefined>();
   const [trajet, setTrajet] = useState<SaisieTrajet | undefined>();
+  const [repas, setRepas] = useState<SaisieRepas | undefined>();
+  const joursSurSite = jours ? totaux(jours.mois).site : 0;
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
 
@@ -92,12 +96,26 @@ export default function App() {
       return (
         <Trajet
           parametres={parametres}
-          joursSurSite={jours ? totaux(jours.mois).site : 0}
+          joursSurSite={joursSurSite}
           valeurInitiale={trajet}
           onRetour={() => setEcran("jours")}
           onValider={(t) => {
             setTrajet(t);
-            // Provisoire : « Vos repas » n'existe pas encore.
+            setEcran("repas");
+          }}
+        />
+      );
+
+    case "repas":
+      return (
+        <Repas
+          parametres={parametres}
+          joursSurSite={joursSurSite}
+          valeurInitiale={repas}
+          onRetour={() => setEcran("trajet")}
+          onValider={(r) => {
+            setRepas(r);
+            // Provisoire : « Le télétravail » n'existe pas encore.
             setEcran("ancien-simulateur");
           }}
         />

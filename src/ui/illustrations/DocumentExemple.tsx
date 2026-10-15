@@ -84,6 +84,30 @@ const ATTESTATION_TELETRAVAIL: Modele = {
   ],
 };
 
+const BULLETIN_TITRES: Modele = {
+  entete: "BULLETIN DE PAIE · DÉCEMBRE",
+  colonnes: ["Nombre", "Part salarié", "Part employeur"],
+  lignes: [
+    { libelle: "Salaire de base", valeurs: ["", "", ""] },
+    { libelle: "Titres-restaurant", valeurs: ["20", "- 72,00", "108,00"], aLire: true },
+    { libelle: "Net à payer avant impôt", valeurs: ["", "1 488,00", ""] },
+  ],
+};
+
+const RELEVE_REPAS: Modele = {
+  entete: "RELEVÉ DE BADGE · CANTINE",
+  colonnes: ["Montant"],
+  lignes: [
+    { libelle: "Lundi 3 mars", valeurs: ["8,20"] },
+    { libelle: "Mardi 4 mars", valeurs: ["7,90"] },
+    { libelle: "Jeudi 6 mars", valeurs: ["8,40"] },
+    { libelle: "Moyenne", valeurs: ["8,17"], aLire: true },
+  ],
+};
+
+export const BulletinTitres = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_TITRES} {...p} />;
+export const ReleveRepas = (p: { texteAlternatif: string }) => <DocumentExemple modele={RELEVE_REPAS} {...p} />;
+
 export const BulletinNetImposable = (p: { texteAlternatif: string }) => <DocumentExemple modele={NET_IMPOSABLE} {...p} />;
 export const BulletinCompteurs = (p: { texteAlternatif: string }) => <DocumentExemple modele={COMPTEURS_CONGES} {...p} />;
 export const AvenantTeletravail = (p: { texteAlternatif: string }) => <DocumentExemple modele={ATTESTATION_TELETRAVAIL} {...p} />;
