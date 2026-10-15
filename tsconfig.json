@@ -7,7 +7,9 @@
     "resolveJsonModule": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "jsx": "react-jsx",
+    "allowJs": false
   },
-  "include": ["src/moteur"]
+  "include": ["src/moteur", "src/ui", "src/App.tsx", "src/main.tsx"]
 }
