@@ -60,7 +60,7 @@ function calculer(c: Cas): Record<string, unknown> {
       return { montant: m, montant_annee_1: m };
     }
     case "IMP": {
-      const foyer = { couple: e.couple, enfants: e.enfants, parentIsole: e.parent_isole ?? false };
+      const foyer = { couple: e.couple, enfants: e.enfants, parentIsole: e.parent_isole ?? false, veuf: e.veuf ?? false };
       if (e.base_abattement !== undefined) {
         return { gain_impot: comparerImpot(p, e.base_abattement, e.base_frais_reels, 0, foyer).gain };
       }
@@ -195,8 +195,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 49 cas", () => {
-    expect(casDeTest.cas.length).toBe(49);
+  it("contient bien les 51 cas", () => {
+    expect(casDeTest.cas.length).toBe(51);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

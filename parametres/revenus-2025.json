@@ -151,6 +151,8 @@
     ],
     "plafond_par_demi_part": 1807,
     "plafond_deux_premieres_demi_parts_parent_isole": 4262,
+    "reduction_complementaire_veuf_avec_enfants": 2011,
+    "note_veuf": "Veuf ayant des enfants à charge : autant de parts qu'un couple (CGI art. 194 I), plafonnement calculé au-delà d'une part, puis réduction complémentaire de 2 011 € pour la part supplémentaire, limitée à la hausse due au plafonnement (CGI art. 197 I-2) ; décote des personnes seules.",
     "decote_personne_seule": 897,
     "decote_couple": 1483,
     "decote_taux": 0.4525,

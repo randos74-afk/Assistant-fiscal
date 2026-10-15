@@ -111,11 +111,14 @@ def ratio_local(usage, jours_tt, jours_travailles):
     return jours_tt * t["heures_par_journee_teletravail_local_mixte"] / t["heures_par_an"]
 
 
-def parts_foyer(couple, enfants, parent_isole=False):
-    """Parts de quotient familial : 1 ou 2, + 0,5 pour chacun des 2 premiers enfants, + 1 au-delà, + 0,5 case T."""
+def parts_foyer(couple, enfants, parent_isole=False, veuf=False):
+    """Parts de quotient familial : 1 ou 2, + 0,5 pour chacun des 2 premiers enfants, + 1 au-delà, + 0,5 case T.
+    Veuf avec enfants à charge : autant de parts qu'un couple (CGI art. 194 I), mais base 1 pour le plafonnement."""
     base = 2 if couple else 1
     demi = sum(1 if i < 2 else 2 for i in range(enfants))
-    if parent_isole and not couple and enfants > 0:
+    if veuf and not couple and enfants > 0:
+        demi += 2
+    elif parent_isole and not couple and enfants > 0:
         demi += 1
     return base, base + demi / 2
 
@@ -131,19 +134,25 @@ def impot_par_part(qf):
     return impot
 
 
-def impot_foyer(revenu, couple, enfants, parent_isole=False):
+def impot_foyer(revenu, couple, enfants, parent_isole=False, veuf=False):
     """Barème, plafonnement du quotient familial, décote, seuil de recouvrement (CGI art. 197)."""
     ir = P["impot_revenu"]
-    base, parts = parts_foyer(couple, enfants, parent_isole)
+    veuf_enfants = veuf and not couple and enfants > 0
+    base, parts = parts_foyer(couple, enfants, parent_isole, veuf)
     impot = parts * impot_par_part(revenu / parts)
     demi_parts = round((parts - base) * 2)
     if demi_parts > 0:
         sans = base * impot_par_part(revenu / base)
-        if parent_isole and not couple:
+        if parent_isole and not couple and not veuf_enfants:
             plafond = ir["plafond_deux_premieres_demi_parts_parent_isole"] + ir["plafond_par_demi_part"] * max(demi_parts - 2, 0)
         else:
             plafond = ir["plafond_par_demi_part"] * demi_parts
-        impot = max(impot, sans - plafond)
+        if sans - plafond > impot:
+            hausse = sans - plafond - impot
+            impot = sans - plafond
+            if veuf_enfants:
+                # Réduction complémentaire pour la part du veuf, limitée à la hausse due au plafonnement.
+                impot -= min(ir["reduction_complementaire_veuf_avec_enfants"], hausse)
     decote = (ir["decote_couple"] if couple else ir["decote_personne_seule"]) - ir["decote_taux"] * impot
     if decote > 0:
         impot -= min(decote, impot)
@@ -291,6 +300,10 @@ cas("IMP-04", "Parent seul (case T), 1 enfant (2 parts), revenu 40 000 €", {"r
     {"parts": 2, "impot": r2(impot_foyer(40000, False, 1, True))}, "plafond 4 262 € pour les deux premières demi-parts, décote personne seule")
 cas("IMP-05", "Personne seule, revenu 13 000 € : impôt effacé par la décote", {"revenu": 13000, "couple": False, "enfants": 0},
     {"impot": r2(impot_foyer(13000, False, 0))}, "décote supérieure à l'impôt brut")
+cas("IMP-07", "Veuf, 1 enfant (2,5 parts), revenu 100 000 € : plafonnement puis réduction complémentaire", {"revenu": 100000, "couple": False, "enfants": 1, "veuf": True},
+    {"parts": 2.5, "impot": r2(impot_foyer(100000, False, 1, veuf=True))}, "CGI art. 194 I et 197 I-2 : plafond 1 807 € × 3 demi-parts, réduction complémentaire 2 011 € au plus")
+cas("IMP-08", "Veuve, 2 enfants (3 parts), revenu 60 000 € : réduction complémentaire limitée à la hausse", {"revenu": 60000, "couple": False, "enfants": 2, "veuf": True},
+    {"parts": 3, "impot": r2(impot_foyer(60000, False, 2, veuf=True))}, "924 × 3 = 2 772 ; 1 part : 11 103,99 - 4 × 1 807 = 3 875,99 ; hausse 1 103,99 < 2 011 : impôt 2 772")
 cas("IMP-06", "Exemple de la spécification : gain d'impôt d'une personne seule", {"base_abattement": 28800, "base_frais_reels": 26286, "couple": False, "enfants": 0},
     {"gain_impot": r2(impot_foyer(28800, False, 0) - impot_foyer(26286, False, 0))}, "IMP-01 moins impôt sur 26 286 €")
 
@@ -353,4 +366,6 @@ if __name__ == "__main__":
     assert r2(impot_foyer(150000, True, 1)) == 29400.98
     assert r2(impot_foyer(40000, False, 1, True)) == 1787.22
     assert impot_foyer(13000, False, 0) == 0.0
+    assert r2(impot_foyer(100000, False, 1, veuf=True)) == 17368.52
+    assert r2(impot_foyer(60000, False, 2, veuf=True)) == 2772.0
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

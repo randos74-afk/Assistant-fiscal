@@ -647,6 +647,36 @@
       "source": "décote supérieure à l'impôt brut"
     },
     {
+      "id": "IMP-07",
+      "titre": "Veuf, 1 enfant (2,5 parts), revenu 100 000 € : plafonnement puis réduction complémentaire",
+      "entrees": {
+        "revenu": 100000,
+        "couple": false,
+        "enfants": 1,
+        "veuf": true
+      },
+      "attendu": {
+        "parts": 2.5,
+        "impot": 17368.52
+      },
+      "source": "CGI art. 194 I et 197 I-2 : plafond 1 807 € × 3 demi-parts, réduction complémentaire 2 011 € au plus"
+    },
+    {
+      "id": "IMP-08",
+      "titre": "Veuve, 2 enfants (3 parts), revenu 60 000 € : réduction complémentaire limitée à la hausse",
+      "entrees": {
+        "revenu": 60000,
+        "couple": false,
+        "enfants": 2,
+        "veuf": true
+      },
+      "attendu": {
+        "parts": 3,
+        "impot": 2772.0
+      },
+      "source": "924 × 3 = 2 772 ; 1 part : 11 103,99 - 4 × 1 807 = 3 875,99 ; hausse 1 103,99 < 2 011 : impôt 2 772"
+    },
+    {
       "id": "IMP-06",
       "titre": "Exemple de la spécification : gain d'impôt d'une personne seule",
       "entrees": {

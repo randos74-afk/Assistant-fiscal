@@ -63,6 +63,7 @@ export interface Parametres {
     tranches: { jusqua: number | null; taux: number }[];
     plafond_par_demi_part: number;
     plafond_deux_premieres_demi_parts_parent_isole: number;
+    reduction_complementaire_veuf_avec_enfants: number;
     decote_personne_seule: number;
     decote_couple: number;
     decote_taux: number;

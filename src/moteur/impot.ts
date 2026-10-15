@@ -7,14 +7,19 @@ export interface Foyer {
   enfants: number;
   /** Case T : personne seule qui élève seule ses enfants. */
   parentIsole: boolean;
+  /** Veuf ou veuve : avec des enfants à charge, autant de parts qu'un couple (CGI art. 194 I). */
+  veuf?: boolean;
 }
+
+const veufAvecEnfants = (f: Foyer) => Boolean(f.veuf) && !f.couple && f.enfants > 0;
 
 /** Parts de base (1 ou 2) et parts totales du foyer. */
 export function partsFoyer(f: Foyer): { base: number; parts: number } {
   const base = f.couple ? 2 : 1;
   let demiParts = 0;
   for (let i = 0; i < f.enfants; i++) demiParts += i < 2 ? 1 : 2;
-  if (f.parentIsole && !f.couple && f.enfants > 0) demiParts += 1;
+  if (veufAvecEnfants(f)) demiParts += 2;
+  else if (f.parentIsole && !f.couple && f.enfants > 0) demiParts += 1;
   return { base, parts: base + demiParts / 2 };
 }
 
@@ -49,12 +54,15 @@ export function impotFoyer(p: Parametres, revenuImposable: number, f: Foyer): Re
   if (demiParts > 0) {
     const sansDemiParts = base * impotParPart(p, revenu / base);
     const plafond =
-      f.parentIsole && !f.couple
+      f.parentIsole && !f.couple && !veufAvecEnfants(f)
         ? ir.plafond_deux_premieres_demi_parts_parent_isole + ir.plafond_par_demi_part * Math.max(demiParts - 2, 0)
         : ir.plafond_par_demi_part * demiParts;
     if (sansDemiParts - plafond > impot) {
+      const hausse = sansDemiParts - plafond - impot;
       impot = sansDemiParts - plafond;
       plafonnement = true;
+      // Veuf avec enfants : réduction complémentaire pour sa part, limitée à la hausse due au plafonnement (CGI art. 197 I-2).
+      if (veufAvecEnfants(f)) impot -= Math.min(ir.reduction_complementaire_veuf_avec_enfants, hausse);
     }
   }
   const impotBrut = impot;
