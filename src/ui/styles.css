@@ -925,3 +925,34 @@ a {
 .bulletin-a-lire .carte-grise-code {
   color: var(--ambre-aide);
 }
+
+.achat {
+  margin: 0;
+  padding: 12px;
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.achat legend {
+  padding: 0 4px;
+}
+
+.champ-texte {
+  min-height: var(--zone-tactile);
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  color: var(--texte);
+  font-family: inherit;
+  font-size: var(--taille-texte);
+  padding: 0 12px;
+}
+
+.champ-texte:focus {
+  outline: 0;
+  border: 2px solid var(--primaire);
+}

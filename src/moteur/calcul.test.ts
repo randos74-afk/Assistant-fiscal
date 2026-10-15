@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import casDeTest from "../../tests/cas-de-test.json";
 import { calculerDeclarant } from "./declarant";
+import { materielAnnee, partSurface, ratioTemps } from "./teletravail";
 import { arrondiEuro } from "./format";
 import { chargerParametres } from "./parametres";
 import {
@@ -50,9 +51,20 @@ function calculer(c: Cas): Record<string, unknown> {
       };
     }
     case "MAT": {
+      if (e.annee_revenus) {
+        const achat = { libelle: "", prixHT: e.prix_ht, usagePro: e.usage_pro, anneeAchat: e.annee_achat, moisAchat: e.mois_achat };
+        return { montant: materielAnnee(p, achat, e.annee_revenus) };
+      }
       const m = materiel(p, e.prix_ht, e.usage_pro, e.mois_utilises_annee_achat).montant;
       return { montant: m, montant_annee_1: m };
     }
+    case "TLR":
+      return {
+        montant:
+          e.charges *
+          partSurface(p, e.surface_bureau ?? 0, e.surface_totale ?? 0, e.studio) *
+          ratioTemps(p, e.usage, e.jours_tt, e.jours_travailles),
+      };
     case "VHB":
       return { montant_retenu: plafondFraisReelsVehicule(p, e.km, e.frais_justifies).montant };
     case "RES":
@@ -175,8 +187,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 36 cas", () => {
-    expect(casDeTest.cas.length).toBe(36);
+  it("contient bien les 42 cas", () => {
+    expect(casDeTest.cas.length).toBe(42);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

@@ -31,6 +31,9 @@ export interface Parametres {
     forfait_par_jour: number;
     plafond_mensuel: number;
     plafond_annuel: number;
+    heures_par_journee_teletravail_local_mixte: number;
+    heures_par_an: number;
+    studio_part_professionnelle: number;
   };
   materiel: {
     seuil_deduction_immediate_HT: number;

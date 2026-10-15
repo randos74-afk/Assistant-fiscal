@@ -2,7 +2,14 @@
 import { useEffect, useRef } from "react";
 import type { FicheAide as Fiche, IdIllustration } from "../parcours/fichesAide";
 import { CarteGriseEnergie, CarteGrisePuissance, Itineraire } from "./illustrations/CarteGrise";
-import { AvenantTeletravail, BulletinCompteurs, BulletinNetImposable, BulletinTitres, ReleveRepas } from "./illustrations/DocumentExemple";
+import {
+  AvenantTeletravail,
+  BulletinAllocationTeletravail,
+  BulletinCompteurs,
+  BulletinNetImposable,
+  BulletinTitres,
+  ReleveRepas,
+} from "./illustrations/DocumentExemple";
 import { typographie } from "./typographie";
 
 const ILLUSTRATIONS: Record<IdIllustration, (props: { texteAlternatif: string }) => JSX.Element> = {
@@ -14,6 +21,7 @@ const ILLUSTRATIONS: Record<IdIllustration, (props: { texteAlternatif: string })
   itineraire: Itineraire,
   "bulletin-titres": BulletinTitres,
   "releve-repas": ReleveRepas,
+  "bulletin-allocation-teletravail": BulletinAllocationTeletravail,
 };
 
 export function BoutonAsterisque({ onClick }: { onClick: () => void }) {

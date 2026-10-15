@@ -10,13 +10,15 @@ import { Jours, type SaisieJours } from "./ui/Jours";
 import { Salaire, type SaisieSalaire } from "./ui/Salaire";
 import { Trajet } from "./ui/Trajet";
 import { Repas } from "./ui/Repas";
+import { Teletravail } from "./ui/Teletravail";
+import type { SaisieTeletravail } from "./parcours/teletravail";
 import type { SaisieRepas } from "./parcours/repas";
 import { totaux } from "./parcours/calendrier";
 import type { SaisieTrajet } from "./parcours/trajet";
 import { existeSauvegarde } from "./ui/sauvegarde";
 import AncienSimulateur from "./ancien/AncienSimulateur.jsx";
 
-type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "repas" | "ancien-simulateur";
+type Ecran = "accueil" | "filtrage" | "metier" | "salaire" | "jours" | "trajet" | "repas" | "teletravail" | "ancien-simulateur";
 
 export default function App() {
   const [ecran, setEcran] = useState<Ecran>("accueil");
@@ -27,6 +29,7 @@ export default function App() {
   const [jours, setJours] = useState<SaisieJours | undefined>();
   const [trajet, setTrajet] = useState<SaisieTrajet | undefined>();
   const [repas, setRepas] = useState<SaisieRepas | undefined>();
+  const [teletravail, setTeletravail] = useState<SaisieTeletravail | undefined>();
   const joursSurSite = jours ? totaux(jours.mois).site : 0;
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
@@ -115,7 +118,22 @@ export default function App() {
           onRetour={() => setEcran("trajet")}
           onValider={(r) => {
             setRepas(r);
-            // Provisoire : « Le télétravail » n'existe pas encore.
+            setEcran("teletravail");
+          }}
+        />
+      );
+
+    case "teletravail":
+      return (
+        <Teletravail
+          parametres={parametres}
+          joursParMois={jours ? jours.mois.map((m) => m.teletravail) : Array(12).fill(0)}
+          joursTravailles={jours ? totaux(jours.mois).travailles : 0}
+          valeurInitiale={teletravail}
+          onRetour={() => setEcran("repas")}
+          onValider={(t) => {
+            setTeletravail(t);
+            // Provisoire : « Vos autres frais » n'existe pas encore.
             setEcran("ancien-simulateur");
           }}
         />

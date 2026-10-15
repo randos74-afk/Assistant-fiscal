@@ -105,6 +105,19 @@ const RELEVE_REPAS: Modele = {
   ],
 };
 
+const BULLETIN_ALLOCATION_TELETRAVAIL: Modele = {
+  entete: "BULLETIN DE PAIE · DÉCEMBRE",
+  colonnes: ["Mois", "Cumul annuel"],
+  lignes: [
+    { libelle: "Salaire de base", valeurs: ["2 000,00", "24 000,00"] },
+    { libelle: "Indemnité télétravail", valeurs: ["20,00", "220,00"], aLire: true },
+    { libelle: "Net imposable", valeurs: ["1 630,00", "19 560,00"] },
+  ],
+};
+
+export const BulletinAllocationTeletravail = (p: { texteAlternatif: string }) => (
+  <DocumentExemple modele={BULLETIN_ALLOCATION_TELETRAVAIL} {...p} />
+);
 export const BulletinTitres = (p: { texteAlternatif: string }) => <DocumentExemple modele={BULLETIN_TITRES} {...p} />;
 export const ReleveRepas = (p: { texteAlternatif: string }) => <DocumentExemple modele={RELEVE_REPAS} {...p} />;
 

@@ -384,6 +384,98 @@
       "source": "amortissement 3 ans prorata temporis"
     },
     {
+      "id": "MAT-03",
+      "titre": "Ordinateur 1 200 € HT acheté en juillet 2024, usage pro 50 %, revenus 2025 (année pleine)",
+      "entrees": {
+        "prix_ht": 1200,
+        "usage_pro": 0.5,
+        "annee_achat": 2024,
+        "mois_achat": 7,
+        "annee_revenus": 2025
+      },
+      "attendu": {
+        "montant": 200.0
+      },
+      "source": "BOI-RSA-BASE-30-50-30-40 §80 : annuité pleine"
+    },
+    {
+      "id": "MAT-04",
+      "titre": "Même ordinateur, revenus 2027 : dernière fraction (6 mois)",
+      "entrees": {
+        "prix_ht": 1200,
+        "usage_pro": 0.5,
+        "annee_achat": 2024,
+        "mois_achat": 7,
+        "annee_revenus": 2027
+      },
+      "attendu": {
+        "montant": 100.0
+      },
+      "source": "amortissement prorata temporis"
+    },
+    {
+      "id": "MAT-05",
+      "titre": "Écran 300 € HT acheté en 2024 : rien en 2025",
+      "entrees": {
+        "prix_ht": 300,
+        "usage_pro": 1,
+        "annee_achat": 2024,
+        "mois_achat": 3,
+        "annee_revenus": 2025
+      },
+      "attendu": {
+        "montant": 0.0
+      },
+      "source": "déduction immédiate l'année d'achat seulement"
+    },
+    {
+      "id": "TLR-01",
+      "titre": "Pièce réservée au travail, 10 m² sur 100, charges 10 000 €, 4 j/sem (188 j sur 235)",
+      "entrees": {
+        "usage": "dedie",
+        "charges": 10000,
+        "surface_bureau": 10,
+        "surface_totale": 100,
+        "jours_tt": 188,
+        "jours_travailles": 235
+      },
+      "attendu": {
+        "montant": 800.0
+      },
+      "source": "Notice 2041 GP : usage exclusif 4 j/semaine = 80 %"
+    },
+    {
+      "id": "TLR-02",
+      "titre": "Même pièce à usage mixte : 188 j × 12 h / 8 760 h",
+      "entrees": {
+        "usage": "mixte",
+        "charges": 10000,
+        "surface_bureau": 10,
+        "surface_totale": 100,
+        "jours_tt": 188,
+        "jours_travailles": 235
+      },
+      "attendu": {
+        "montant": 257.53
+      },
+      "source": "Notice 2041 GP : usage mixte, 12 h par journée"
+    },
+    {
+      "id": "TLR-03",
+      "titre": "Studio, charges 6 000 €, 2 j/sem (94 j) : 50 % de la surface, usage mixte",
+      "entrees": {
+        "usage": "mixte",
+        "studio": true,
+        "charges": 6000,
+        "jours_tt": 94,
+        "jours_travailles": 218
+      },
+      "attendu": {
+        "montant": 386.3
+      },
+      "source": "Notice 2041 GP : studio, moitié de la surface"
+    },
+    {
       "id": "VHB-01",
       "titre": "Frais justifiés 9 000 € pour 15 000 km : plafond barème 7 CV",
       "entrees": {

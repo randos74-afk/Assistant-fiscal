@@ -76,6 +76,37 @@ def materiel(prix_ht, usage_pro=1.0, mois_utilises_annee_achat=12):
     return annuite * mois_utilises_annee_achat / 12 * usage_pro
 
 
+def materiel_annee(prix_ht, usage_pro, annee_achat, mois_achat, annee_revenus):
+    """Montant d'une année donnée : déduction immédiate ou amortissement linéaire prorata temporis (mois)."""
+    m = P["materiel"]
+    if prix_ht <= m["seuil_deduction_immediate_HT"]:
+        return prix_ht * usage_pro if annee_revenus == annee_achat else 0.0
+    duree = m["duree_amortissement_informatique_ans"]
+    annuite = prix_ht / duree
+    mois_annee_1 = 12 - mois_achat + 1
+    rang = annee_revenus - annee_achat
+    if rang < 0 or rang > duree:
+        return 0.0
+    if rang == 0:
+        part = annuite * mois_annee_1 / 12
+    elif rang < duree:
+        part = annuite
+    else:
+        part = annuite * (12 - mois_annee_1) / 12
+    return part * usage_pro
+
+
+def part_surface(surface_bureau, surface_totale, studio=False):
+    return P["teletravail"]["studio_part_professionnelle"] if studio else surface_bureau / surface_totale
+
+
+def ratio_local(usage, jours_tt, jours_travailles):
+    t = P["teletravail"]
+    if usage == "dedie":
+        return jours_tt / jours_travailles
+    return jours_tt * t["heures_par_journee_teletravail_local_mixte"] / t["heures_par_an"]
+
+
 def plafond_frais_reels_vehicule(km, frais_justifies_hors_peages_parking_interets):
     return min(frais_justifies_hors_peages_parking_interets, bareme_km(km, "voiture", 7))
 
@@ -143,6 +174,29 @@ cas("TLT-04", "100 j concentrés sur 4 mois : le plafond mensuel réduit le forf
 # --- Matériel ---
 cas("MAT-01", "Ordinateur 450 € HT, usage pro 60 %", {"prix_ht": 450, "usage_pro": 0.6}, {"montant": r2(materiel(450, 0.6))}, "déduction immédiate ≤ 500 € HT")
 cas("MAT-02", "Ordinateur 1 200 € HT acheté en juillet, usage pro 50 %", {"prix_ht": 1200, "usage_pro": 0.5, "mois_utilises_annee_achat": 6}, {"montant_annee_1": r2(materiel(1200, 0.5, 6))}, "amortissement 3 ans prorata temporis")
+
+cas("MAT-03", "Ordinateur 1 200 € HT acheté en juillet 2024, usage pro 50 %, revenus 2025 (année pleine)",
+    {"prix_ht": 1200, "usage_pro": 0.5, "annee_achat": 2024, "mois_achat": 7, "annee_revenus": 2025},
+    {"montant": r2(materiel_annee(1200, 0.5, 2024, 7, 2025))}, "BOI-RSA-BASE-30-50-30-40 §80 : annuité pleine")
+cas("MAT-04", "Même ordinateur, revenus 2027 : dernière fraction (6 mois)",
+    {"prix_ht": 1200, "usage_pro": 0.5, "annee_achat": 2024, "mois_achat": 7, "annee_revenus": 2027},
+    {"montant": r2(materiel_annee(1200, 0.5, 2024, 7, 2027))}, "amortissement prorata temporis")
+cas("MAT-05", "Écran 300 € HT acheté en 2024 : rien en 2025", {"prix_ht": 300, "usage_pro": 1, "annee_achat": 2024, "mois_achat": 3, "annee_revenus": 2025},
+    {"montant": r2(materiel_annee(300, 1, 2024, 3, 2025))}, "déduction immédiate l'année d'achat seulement")
+
+# --- Télétravail aux frais réels (notice 2041 GP) ---
+tr1 = 10000 * part_surface(10, 100) * ratio_local("dedie", 188, 235)
+cas("TLR-01", "Pièce réservée au travail, 10 m² sur 100, charges 10 000 €, 4 j/sem (188 j sur 235)",
+    {"usage": "dedie", "charges": 10000, "surface_bureau": 10, "surface_totale": 100, "jours_tt": 188, "jours_travailles": 235},
+    {"montant": r2(tr1)}, "Notice 2041 GP : usage exclusif 4 j/semaine = 80 %")
+tr2 = 10000 * part_surface(10, 100) * ratio_local("mixte", 188, 235)
+cas("TLR-02", "Même pièce à usage mixte : 188 j × 12 h / 8 760 h",
+    {"usage": "mixte", "charges": 10000, "surface_bureau": 10, "surface_totale": 100, "jours_tt": 188, "jours_travailles": 235},
+    {"montant": r2(tr2)}, "Notice 2041 GP : usage mixte, 12 h par journée")
+tr3 = 6000 * part_surface(0, 0, studio=True) * ratio_local("mixte", 94, 218)
+cas("TLR-03", "Studio, charges 6 000 €, 2 j/sem (94 j) : 50 % de la surface, usage mixte",
+    {"usage": "mixte", "studio": True, "charges": 6000, "jours_tt": 94, "jours_travailles": 218},
+    {"montant": r2(tr3)}, "Notice 2041 GP : studio, moitié de la surface")
 
 # --- Frais réels de véhicule hors barème ---
 cas("VHB-01", "Frais justifiés 9 000 € pour 15 000 km : plafond barème 7 CV", {"km": 15000, "frais_justifies": 9000}, {"montant_retenu": r2(plafond_frais_reels_vehicule(15000, 9000))}, "BOI-RSA-BASE-30-50-30-20 §500-520")
@@ -229,4 +283,8 @@ if __name__ == "__main__":
     assert r2(teletravail_forfait(tlt3)) == 594.0
     assert r2(teletravail_forfait(tlt4)) == 237.6
     assert sum(arrondi_euro(x) for x in (f_km, f_rep, f_tlt, 211)) == 5714
+    assert r2(materiel_annee(1200, 0.5, 2024, 7, 2024)) == r2(materiel(1200, 0.5, 6))  # cohérent avec MAT-02
+    assert r2(materiel_annee(1200, 0.5, 2024, 7, 2025)) == 200.0
+    assert r2(materiel_annee(1200, 0.5, 2024, 7, 2027)) == 100.0
+    assert r2(tr1) == 800.0
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

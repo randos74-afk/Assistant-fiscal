@@ -10,7 +10,7 @@ Assistant-fiscal/
 ├── LISEZ-MOI.md                  Ce fichier
 ├── docs/                         Spécifications + PDF officiels + textes aide à domicile
 ├── parametres/revenus-2025.json  Tous les chiffres fiscaux (un fichier par année)
-├── tests/                        35 cas de test + calcul de référence
+├── tests/                        42 cas de test + calcul de référence
 ├── design/                       Couleurs, maquettes, logo et icône Play Store
 ├── src/ …                        Le code existant de l'application
 ```

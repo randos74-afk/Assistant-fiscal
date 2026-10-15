@@ -8,7 +8,8 @@ export type IdIllustration =
   | "carte-grise-energie"
   | "itineraire"
   | "bulletin-titres"
-  | "releve-repas";
+  | "releve-repas"
+  | "bulletin-allocation-teletravail";
 
 export interface FicheAide {
   titre: string;
@@ -106,6 +107,17 @@ export const FICHES = {
     motsAChercher: ["Titres-restaurant", "Tickets restaurant", "Carte repas", "Part patronale"],
     siIntrouvable:
       "Choisissez « Je ne sais pas » pour la part de l'employeur : nous retiendrons {tauxPrudent} de la valeur du titre, le choix le plus prudent.",
+  },
+  allocationTeletravail: {
+    titre: "Où trouver ce chiffre ?",
+    illustration: "bulletin-allocation-teletravail",
+    texteAlternatif:
+      "Exemple de bulletin de paie de décembre : la ligne « Indemnité télétravail », colonne « Cumul annuel », est entourée en orange. Elle indique 220 €.",
+    ouRegarder:
+      "Sur votre bulletin de décembre, la ligne d'indemnité ou de remboursement de télétravail, colonne du cumul annuel. Elle est souvent parmi les lignes sans cotisations.",
+    motsAChercher: ["Indemnité télétravail", "Allocation télétravail", "Forfait télétravail", "Remboursement frais internet"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » : nous ajouterons {forfait} par jour de télétravail à votre salaire, le choix le plus prudent.",
   },
 } satisfies Record<string, FicheAide>;
 

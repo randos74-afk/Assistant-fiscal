@@ -11,6 +11,7 @@ import {
   type Comparaison,
 } from "./calcul";
 import { arrondiEuro, euros, eurosCentimes, nombre } from "./format";
+import { teletravailReel, type EntreeTeletravailReel } from "./teletravail";
 
 /** « thermique » : énergie inconnue, valeur prudente (barème non majoré). */
 export type Energie = "essence" | "diesel" | "hybride" | "GPL" | "hydrogène" | "électrique" | "thermique";
@@ -60,6 +61,9 @@ export interface EntreeDeclarant {
   vehicules?: EntreeVehicule[];
   repas?: EntreeRepasDeclarant[];
   teletravailJoursParMois?: number[];
+  /** F5.10 — Méthode retenue ; « reel » exige le détail des frais. */
+  teletravailMethode?: "forfait" | "reel";
+  teletravailReel?: EntreeTeletravailReel;
   autresFrais?: MontantLibelle[];
   reintegrations?: MontantLibelle[];
 }
@@ -165,8 +169,11 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     });
   }
 
-  // Télétravail : forfait, plafonné mois par mois.
-  if (e.teletravailJoursParMois && e.teletravailJoursParMois.some((j) => j > 0)) {
+  // Télétravail : frais réels si choisis, sinon forfait plafonné mois par mois.
+  if (e.teletravailMethode === "reel" && e.teletravailReel) {
+    const t = teletravailReel(p, e.teletravailReel, p.millesime.revenus);
+    if (t.total > 0) lignes.push({ categorie: "teletravail", texte: `Télétravail : ${t.formule}.`, montant: arrondiEuro(t.total) });
+  } else if (e.teletravailJoursParMois && e.teletravailJoursParMois.some((j) => j > 0)) {
     const t = teletravailForfait(p, e.teletravailJoursParMois);
     lignes.push({ categorie: "teletravail", texte: `Télétravail : ${t.formule}.`, montant: arrondiEuro(t.montant) });
   }
