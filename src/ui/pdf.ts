@@ -3,6 +3,7 @@
 import type { ResultatDeclarant } from "../moteur/declarant";
 import { euros, nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
+import { noteExplicative, texteReintegrations } from "../parcours/noteExplicative";
 import logoComplet from "../../design/logo/logo-complet.png";
 
 const echapper = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -24,6 +25,7 @@ export function htmlPdf({ parametres: p, resultat: r, prudentes, justificatifs, 
     ? `Avec vos frais réels, votre revenu imposable baisse de ${euros(c.gainBase)} par rapport à l'abattement automatique de ${taux}.` +
       (impot ? ` Impôt estimé : ${euros(impot.avecAbattement)} avec l'abattement, ${euros(impot.avecFraisReels)} avec les frais réels, soit ${euros(impot.gain)} de moins.` : "")
     : `L'abattement automatique de ${taux} est plus avantageux pour vous : ne changez rien.`;
+  const note = noteExplicative(r, p.millesime.revenus, 1, prudentes, justificatifs);
   const lignes = r.lignes
     .map((l) => `<tr><td>${echapper(l.texte.charAt(0).toUpperCase() + l.texte.slice(1))}</td><td class="m">${euros(l.montant)}</td></tr>`)
     .join("");
@@ -50,6 +52,15 @@ export function htmlPdf({ parametres: p, resultat: r, prudentes, justificatifs, 
   ul.cases li::before { content: "\\2610\\00a0\\00a0"; }
   footer { margin-top: 20px; border-top: 1px solid #111; padding-top: 6px; font-size: 8.5pt; }
   section { break-inside: avoid; }
+  .note { break-before: page; }
+  .note h1 { text-align: center; margin-bottom: 14px; }
+  .note p { margin: 0 0 8px; text-align: justify; }
+  .note h2 { text-transform: none; letter-spacing: 0; font-size: 11.5pt; border-bottom: 1px solid #111; padding-bottom: 2px; }
+  .note .identite td { border: 0; padding: 4px 0; }
+  .note .ligne-vide { border-bottom: 1px dotted #111 !important; width: 70%; }
+  .note .sous-total td { font-weight: bold; border-bottom: 0; }
+  .note .signature { margin-top: 28px; display: flex; justify-content: space-between; }
+  .note .signature div { width: 45%; border-top: 1px solid #111; padding-top: 4px; font-size: 9.5pt; }
 </style></head>
 <body>
 <header>
@@ -89,6 +100,64 @@ ${r.alertes.length ? `<p><strong>Points d'attention :</strong> ${echapper(r.aler
 <h2>Justificatifs à conserver 3 ans</h2>
 <ul class="cases">${justificatifs.map((j) => `<li>${echapper(j)}</li>`).join("")}</ul>
 </section>
+
+<div class="note">
+<h1>${echapper(note.titre)}</h1>
+<table class="identite">
+  <tr><td>Nom et prénom</td><td class="ligne-vide"></td></tr>
+  <tr><td>Numéro fiscal</td><td class="ligne-vide"></td></tr>
+</table>
+
+<section>
+<h2>1. Option pour les frais réels</h2>
+${note.introduction.map((t) => `<p>${echapper(t)}</p>`).join("")}
+</section>
+
+<section>
+<h2>2. Détail des frais</h2>
+${
+  note.sections.length
+    ? note.sections
+        .map(
+          (sec) => `<h3 style="font-size:10.5pt;margin:12px 0 4px">${echapper(sec.titre)}</h3>
+<table>${sec.lignes.map((l) => `<tr><td>${echapper(l.texte)}</td><td class="m">${euros(l.montant)}</td></tr>`).join("")}
+${sec.lignes.length > 1 ? `<tr class="sous-total"><td>Sous-total</td><td class="m">${euros(sec.sousTotal)}</td></tr>` : ""}</table>`,
+        )
+        .join("")
+    : "<p>Aucun frais réel.</p>"
+}
+</section>
+${
+  note.motifs.length
+    ? `<section><h2>3. Circonstances particulières</h2>${note.motifs.map((m) => `<p>${echapper(m)}</p>`).join("")}</section>`
+    : ""
+}
+${
+  note.reintegrations.length
+    ? `<section><h2>${note.motifs.length ? 4 : 3}. Sommes de l'employeur ajoutées au salaire</h2>
+<table>${note.reintegrations.map((x) => `<tr><td>${echapper(x.libelle.charAt(0).toUpperCase() + x.libelle.slice(1))}</td><td class="m">${euros(x.montant)}</td></tr>`).join("")}</table>
+<p style="margin-top:6px">${echapper(texteReintegrations(note, r.caseSalaire))}</p></section>`
+    : ""
+}
+
+<section>
+<h2>Récapitulatif</h2>
+<table>${note.sections.map((sec) => `<tr><td>${echapper(sec.titre)}</td><td class="m">${euros(sec.sousTotal)}</td></tr>`).join("")}
+  <tfoot><tr><td>Total des frais réels, case ${r.caseFraisReels}</td><td class="m">${nombre(note.total)} €</td></tr></tfoot>
+</table>
+</section>
+
+<section>
+<h2>Pièces justificatives conservées</h2>
+<ul>${note.justificatifs.map((j) => `<li>${echapper(j)}</li>`).join("")}</ul>
+<p>${echapper(note.conclusion)}</p>
+</section>
+
+<div class="signature">
+  <div>Fait à ………………………, le ……………………</div>
+  <div>Signature</div>
+</div>
+</div>
 
 <footer>
   C'est une estimation indicative, pas un conseil fiscal. Seuls impots.gouv.fr et votre avis d'imposition font foi.<br>

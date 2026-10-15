@@ -114,6 +114,12 @@ export interface LigneResume {
 
 export interface ResultatDeclarant {
   caseFraisReels: string;
+  /** Case du salaire du même déclarant (1AJ à 1DJ). */
+  caseSalaire: string;
+  /** Circonstances particulières reprises dans le résumé (distance, double résidence, employeurs…). */
+  motifs: string[];
+  /** Sommes de l'employeur ajoutées au salaire déclaré. */
+  reintegrations: MontantLibelle[];
   lignes: LigneResume[];
   montantCase: number;
   totalReintegrations: number;
@@ -129,6 +135,7 @@ export interface ResultatDeclarant {
 }
 
 const CASES = ["1AK", "1BK", "1CK", "1DK"];
+const CASES_SALAIRE = ["1AJ", "1BJ", "1CJ", "1DJ"];
 
 /** Texte brut pour la déclaration en ligne : « x » plutôt que « × ». */
 function brut(texte: string): string {
@@ -292,6 +299,9 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
 
   return {
     caseFraisReels,
+    caseSalaire: CASES_SALAIRE[e.numero - 1],
+    motifs,
+    reintegrations,
     lignes,
     montantCase,
     totalReintegrations,

@@ -250,6 +250,7 @@ F9 rend le résultat utilisable hors de l'application sans jamais faire sortir d
 | F9.7 | Paramètres annuels | Fichier de paramètres signé et daté, mis à jour par publication de l'application ; mention « paramètres valables pour les revenus 2025 » visible sur chaque résultat |
 | F9.8 | Mentions légales | Estimation indicative, non constitutive de conseil fiscal ; seuls impots.gouv.fr et l'avis d'imposition font foi |
 | F9.9 | Accessibilité et langue | Français, vocabulaire sans jargon (pas de sigles non expliqués), lisible sur téléphone, thème clair et sombre |
+| F9.10 | Note explicative | Deuxième partie du PDF, sur une nouvelle page : option pour les frais réels (article 83, 3° du CGI), rappel que le montant 1AK ne se soustrait pas du salaire 1AJ, détail par poste (formule et montant), circonstances particulières, sommes de l'employeur ajoutées au salaire, récapitulatif dont le total égale la case 1AK, valeurs prudentes signalées, pièces conservées 3 ans, lieu, date et signature. Nom et numéro fiscal laissés en blanc, à remplir à la main (aucune donnée personnelle stockée). Réponse à la consigne de l'administration : « Vous devrez indiquer le détail de vos frais dans une note explicative, et conserver les pièces justificatives pendant 3 ans » |
 
 ## 12. F10 — Situation familiale
 

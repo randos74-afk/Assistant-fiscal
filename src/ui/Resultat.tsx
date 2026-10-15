@@ -204,6 +204,13 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisem
           <button type="button" className="bouton bouton-secondaire" onClick={() => setPdfBloque(!onPdf())}>
             Imprimer ou enregistrer en PDF
           </button>
+          {r.montantCase > 0 && (
+            <p className="champ-detail">
+              {typographie(
+                "Le PDF contient votre note explicative : le détail de chaque frais, prêt à signer. L'administration demande cette note et vos justificatifs pendant 3 ans.",
+              )}
+            </p>
+          )}
           {pdfBloque && (
             <p className="champ-erreur">{typographie("Votre navigateur a bloqué la fenêtre : autorisez les fenêtres pour ce site, puis réessayez.")}</p>
           )}
