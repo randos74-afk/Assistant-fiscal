@@ -49,6 +49,7 @@ export interface Parametres {
     moto_thermique: BaremeParPuissance;
     moto_electrique: BaremeParPuissance;
   };
+  resume_1ak: { longueur_cible_caracteres: number };
   alertes_vraisemblance: Record<string, number>;
   valeurs_prudentes_je_ne_sais_pas: Record<string, number | string>;
   [cle: string]: unknown;

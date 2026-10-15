@@ -1,6 +1,7 @@
 // Vérifie le moteur contre tests/cas-de-test.json (générés par tests/reference_calcul.py).
 import { describe, expect, it } from "vitest";
 import casDeTest from "../../tests/cas-de-test.json";
+import { calculerDeclarant } from "./declarant";
 import { arrondiEuro } from "./format";
 import { chargerParametres } from "./parametres";
 import {
@@ -54,14 +55,8 @@ function calculer(c: Cas): Record<string, unknown> {
     }
     case "VHB":
       return { montant_retenu: plafondFraisReelsVehicule(p, e.km, e.frais_justifies).montant };
-    case "RES": {
-      const km = kmDomicileTravail(p, e.aller_km, e.jours_sur_site);
-      const fraisKm = baremeKm(p, { km, cv: e.cv }).montant;
-      const fraisRepas = repas(p, e.repas).montant;
-      const tlt = teletravailForfait(p, repartirJoursParMois(e.teletravail_jours)).montant;
-      const total = fraisKm + fraisRepas + tlt + e.documentation;
-      return { km, frais_km: fraisKm, repas: fraisRepas, teletravail: tlt, total, total_arrondi_1AK: arrondiEuro(total) };
-    }
+    case "RES":
+      return calculerResume(c);
     case "ADM":
       return calculerAideDomicile(c);
     case "SEU": {
@@ -73,6 +68,64 @@ function calculer(c: Cas): Record<string, unknown> {
     }
   }
   throw new Error(`Famille de cas inconnue : ${c.id}`);
+}
+
+/** Entrée de RES-01, réutilisée pour vérifier le texte de la spécification. */
+const declarantRes01 = {
+  numero: 1,
+  salairePrerempli: 40000,
+  vehicules: [{ type: "voiture" as const, energie: "diesel" as const, cv: 5, allerKm: 22, joursSurSite: 180 }],
+  repas: [{ nb: 180, prix: 12, justification: "pas de cantine, déjeuner à domicile impossible" }],
+  teletravailJoursParMois: repartirJoursParMois(38),
+  autresFrais: [{ libelle: "documentation professionnelle", montant: 211 }],
+};
+
+function calculerResume(c: Cas): Record<string, unknown> {
+  const e = c.entrees;
+  if (c.id === "RES-01") {
+    const km = kmDomicileTravail(p, e.aller_km, e.jours_sur_site);
+    const fraisKm = baremeKm(p, { km, cv: e.cv }).montant;
+    const fraisRepas = repas(p, e.repas).montant;
+    const tlt = teletravailForfait(p, repartirJoursParMois(e.teletravail_jours)).montant;
+    return {
+      km,
+      frais_km: fraisKm,
+      repas: fraisRepas,
+      teletravail: tlt,
+      total: fraisKm + fraisRepas + tlt + e.documentation,
+      montant_1AK: calculerDeclarant(p, declarantRes01).montantCase,
+    };
+  }
+  const r = calculerDeclarant(p, {
+    numero: 1,
+    salairePrerempli: e.salaire_prerempli,
+    vehicules: [
+      {
+        type: "voiture",
+        energie: e.energie,
+        cv: e.cv,
+        allerKm: e.aller_km,
+        motifDistance: e.motif,
+        joursSurSite: e.jours_sur_site,
+        kmMissions: e.km_missions,
+        peagesParking: e.peages_parking,
+        interetsCredit: e.interets_credit,
+        kmTotauxCompteur: e.km_totaux_compteur,
+      },
+    ],
+    repas: [{ nb: e.repas.nb, prix: e.repas.prix, partEmployeurTitreRestaurant: e.repas.part_employeur_tr }],
+    teletravailJoursParMois: e.teletravail_jours_par_mois,
+    autresFrais: [{ libelle: "cotisation syndicale", montant: e.cotisation_syndicale }],
+    reintegrations: [{ libelle: "titres-restaurant part employeur", montant: e.reintegration_titres_restaurant }],
+  });
+  return {
+    km: e.aller_km * 2 * e.jours_sur_site + e.km_missions,
+    lignes: r.lignes.map((l) => l.montant),
+    montant_1AK: r.montantCase,
+    base_abattement_10: r.comparaison.baseAbattement10,
+    base_frais_reels: r.comparaison.baseFraisReels,
+    gain_base: r.comparaison.gainBase,
+  };
 }
 
 function calculerAideDomicile(c: Cas): Record<string, unknown> {
@@ -122,8 +175,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 35 cas", () => {
-    expect(casDeTest.cas.length).toBe(35);
+  it("contient bien les 36 cas", () => {
+    expect(casDeTest.cas.length).toBe(36);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));
@@ -152,5 +205,57 @@ describe("Détail des formules", () => {
     const r = repartirJoursParMois(38);
     expect(r.reduce((s, j) => s + j, 0)).toBe(38);
     expect(Math.max(...r) - Math.min(...r)).toBeLessThanOrEqual(1);
+  });
+});
+
+describe("Résumé 1AK (F8)", () => {
+  it("reproduit le texte modèle de la spécification", () => {
+    const r = calculerDeclarant(p, declarantRes01);
+    expect(r.texte).toBe(
+      [
+        "Frais réels déclarant 1 : 5 714 € (case 1AK).",
+        "Véhicule : voiture diesel 5 CV, 7 920 km dans l'année (domicile-travail 22 km x 2 x 180 j sur site), barème : 7 920 x 0,357 + 1 395 = 4 222 €.",
+        "Péages et parking : 0 €. Intérêts crédit auto : 0 €.",
+        "Repas : 180 repas x (12,00 - 5,45) = 1 179 €, pas de cantine, déjeuner à domicile impossible.",
+        "Télétravail : forfait 2,70 € x 38 j = 102 €.",
+        "Autres : documentation professionnelle 211 €.",
+        "Salaire 1AJ majoré de 0 € (aucun remboursement employeur). Justificatifs conservés.",
+      ].join("\n"),
+    );
+    expect(r.depasseLongueurCible).toBe(false);
+  });
+  it("garantit que la somme des lignes égale la case", () => {
+    const r = calculerDeclarant(p, declarantRes01);
+    expect(r.lignes.reduce((s, l) => s + l.montant, 0)).toBe(r.montantCase);
+  });
+  it("reprend le motif de distance et les réintégrations", () => {
+    const r = calculerDeclarant(p, {
+      numero: 2,
+      salairePrerempli: 30000,
+      vehicules: [{ type: "voiture", energie: "électrique", cv: 11, allerKm: 55, joursSurSite: 100, motifDistance: "emploi du conjoint" }],
+      reintegrations: [{ libelle: "prime de transport", montant: 300 }],
+    });
+    expect(r.caseFraisReels).toBe("1BK");
+    expect(r.texte).toContain("voiture électrique 11 CV (barème 7 CV), 11 000 km");
+    expect(r.texte).toContain("Motifs : distance de 55 km retenue (emploi du conjoint).");
+    expect(r.texte).toContain("Salaire 1AJ majoré de 300 € (prime de transport 300 €).");
+  });
+  it("ramène la distance à 40 km sans motif et le signale", () => {
+    const r = calculerDeclarant(p, {
+      numero: 1,
+      salairePrerempli: 30000,
+      vehicules: [{ type: "voiture", energie: "essence", cv: 5, allerKm: 55, joursSurSite: 100 }],
+    });
+    expect(r.texte).toContain("8 000 km dans l'année (domicile-travail 40 km x 2 x 100 j sur site)");
+    expect(r.alertes[0]).toContain("Distance ramenée de 55 à 40 km");
+  });
+  it("ne retient pas les intérêts sans kilométrage total, avec une alerte", () => {
+    const r = calculerDeclarant(p, {
+      numero: 1,
+      salairePrerempli: 30000,
+      vehicules: [{ type: "voiture", energie: "essence", cv: 5, allerKm: 10, joursSurSite: 100, interetsCredit: 500 }],
+    });
+    expect(r.texte).toContain("Intérêts crédit auto : 0 €.");
+    expect(r.alertes.some((a) => a.includes("Intérêts du crédit auto non retenus"))).toBe(true);
   });
 });

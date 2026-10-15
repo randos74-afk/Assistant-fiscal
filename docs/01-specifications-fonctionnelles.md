@@ -216,18 +216,18 @@ Chaque calcul se termine systématiquement par deux blocs à copier : le montant
 | F8.3 | Lignes complémentaires | Péages et parking, intérêts, repas (nombre × montant unitaire), télétravail (méthode et jours), chaque poste F6 ouvert |
 | F8.4 | Motifs | Motif dépassement 40 km, double aller-retour, double résidence repris en une phrase |
 | F8.5 | Réintégrations | Ligne « salaire majoré de X € (titres-restaurant, transport, télétravail) » |
-| F8.6 | Contrôle du total | Somme des lignes = montant 1AK, au centime près, sinon blocage |
+| F8.6 | Contrôle du total | Chaque ligne est arrondie à l'euro inférieur et le montant 1AK est la somme de ces lignes : l'égalité est garantie par construction |
 | F8.7 | Format | Texte brut sans mise en forme, montants arrondis à l'euro inférieur (décision du 15/10/2026, comme les exemples GP 120 : 2 460,50 € → 2 460 €), longueur cible 1 000 caractères avec compteur affiché |
 | F8.8 | Copie | Bouton « copier » pour la case et pour le texte, séparément, par déclarant |
 
 Modèle de texte généré (exemple fictif) :
 
 ```markdown
-Frais réels déclarant 1 : 5 715 € (case 1AK).
+Frais réels déclarant 1 : 5 714 € (case 1AK).
 Véhicule : voiture diesel 5 CV, 7 920 km dans l'année (domicile-travail 22 km x 2 x 180 j sur site), barème : 7 920 x 0,357 + 1 395 = 4 222 €.
 Péages et parking : 0 €. Intérêts crédit auto : 0 €.
 Repas : 180 repas x (12,00 - 5,45) = 1 179 €, pas de cantine, déjeuner à domicile impossible.
-Télétravail : forfait 2,70 € x 38 j = 103 €.
+Télétravail : forfait 2,70 € x 38 j = 102 €.
 Autres : documentation professionnelle 211 €.
 Salaire 1AJ majoré de 0 € (aucun remboursement employeur). Justificatifs conservés.
 ```

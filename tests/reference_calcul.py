@@ -155,8 +155,30 @@ f_tlt = teletravail_forfait(repartir_jours_par_mois(38))
 total_ex = f_km + f_rep + f_tlt + 211
 cas("RES-01", "Exemple du résumé 1AK (spécification §10)",
     {"aller_km": 22, "jours_sur_site": 180, "cv": 5, "repas": {"nb": 180, "prix": 12}, "teletravail_jours": 38, "documentation": 211},
-    {"km": km_ex, "frais_km": r2(f_km), "repas": r2(f_rep), "teletravail": r2(f_tlt), "total": r2(total_ex), "total_arrondi_1AK": arrondi_euro(total_ex)},
-    "Spécifications fonctionnelles §10 : 5 715 €")
+    {"km": km_ex, "frais_km": r2(f_km), "repas": r2(f_rep), "teletravail": r2(f_tlt), "total": r2(total_ex),
+     "montant_1AK": sum(arrondi_euro(x) for x in (f_km, f_rep, f_tlt, 211))},
+    "Spécifications F8 : chaque ligne arrondie à l'euro inférieur, case 1AK = somme des lignes = 5 714 €")
+
+# Déclarant complet : distance > 40 km avec motif, missions, péages, intérêts, titres-restaurant, réintégration.
+km_v = 55 * 2 * 150 + 1500
+lignes_r2 = [
+    bareme_km(km_v, cv=6),            # véhicule
+    320.50,                           # péages et parking
+    600 * km_v / 20000,               # intérêts × km pro / km totaux
+    repas(150, 11.20, 5.00),          # repas avec titres-restaurant
+    teletravail_forfait([8] * 11 + [0]),
+    180,                              # cotisation syndicale
+]
+case_r2 = sum(arrondi_euro(x) for x in lignes_r2)
+b10, br, g = gain_base_imposable(32000, 750, case_r2)
+cas("RES-02", "Déclarant complet : 55 km avec motif, missions, péages, intérêts, titres-restaurant",
+    {"salaire_prerempli": 32000, "aller_km": 55, "motif": "emploi du conjoint", "jours_sur_site": 150, "km_missions": 1500,
+     "cv": 6, "energie": "essence", "peages_parking": 320.50, "interets_credit": 600, "km_totaux_compteur": 20000,
+     "repas": {"nb": 150, "prix": 11.20, "part_employeur_tr": 5.00}, "teletravail_jours_par_mois": [8] * 11 + [0],
+     "cotisation_syndicale": 180, "reintegration_titres_restaurant": 750},
+    {"km": km_v, "lignes": [arrondi_euro(x) for x in lignes_r2], "montant_1AK": case_r2,
+     "base_abattement_10": r2(b10), "base_frais_reels": r2(br), "gain_base": r2(g)},
+    "Spécifications F3, F4, F5, F8 ; arrondi à l'euro inférieur par ligne")
 
 # --- Aide à domicile ADMR (spécification F13) ---
 km_admr = 40 * 200
@@ -206,5 +228,5 @@ if __name__ == "__main__":
     assert r2(repas(218, 10)) == 991.90  # l'article source annonce 991,60 € par erreur
     assert r2(teletravail_forfait(tlt3)) == 594.0
     assert r2(teletravail_forfait(tlt4)) == 237.6
-    assert arrondi_euro(total_ex) == 5715
+    assert sum(arrondi_euro(x) for x in (f_km, f_rep, f_tlt, 211)) == 5714
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

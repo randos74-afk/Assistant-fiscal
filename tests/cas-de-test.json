@@ -415,9 +415,62 @@
         "repas": 1179.0,
         "teletravail": 102.6,
         "total": 5715.04,
-        "total_arrondi_1AK": 5715
+        "montant_1AK": 5714
       },
-      "source": "Spécifications fonctionnelles §10 : 5 715 €"
+      "source": "Spécifications F8 : chaque ligne arrondie à l'euro inférieur, case 1AK = somme des lignes = 5 714 €"
+    },
+    {
+      "id": "RES-02",
+      "titre": "Déclarant complet : 55 km avec motif, missions, péages, intérêts, titres-restaurant",
+      "entrees": {
+        "salaire_prerempli": 32000,
+        "aller_km": 55,
+        "motif": "emploi du conjoint",
+        "jours_sur_site": 150,
+        "km_missions": 1500,
+        "cv": 6,
+        "energie": "essence",
+        "peages_parking": 320.5,
+        "interets_credit": 600,
+        "km_totaux_compteur": 20000,
+        "repas": {
+          "nb": 150,
+          "prix": 11.2,
+          "part_employeur_tr": 5.0
+        },
+        "teletravail_jours_par_mois": [
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          8,
+          0
+        ],
+        "cotisation_syndicale": 180,
+        "reintegration_titres_restaurant": 750
+      },
+      "attendu": {
+        "km": 18000,
+        "lignes": [
+          8189,
+          320,
+          540,
+          112,
+          237,
+          180
+        ],
+        "montant_1AK": 9578,
+        "base_abattement_10": 28800.0,
+        "base_frais_reels": 23172.0,
+        "gain_base": 5628.0
+      },
+      "source": "Spécifications F3, F4, F5, F8 ; arrondi à l'euro inférieur par ligne"
     },
     {
       "id": "ADM-01",

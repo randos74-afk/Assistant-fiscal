@@ -141,6 +141,11 @@
     ]
   },
 
+  "resume_1ak": {
+    "longueur_cible_caracteres": 1000,
+    "source": "Spécifications F8.7 : longueur cible, la limite réelle du champ en ligne reste à vérifier"
+  },
+
   "points_a_surveiller": [
     "Amendement I-CF1500 (budget 2027) : plancher du barème km revenus 2026 = barème 2025 × 1,10 si voté ; prévoir un coefficient dans revenus-2026.json.",
     "Plafond des frais réels hors barème pour véhicule électrique : barème 7 CV électrique ou thermique ? À confirmer dans le BOFiP en vigueur.",
