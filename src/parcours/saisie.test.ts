@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { afficherMontant, erreurMontant, lireMontant } from "./saisie";
+import { afficherMontant, erreurEntier, erreurMontant, lireEntier, lireMontant } from "./saisie";
 
 describe("Lecture des montants", () => {
   it.each([
@@ -25,5 +25,14 @@ describe("Lecture des montants", () => {
   it("affiche à la française", () => {
     expect(afficherMontant(23456.78)).toBe("23 456,78");
     expect(afficherMontant(1200)).toBe("1 200");
+  });
+});
+
+describe("Lecture des nombres de jours", () => {
+  it("lit les entiers et refuse les décimales", () => {
+    expect(lireEntier(" 12 ")).toBe(12);
+    expect(lireEntier("")).toBeNull();
+    expect(Number.isNaN(lireEntier("2,5"))).toBe(true);
+    expect(erreurEntier("abc")).toContain("entier");
   });
 });

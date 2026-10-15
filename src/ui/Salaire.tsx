@@ -6,7 +6,7 @@ import { FICHES } from "../parcours/fichesAide";
 import { afficherMontant, lireMontant } from "../parcours/saisie";
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
-import { ChampMontant } from "./ChampMontant";
+import { ChampMontant } from "./ChampNombre";
 import { typographie } from "./typographie";
 import { BandeauConfidentialite, Encadre, EnTeteEtape } from "./Question";
 

@@ -1,11 +1,13 @@
 // Règle des trois niveaux (docs/02 §4) : astérisque ambre, fiche « Où trouver ce chiffre ? », « Je ne sais pas ».
 import { useEffect, useRef } from "react";
 import type { FicheAide as Fiche, IdIllustration } from "../parcours/fichesAide";
-import { BulletinNetImposable } from "./illustrations/Bulletin";
+import { AvenantTeletravail, BulletinCompteurs, BulletinNetImposable } from "./illustrations/DocumentExemple";
 import { typographie } from "./typographie";
 
 const ILLUSTRATIONS: Record<IdIllustration, (props: { texteAlternatif: string }) => JSX.Element> = {
   "bulletin-net-imposable": BulletinNetImposable,
+  "bulletin-compteurs": BulletinCompteurs,
+  "avenant-teletravail": AvenantTeletravail,
 };
 
 export function BoutonAsterisque({ onClick }: { onClick: () => void }) {
