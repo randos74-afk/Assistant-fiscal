@@ -31,7 +31,7 @@ L'écran de filtrage pose cinq questions avant tout calcul :
 4. « Avez-vous habité en France toute l'année ? »
 5. « Exercez-vous l'un de ces métiers : assistant maternel, artiste du spectacle, journaliste, élu ? »
 
-Une personne exclue reçoit un message bienveillant expliquant pourquoi l'outil ne lui convient pas, sans paiement possible. Un salarié ayant aussi une activité d'artisan peut continuer, pour son seul salaire.
+Une personne exclue reçoit un message bienveillant expliquant pourquoi l'outil ne lui convient pas. L'application étant payée au téléchargement (décision du 15/10/2026), le filtrage arrive après l'achat : l'écran d'exclusion indique comment demander le remboursement sur Google Play, et la fiche Play Store doit lister clairement les situations exclues pour éviter l'achat. Un salarié ayant aussi une activité d'artisan peut continuer, pour son seul salaire.
 
 Après le filtrage, l'écran « Votre métier » propose les parcours métier (spécifications fonctionnelles F13 et F14) : intervenant à domicile, soignant salarié, enseignant, grand rouleur ou double résidence, autre métier.
 

@@ -410,3 +410,11 @@ a {
 .bandeau-confidentialite svg {
   color: var(--vert-economie);
 }
+
+.choix-detail {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--taille-texte-min);
+  font-weight: 400;
+  color: var(--texte-secondaire);
+}

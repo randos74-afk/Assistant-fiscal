@@ -49,7 +49,7 @@ export function ChoixUnique({
 }: {
   nom: string;
   legende: string;
-  options: { valeur: string; libelle: string }[];
+  options: { valeur: string; libelle: string; detail?: string }[];
   valeur: string | undefined;
   onChoix: (valeur: string) => void;
 }) {
@@ -59,7 +59,14 @@ export function ChoixUnique({
       {options.map((o) => (
         <label key={o.valeur} className={o.valeur === valeur ? "choix-option choix-option-coche" : "choix-option"}>
           <input type="radio" name={nom} value={o.valeur} checked={o.valeur === valeur} onChange={() => onChoix(o.valeur)} />
-          {o.libelle}
+          {o.detail ? (
+            <span>
+              {o.libelle}
+              <small className="choix-detail">{o.detail}</small>
+            </span>
+          ) : (
+            o.libelle
+          )}
         </label>
       ))}
     </fieldset>

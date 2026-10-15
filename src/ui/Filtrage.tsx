@@ -13,13 +13,15 @@ import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Que
 
 interface Props {
   millesime: number;
-  onAccepte: (aussiEntreprise: boolean) => void;
+  reponsesInitiales?: Reponses;
+  indiceInitial?: number;
+  onAccepte: (aussiEntreprise: boolean, reponses: Reponses) => void;
   onAccueil: () => void;
 }
 
-export function Filtrage({ millesime, onAccepte, onAccueil }: Props) {
-  const [indice, setIndice] = useState(0);
-  const [reponses, setReponses] = useState<Reponses>({});
+export function Filtrage({ millesime, reponsesInitiales = {}, indiceInitial = 0, onAccepte, onAccueil }: Props) {
+  const [indice, setIndice] = useState(indiceInitial);
+  const [reponses, setReponses] = useState<Reponses>(reponsesInitiales);
   const [exclusion, setExclusion] = useState<Exclusion | null>(null);
 
   const total = QUESTIONS_FILTRAGE.length;
@@ -36,7 +38,7 @@ export function Filtrage({ millesime, onAccepte, onAccueil }: Props) {
     if (partiel.statut === "exclu") return setExclusion(partiel.exclusion);
     if (indice < total - 1) return setIndice(indice + 1);
     const resultat = evaluerFiltrage(reponses);
-    if (resultat.statut === "accepte") onAccepte(resultat.aussiEntreprise);
+    if (resultat.statut === "accepte") onAccepte(resultat.aussiEntreprise, reponses);
   }
 
   function retour() {
@@ -95,7 +97,9 @@ export function EcranExclusion({
         <h1 className="titre-question">FraisFit ne convient pas à votre situation</h1>
         <p style={{ margin: 0 }}>{exclusion.raison}</p>
         <Encadre>{exclusion.conseil}</Encadre>
-        <p className="texte-secondaire">Merci d'avoir vérifié avant de commencer.</p>
+        <p className="texte-secondaire">
+          Si vous venez d'acheter FraisFit, vous pouvez demander son remboursement sur Google Play.
+        </p>
       </main>
 
       <PiedDePage>
