@@ -1,6 +1,7 @@
 // Étape 3 : votre trajet (F3). Choix proposés lus dans le barème du millésime, jamais dans le code.
 import type { Energie, EntreeVehicule } from "../moteur/declarant";
 import type { Parametres, TypeVehicule } from "../moteur/types";
+import { nomEmployeur, type Employeur } from "./employeurs";
 
 export type ModeTrajet = TypeVehicule | "transports" | "doux";
 
@@ -89,6 +90,8 @@ export interface SaisieTrajet {
   peagesParking: number;
   interetsCredit: number;
   kmTotauxCompteur?: number;
+  /** F12 — Plusieurs employeurs : distance aller et jours sur site de chacun, dans l'ordre des fiches du salaire. */
+  employeurs?: { allerKm: number; joursSurSite: number }[];
   /** F3.8 — Total des kilomètres professionnels de l'année déjà calculé par la personne ; remplace distance × jours. */
   kmAnnuel?: number;
 }
@@ -98,8 +101,12 @@ export function estVehicule(mode: ModeTrajet): mode is TypeVehicule {
 }
 
 /** Traduit les réponses en entrée du moteur de calcul (un véhicule). */
-export function vehiculePourMoteur(p: Parametres, t: SaisieTrajet, joursSurSite: number): EntreeVehicule | null {
+export function vehiculePourMoteur(p: Parametres, t: SaisieTrajet, joursSurSite: number, employeurs?: Employeur[]): EntreeVehicule | null {
   if (!estVehicule(t.mode)) return null;
+  const parEmployeur =
+    employeurs && employeurs.length > 1 && t.employeurs?.length === employeurs.length && t.kmAnnuel === undefined
+      ? t.employeurs.map((e, i) => ({ nom: nomEmployeur(employeurs[i], i), allerKm: e.allerKm, joursSurSite: e.joursSurSite }))
+      : undefined;
   const lignes = lignesDuBareme(p, t.mode);
   return {
     type: t.mode,
@@ -114,5 +121,6 @@ export function vehiculePourMoteur(p: Parametres, t: SaisieTrajet, joursSurSite:
     interetsCredit: t.interetsCredit || undefined,
     kmTotauxCompteur: t.kmTotauxCompteur,
     kmForce: t.kmAnnuel,
+    trajetsEmployeurs: parEmployeur,
   };
 }

@@ -176,6 +176,8 @@ export default function App() {
           parametres={parametres}
           joursSurSite={joursSurSite}
           couple={foyer?.couple}
+          employeurs={salaire?.employeurs}
+          siteParMois={jours?.mois.map((m) => m.site)}
           valeurInitiale={trajet}
           onRetour={precedent("jours")}
           onValider={(t) => (setTrajet(t), suivant("repas"))}

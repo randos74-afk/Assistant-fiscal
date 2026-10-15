@@ -3,6 +3,7 @@ import { useState } from "react";
 import { calculerDeclarant } from "../moteur/declarant";
 import type { Parametres } from "../moteur/types";
 import { libelleEtape } from "../parcours/etapes";
+import { joursSurSiteParEmployeur, nomEmployeur, periode, type Employeur } from "../parcours/employeurs";
 import { completerFiche, FICHES, type FicheAide as Fiche } from "../parcours/fichesAide";
 import { lireEntier, lireMontant } from "../parcours/saisie";
 import {
@@ -30,6 +31,9 @@ interface Props {
   joursSurSite: number;
   /** Foyer connu : sans conjoint, le motif « emploi du conjoint » n'est pas proposé. */
   couple?: boolean;
+  /** F12 — Employeurs de l'année (deux ou plus) et jours sur site de chaque mois, pour un trajet par employeur. */
+  employeurs?: Employeur[];
+  siteParMois?: number[];
   valeurInitiale?: SaisieTrajet;
   onValider: (trajet: SaisieTrajet) => void;
   onRetour: () => void;
@@ -38,11 +42,26 @@ interface Props {
 const nombreOuZero = (n: number | null) => (n === null || Number.isNaN(n) ? 0 : n);
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
-export function Trajet({ parametres: p, joursSurSite, couple, valeurInitiale: v, onValider, onRetour }: Props) {
-  const [question, setQuestion] = useState<Question>(v ? "bilan" : "mode");
+export function Trajet({ parametres: p, joursSurSite, couple, employeurs, siteParMois, valeurInitiale: v, onValider, onRetour }: Props) {
+  // Employeurs changés depuis la dernière saisie : on repasse par les distances.
+  const employeursAJour = !employeurs || employeurs.length < 2 || v?.kmAnnuel !== undefined || v?.employeurs?.length === employeurs.length;
+  const [question, setQuestion] = useState<Question>(v ? (employeursAJour ? "bilan" : "distance") : "mode");
   const [mode, setMode] = useState<ModeTrajet | undefined>(v?.mode);
   const [distance, setDistance] = useState(v?.allerKm ? String(v.allerKm) : "");
   const [parTotal, setParTotal] = useState(v?.kmAnnuel !== undefined);
+  // F12 : une distance et des jours sur site par employeur, jours pré-remplis d'après les mois de chacun.
+  const listeEmployeurs = employeurs && employeurs.length > 1 ? employeurs : null;
+  const memesEmployeurs = listeEmployeurs !== null && v?.employeurs?.length === listeEmployeurs.length;
+  const [distancesEmp, setDistancesEmp] = useState<string[]>(
+    listeEmployeurs ? listeEmployeurs.map((_, i) => (memesEmployeurs ? String(v!.employeurs![i].allerKm || "") : "")) : [],
+  );
+  const [joursEmp, setJoursEmp] = useState<string[]>(
+    listeEmployeurs
+      ? memesEmployeurs
+        ? v!.employeurs!.map((e) => String(e.joursSurSite))
+        : joursSurSiteParEmployeur(listeEmployeurs, siteParMois ?? []).map(String)
+      : [],
+  );
   const [total, setTotal] = useState(v?.kmAnnuel ? String(v.kmAnnuel) : "");
   const [guideDistance, setGuideDistance] = useState(false);
   const [motif, setMotif] = useState<string | undefined>(v ? (v.motifDistance ?? "aucun") : undefined);
@@ -62,13 +81,21 @@ export function Trajet({ parametres: p, joursSurSite, couple, valeurInitiale: v,
   const etape = libelleEtape("votre trajet");
   const plafond = p.deplacements.distance_aller_max_sans_justification_km;
   const allerKm = lireEntier(distance);
-  const auDelaDuPlafond = allerKm !== null && !Number.isNaN(allerKm) && allerKm > plafond;
+  const plusieurs = listeEmployeurs !== null && !parTotal;
+  const distancesEmpNb = distancesEmp.map(lireEntier);
+  const joursEmpNb = joursEmp.map(lireEntier);
+  const auDelaDuPlafond = plusieurs
+    ? distancesEmpNb.some((d) => d !== null && !Number.isNaN(d) && d > plafond)
+    : allerKm !== null && !Number.isNaN(allerKm) && allerKm > plafond;
   const kmTotal = lireEntier(total);
 
   function saisie(): SaisieTrajet {
     return {
       mode: mode!,
-      allerKm: parTotal ? 0 : nombreOuZero(allerKm),
+      allerKm: parTotal || plusieurs ? 0 : nombreOuZero(allerKm),
+      ...(plusieurs
+        ? { employeurs: distancesEmpNb.map((d, i) => ({ allerKm: nombreOuZero(d), joursSurSite: nombreOuZero(joursEmpNb[i]) })) }
+        : {}),
       motifDistance: (parTotal || auDelaDuPlafond) && motif && motif !== "aucun" ? motif : undefined,
       ...(parTotal ? { kmAnnuel: nombreOuZero(kmTotal) } : {}),
       energie: energie ?? "thermique",
@@ -163,11 +190,53 @@ export function Trajet({ parametres: p, joursSurSite, couple, valeurInitiale: v,
         );
         break;
       }
-      titre = "Combien de kilomètres entre chez vous et votre travail, aller simple ?";
-      peutContinuer = allerKm !== null && !Number.isNaN(allerKm) && allerKm > 0 && (!auDelaDuPlafond || motif !== undefined);
+      titre = plusieurs
+        ? "Combien de kilomètres entre chez vous et chacun de vos travails, aller simple ?"
+        : "Combien de kilomètres entre chez vous et votre travail, aller simple ?";
+      peutContinuer = plusieurs
+        ? distancesEmpNb.every((d) => d !== null && !Number.isNaN(d) && d >= 0) &&
+          distancesEmpNb.some((d) => (d ?? 0) > 0) &&
+          joursEmpNb.every((j) => j !== null && !Number.isNaN(j)) &&
+          (!auDelaDuPlafond || motif !== undefined)
+        : allerKm !== null && !Number.isNaN(allerKm) && allerKm > 0 && (!auDelaDuPlafond || motif !== undefined);
       contenu = (
         <>
-          <ChampNombre libelle={titre} unite="km" valeur={distance} onChange={setDistance} />
+          {plusieurs ? (
+            <>
+              {listeEmployeurs!.map((e, i) => (
+                <section key={i} className="carte" aria-labelledby={`trajet-employeur-${i}`}>
+                  <h2 id={`trajet-employeur-${i}`}>
+                    {nomEmployeur(e, i)} <small className="choix-detail">{periode(e)}</small>
+                  </h2>
+                  <ChampNombre
+                    compact
+                    libelleVisible
+                    libelle="Distance aller simple"
+                    detail="0 si vous n'y alliez pas avec ce véhicule."
+                    unite="km"
+                    valeur={distancesEmp[i]}
+                    onChange={(t) => setDistancesEmp(distancesEmp.map((x, k) => (k === i ? t : x)))}
+                  />
+                  <ChampNombre
+                    compact
+                    libelleVisible
+                    libelle="Jours sur site chez cet employeur"
+                    detail="Pré-rempli d'après vos jours et la période de cet employeur. Corrigez si besoin."
+                    unite="jours"
+                    valeur={joursEmp[i]}
+                    onChange={(t) => setJoursEmp(joursEmp.map((x, k) => (k === i ? t : x)))}
+                  />
+                </section>
+              ))}
+              <Encadre>
+                {typographie(
+                  "Nous additionnons les kilomètres de tous vos employeurs avant d'appliquer le barème. Un trajet direct d'un employeur à l'autre dans la même journée se compte dans « trajets pour mon travail », à la question suivante.",
+                )}
+              </Encadre>
+            </>
+          ) : (
+            <ChampNombre libelle={titre} unite="km" valeur={distance} onChange={setDistance} />
+          )}
           <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotal(true), setMotif(undefined))}>
             J'ai déjà calculé mes kilomètres de l'année
           </button>

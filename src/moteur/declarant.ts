@@ -200,7 +200,7 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     const plafond = p.deplacements.distance_aller_max_sans_justification_km;
     for (const t of parEmployeur ?? []) {
       if (!v.motifDistance && t.allerKm > plafond) {
-        alertes.push(`Distance de ${t.nom} ramenée de ${nombre(t.allerKm)} à ${nombre(plafond)} km : indiquez un motif pour retenir la distance réelle.`);
+        alertes.push(`Trajet vers ${t.nom} ramené de ${nombre(t.allerKm)} à ${nombre(plafond)} km : indiquez un motif pour retenir la distance réelle.`);
       }
     }
     if (!parEmployeur && v.allerKm > aller) {

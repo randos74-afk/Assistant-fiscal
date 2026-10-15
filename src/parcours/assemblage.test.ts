@@ -87,4 +87,25 @@ describe("Parcours complet", () => {
     const r = calculerParcours(p, { salaire: exemple.salaire, jours: exemple.jours });
     expect(r.comparaison.fraisReelsConseilles).toBe(false);
   });
+
+  it("deux employeurs : kilomètres additionnés avant le barème, une ligne par employeur (F12, EMP-01)", () => {
+    const r = calculerParcours(p, {
+      ...exemple,
+      salaire: {
+        montant: 25500,
+        source: "employeurs",
+        employeurs: [
+          { nom: "Garage Dupuis", debut: 0, fin: 5, salaire: 12000 },
+          { nom: "", debut: 6, fin: 11, salaire: 13500 },
+        ],
+      },
+      trajet: { ...exemple.trajet!, allerKm: 0, employeurs: [{ allerKm: 22, joursSurSite: 100 }, { allerKm: 50, joursSurSite: 110 }] },
+    });
+    expect(r.kmVehicules).toEqual([13200]);
+    expect(r.texte).toContain("13 200 km dans l'année (Garage Dupuis 22 km x 2 x 100 j sur site + Employeur 2 40 km x 2 x 110 j sur site)");
+    expect(r.texte).toContain(
+      "2 employeurs dans l'année : Garage Dupuis (janvier à juin, salaire 12 000 €, 22 km aller), Employeur 2 (juillet à décembre, salaire 13 500 €, 50 km aller)",
+    );
+    expect(r.alertes.some((a) => a.includes("Trajet vers Employeur 2 ramené de 50 à 40 km"))).toBe(true);
+  });
 });

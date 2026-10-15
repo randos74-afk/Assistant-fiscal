@@ -8,9 +8,10 @@ import { repasPourMoteur, type SaisieRepas } from "./repas";
 import { entreeReel, reintegrationsTeletravail, type SaisieTeletravail } from "./teletravail";
 import { vehiculePourMoteur, type SaisieTrajet } from "./trajet";
 import { domicilePourMoteur, type SaisieDomicile } from "./domicile";
+import { resumeEmployeurs, type Employeur } from "./employeurs";
 
 export interface Reponses {
-  salaire?: { montant: number; source: string };
+  salaire?: { montant: number; source: string; employeurs?: Employeur[] };
   jours?: { prudent: boolean; mois: JoursDuMois[]; joursParSemaine?: number };
   trajet?: SaisieTrajet;
   /** Parcours aide à domicile : remplace le trajet. */
@@ -26,7 +27,8 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
   const autres = r.autres ? autresFraisPourMoteur(p, r.autres) : { autresFrais: [], motifs: [], kmVehiculeEnPlus: 0 };
 
   const domicile = r.domicile ? domicilePourMoteur(p, r.domicile) : null;
-  const vehicule = domicile ? domicile.vehicule : r.trajet ? vehiculePourMoteur(p, r.trajet, t.site) : null;
+  const employeurs = r.salaire?.employeurs && r.salaire.employeurs.length > 1 ? r.salaire.employeurs : undefined;
+  const vehicule = domicile ? domicile.vehicule : r.trajet ? vehiculePourMoteur(p, r.trajet, t.site, employeurs) : null;
   if (vehicule && autres.kmVehiculeEnPlus > 0) vehicule.kmDoubleResidence = autres.kmVehiculeEnPlus;
 
   const repas = r.repas ? repasPourMoteur(r.repas, t.site, p) : { repas: null, reintegrations: [] };
@@ -46,7 +48,11 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
       ...repas.reintegrations,
       ...(r.teletravail ? reintegrationsTeletravail(r.teletravail) : []),
     ],
-    motifs: autres.motifs,
+    // F12.8 — Une ligne par employeur (période, salaire, distance) dans le résumé.
+    motifs: [
+      ...(employeurs ? [resumeEmployeurs(employeurs, vehicule?.trajetsEmployeurs ? r.trajet?.employeurs?.map((e) => e.allerKm) : undefined)] : []),
+      ...autres.motifs,
+    ],
   };
 }
 
