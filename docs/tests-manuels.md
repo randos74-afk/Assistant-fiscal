@@ -101,3 +101,11 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] « Employeur qui lave les tenues » : conseil « ne comptez que leur achat » dans les autres frais ; sinon « l'achat et l'entretien comptent ».
 - [ ] « Précédent » depuis le salaire ramène aux trois questions ; la relecture et le résultat sont inchangés.
 - [ ] Autre métier : aucun de ces écrans ni conseils.
+
+## Indemnités kilométriques pour tous (règle d'or n° 4) — livré le 16/10/2026
+
+- [ ] Voiture, moto ou cyclomoteur : à l'étape « D'autres frais pour ce véhicule ? », la question « Votre employeur vous a-t-il remboursé des kilomètres ? » est obligatoire.
+- [ ] Oui : montant obligatoire (bulletins + notes de frais remboursées à part), ajouté au salaire dans le bilan et au résultat.
+- [ ] La question des déplacements pour le travail dit « remboursés ou non » et renvoie au remboursement.
+- [ ] Fiche d'aide : bulletin de décembre, notes de frais, différence avec les avantages en nature.
+- [ ] Simulation enregistrée avant ce changement : rouverte, le trajet reste valide (indemnités à 0).

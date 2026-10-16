@@ -124,7 +124,7 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
       peagesParking: avecPeages ? nombreOuZero(lireMontant(peages)) : 0,
       interetsCredit: avecCredit ? nombreOuZero(lireMontant(interets)) : 0,
       kmTotauxCompteur: avecCredit ? nombreOuZero(lireEntier(kmCompteur)) || undefined : undefined,
-      ...(totalAnnuelConseille && mode && estVehicule(mode) ? { indemnitesKmRecues: ikRecues ? nombreOuZero(lireMontant(ik)) : 0 } : {}),
+      ...(mode && estVehicule(mode) ? { indemnitesKmRecues: ikRecues ? nombreOuZero(lireMontant(ik)) : 0 } : {}),
       ...(mode === "covoiturage" ? { montantPaye: montantPayePrudent ? null : nombreOuZero(lireMontant(montantPaye)) } : {}),
       ...(mode && estVehicule(mode) && avecCovoit
         ? {
@@ -434,7 +434,7 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
       const nbJoursCovoit = lireEntier(joursCovoit);
       const ikNb = lireMontant(ik);
       peutContinuer =
-        (!totalAnnuelConseille || ikRecues === false || (ikRecues === true && ikNb !== null && !Number.isNaN(ikNb) && ikNb > 0)) &&
+        (ikRecues === false || (ikRecues === true && ikNb !== null && !Number.isNaN(ikNb) && ikNb > 0)) &&
         champs.every(valide) &&
         (!avecCovoit ||
           (participationsPrudentes
@@ -446,51 +446,49 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
             {typographie("Cochez seulement ce qui vous concerne. Sans justificatif, laissez décoché : rien ne sera compté.")}
           </p>
 
-          {totalAnnuelConseille && (
-            <section className="carte" aria-labelledby="titre-ik">
-              <div className="question-titre" style={{ alignItems: "center" }}>
-                <h2 id="titre-ik" style={{ flex: 1 }}>
-                  {typographie("Votre employeur vous a-t-il remboursé des kilomètres cette année ?")}
-                </h2>
-                <BoutonAsterisque
-                  onClick={() =>
-                    setAide({
-                      ...FICHES.indemnitesKm,
-                      ouRegarder:
-                        "Sur votre bulletin de décembre, ligne « indemnités kilométriques » ou « frais de déplacement », colonne du cumul de l'année. Sans cumul, additionnez les montants de vos 12 bulletins.",
-                      siIntrouvable:
-                        "Demandez le cumul de l'année au service paie : ce montant est indispensable, car vos kilomètres remboursés sont comptés dans votre total.",
-                    })
-                  }
-                />
-              </div>
-              <ChoixUnique
-                nom="ik"
-                legende="Indemnités kilométriques reçues"
-                options={[
-                  { valeur: "non", libelle: "Non" },
-                  { valeur: "oui", libelle: "Oui", detail: "Ligne « indemnités kilométriques » ou « frais de déplacement » de vos bulletins." },
-                ]}
-                valeur={ikRecues === undefined ? undefined : ikRecues ? "oui" : "non"}
-                onChoix={(x) => setIkRecues(x === "oui")}
+          <section className="carte" aria-labelledby="titre-ik">
+            <div className="question-titre" style={{ alignItems: "center" }}>
+              <h2 id="titre-ik" style={{ flex: 1 }}>
+                {typographie("Votre employeur vous a-t-il remboursé des kilomètres cette année ?")}
+              </h2>
+              <BoutonAsterisque
+                onClick={() =>
+                  setAide({
+                    ...FICHES.indemnitesKm,
+                    ouRegarder:
+                      "Sur votre bulletin de décembre, ligne « indemnités kilométriques » ou « frais de déplacement », colonne du cumul de l'année. Ajoutez les notes de frais remboursées à part (relevés bancaires, état de frais). Ce ne sont pas des avantages en nature : ceux-ci sont déjà dans votre net imposable.",
+                    siIntrouvable:
+                      "Demandez le cumul de l'année au service paie : ce montant est indispensable, car avec les frais réels tous vos kilomètres sont comptés, y compris ceux qui vous ont été remboursés.",
+                  })
+                }
               />
-              {ikRecues && (
-                <ChampMontant
-                  compact
-                  libelleVisible
-                  libelle="Montant reçu dans l'année"
-                  detail="Cumul de l'année sur votre bulletin de décembre. Il sera ajouté à votre salaire, puisque vos kilomètres sont tous comptés."
-                  valeur={ik}
-                  onChange={setIk}
-                />
-              )}
-            </section>
-          )}
+            </div>
+            <ChoixUnique
+              nom="ik"
+              legende="Indemnités kilométriques reçues"
+              options={[
+                { valeur: "non", libelle: "Non" },
+                { valeur: "oui", libelle: "Oui", detail: "Sur vos bulletins (« indemnités kilométriques », « frais de déplacement ») ou par notes de frais remboursées à part." },
+              ]}
+              valeur={ikRecues === undefined ? undefined : ikRecues ? "oui" : "non"}
+              onChoix={(x) => setIkRecues(x === "oui")}
+            />
+            {ikRecues && (
+              <ChampMontant
+                compact
+                libelleVisible
+                libelle="Montant reçu dans l'année"
+                detail="Cumul de l'année sur votre bulletin de décembre, plus les notes de frais remboursées à part. Il sera ajouté à votre salaire : comptez alors tous vos kilomètres, remboursés ou non."
+                valeur={ik}
+                onChange={setIk}
+              />
+            )}
+          </section>
 
           {!parTotal && (
             <label className="case-a-cocher">
               <input type="checkbox" checked={avecMissions} onChange={(e) => setAvecMissions(e.target.checked)} />
-              Je fais aussi des trajets pour mon travail, non remboursés
+              Je fais aussi des trajets pour mon travail (rendez-vous, chantiers, formations)
             </label>
           )}
           {avecMissions && !parTotal && (
@@ -498,7 +496,7 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
               compact
               libelleVisible
               libelle="Kilomètres de ces trajets dans l'année"
-              detail="Rendez-vous, chantiers, formations, avec ce véhicule."
+              detail="Avec ce véhicule, remboursés ou non. S'ils sont remboursés, indiquez le remboursement plus haut : il sera ajouté à votre salaire."
               unite="km"
               valeur={missions}
               onChange={setMissions}
