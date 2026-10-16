@@ -71,3 +71,12 @@ describe("Vraisemblance (F11)", () => {
     expect(v.alertes).toEqual([]);
   });
 });
+
+describe("F7.7 — frais supérieurs à la rémunération", () => {
+  it("explique le déficit imputé sur le revenu global", () => {
+    const r = calculerDeclarant(p, { numero: 1, salairePrerempli: 5000, autresFrais: [{ libelle: "formation", montant: 6200 }] });
+    const v = evaluerVraisemblance(p, r, { joursSurSite: 0, joursParSemaine: 5, doubleResidence: false, motifEmploiConjoint: false });
+    expect(v.niveau).toBe(3);
+    expect(v.alertes.some((a) => a.includes("dépassent votre rémunération de 1 200 €") && a.includes("six années suivantes"))).toBe(true);
+  });
+});

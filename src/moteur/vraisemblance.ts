@@ -61,5 +61,14 @@ export function evaluerVraisemblance(p: Parametres, r: ResultatDeclarant, c: Con
     alertes.push("Le motif « emploi du conjoint » suppose un conjoint ou partenaire : choisissez un autre motif ou ramenez la distance au plafond.");
   }
 
+  // F7.7 — Frais supérieurs à la rémunération : l'excédent est un déficit imputé sur le revenu global
+  // (BOI-RSA-BASE-10 § 20, CGI art. 156 I).
+  const excedent = -r.comparaison.baseFraisReels;
+  if (excedent > 0) {
+    alertes.push(
+      `Vos frais dépassent votre rémunération de ${euros(excedent)}. Cet excédent se déduit de vos autres revenus et de ceux de votre foyer ; s'il en reste, il se reporte sur les six années suivantes. Déclarez le montant total de vos frais : le site des impôts fait ce calcul. L'administration vérifie que des frais aussi élevés sont justifiés.`,
+    );
+  }
+
   return { niveau, message: messages[niveau], postesAVerifier, alertes };
 }

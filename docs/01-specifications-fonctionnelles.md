@@ -430,7 +430,7 @@ Ces dépenses sont refusées par l'application avec une phrase d'explication, po
 | Valeurs 2026 (repas foyer, télétravail, barème) | À charger dès la brochure pratique 2027 |
 | Deux PDF du projet (« déclarer frais réels article », « comment déclarer ») | Scans sans texte lisible : à remplacer par une version texte pour contrôle |
 | Limite de caractères du champ en ligne | À vérifier sur impots.gouv.fr au printemps 2027 |
-| Frais réels supérieurs au salaire (F7.7) | Règle d'imputation à confirmer dans le BOFiP avant développement |
+| Frais réels supérieurs au salaire (F7.7) | Réglé le 16/10/2026 : l'excédent est un déficit déduit du revenu global (BOI-RSA-BASE-10 § 20, CGI art. 156 I) ; explication affichée, calcul de l'impôt du foyer sur la somme des bases |
 
 ### Sources consultées
 

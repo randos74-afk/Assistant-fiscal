@@ -207,7 +207,7 @@ export function Resultat({ parametres: p, resultat: r, nonVerifiees, casAdminist
             </p>
             <p className="detail-calcul">− frais {euros(r.montantCase)}</p>
             <p className="colonne-base montant">{euros(c.baseFraisReels)}</p>
-            <p className="detail-calcul">revenu imposable</p>
+            <p className="detail-calcul">{c.baseFraisReels < 0 ? "déficit, déduit de vos autres revenus" : "revenu imposable"}</p>
           </section>
         </div>
 
