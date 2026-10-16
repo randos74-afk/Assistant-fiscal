@@ -10,7 +10,8 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] En passant `conditions.version` à « 1.1 » dans `contenu/configuration.json`, l'écran revient avec « Nos conditions ont changé le… ».
 - [ ] « Lire les conditions générales » ouvre le texte complet ; « Fermer » ramène à l'écran d'où l'on venait.
 - [ ] Tant que l'adresse de l'annexe vaut `[URL Google Site]`, « Limites d'usage : bientôt en ligne » s'affiche (pas de lien cassé).
-- [ ] Une fois la vraie adresse mise dans la configuration, le lien ouvre le site Google dans un nouvel onglet.
+- [ ] Le lien « Lire les limites d'usage » ouvre https://sites.google.com/view/fraisfit-cgv dans un nouvel onglet (adresse réglée le 16/10/2026).
+- [ ] La page Google affiche bien le texte de l'annexe (vue depuis un téléphone non connecté au compte Google).
 - [ ] Pied de page : le lien « Conditions et limites d'usage » est présent sur tous les écrans.
 - [ ] Écran d'exclusion du filtrage (par exemple travail à l'étranger) : le lien vers les limites d'usage est présent.
 - [ ] Carte « Ce cas doit être tranché par l'administration » : trajet de plus de 40 km avec un motif, puis formation ou déménagement ouvert dans « Autres frais » → la carte apparaît dans la relecture et dans « Avant de recopier ».
