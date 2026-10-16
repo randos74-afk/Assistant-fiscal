@@ -126,7 +126,9 @@ export function conseilsMetier(param: Parametres, id: IdProfil | undefined, q: Q
       c.teletravail.push("Votre bureau à la maison se déclare à l'étape suivante, « Vos autres frais ». Ne le comptez pas ici en plus.");
     }
     if (q.mute) c.autres.push("Muté dans l'intérêt du service ou par avancement : vos frais de déménagement sont déductibles. Gardez l'arrêté d'affectation.");
-    c.autres.push("Ordinateur aussi utilisé en privé : indiquez votre part réelle d'usage professionnel, jamais un pourcentage forfaitaire.");
+    c.autres.push(
+      "Ordinateur aussi utilisé en privé : estimez la part du travail d'après vos heures d'utilisation (l'aide « M'aider à estimer » fait le calcul), jamais un pourcentage forfaitaire.",
+    );
     c.autres.push("Justificatifs utiles : calendrier scolaire, emploi du temps, arrêté d'affectation, factures.");
     return c;
   }

@@ -75,5 +75,6 @@ describe("F14 — enseignant", () => {
     expect(c.teletravail[0]).toContain("Vos autres frais");
     expect(c.autres.join(" ")).toContain("déménagement sont déductibles");
     expect(c.autres.join(" ")).toContain("jamais un pourcentage forfaitaire");
+    expect(c.autres.join(" ")).toContain("heures d'utilisation");
   });
 });

@@ -122,3 +122,4 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] « Une salle de travail existe sur place » : message d'attention, puis carte « Ce cas doit être tranché par l'administration ».
 - [ ] Étape télétravail : conseil « votre bureau se déclare dans Vos autres frais ».
 - [ ] Conseils restaurant scolaire, ordinateur à usage mixte, justificatifs (calendrier scolaire, arrêté d'affectation).
+- [ ] Achat de matériel (télétravail ou autres frais) : lien « M'aider à estimer cette part » ; heures pour le travail et pour la vie privée → pourcentage arrondi vers le bas ; « Utiliser X % » remplit le champ.

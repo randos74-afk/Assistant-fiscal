@@ -1,5 +1,6 @@
 // Liste d'achats de matériel (F6.9) : déduits l'année d'achat ou amortis. Partagée par le télétravail et les autres frais.
-import { useId } from "react";
+import { useId, useState } from "react";
+import { partUsagePro } from "../parcours/saisie";
 import { euros } from "../moteur/format";
 import type { Achat } from "../moteur/teletravail";
 import type { Parametres } from "../moteur/types";
@@ -46,6 +47,39 @@ export function lignesValides(lignes: LigneAchat[]): boolean {
   return lignes.every((a) => !Number.isNaN(lireMontant(a.prix)) && [a.mois, a.annee, a.usage].every((t) => !Number.isNaN(lireEntier(t))));
 }
 
+/**
+ * Aide à l'estimation de la part professionnelle par le temps d'utilisation : heures pour le travail
+ * sur heures au total, sur une semaine habituelle. Une estimation justifiée, jamais un forfait.
+ */
+function AideUsage({ onUtiliser }: { onUtiliser: (pourcentage: number) => void }) {
+  const [ouverte, setOuverte] = useState(false);
+  const [pro, setPro] = useState("");
+  const [prive, setPrive] = useState("");
+  const part = partUsagePro(nombre(pro, lireEntier), nombre(prive, lireEntier));
+  if (!ouverte) {
+    return (
+      <button type="button" className="lien-je-ne-sais-pas" onClick={() => setOuverte(true)}>
+        M'aider à estimer cette part
+      </button>
+    );
+  }
+  return (
+    <div className="encadre encadre-info" style={{ flexDirection: "column", alignItems: "stretch", gap: 8 }}>
+      <p style={{ margin: 0 }}>{typographie("Sur une semaine habituelle, combien d'heures utilisez-vous cet appareil ?")}</p>
+      <ChampNombre compact libelleVisible libelle="Pour le travail" unite="h" valeur={pro} onChange={setPro} />
+      <ChampNombre compact libelleVisible libelle="Pour la vie privée (vous et votre famille)" unite="h" valeur={prive} onChange={setPrive} />
+      {part !== null && (
+        <>
+          <p style={{ margin: 0 }}>{typographie(`Part pour le travail : ${part} %. Notez ce calcul : c'est votre justificatif en cas de question.`)}</p>
+          <button type="button" className="bouton bouton-secondaire" onClick={() => (onUtiliser(part), setOuverte(false))}>
+            {`Utiliser ${part} %`}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 interface Props {
   parametres: Parametres;
   titre: string;
@@ -82,11 +116,12 @@ export function ListeAchats({ parametres: p, titre, exemples, lignes, onChange }
               compact
               libelleVisible
               libelle="Part d'usage pour le travail"
-              detail="Comptez honnêtement l'usage privé : il est retiré."
+              detail="L'usage privé est retiré. Estimez-le d'après votre temps d'utilisation, pas au hasard."
               unite="%"
               valeur={a.usage}
               onChange={(x) => maj("usage", x)}
             />
+            <AideUsage onUtiliser={(part) => maj("usage", String(part))} />
             <button type="button" className="lien-je-ne-sais-pas" onClick={() => onChange(lignes.filter((_, j) => j !== i))}>
               Retirer cet achat
             </button>

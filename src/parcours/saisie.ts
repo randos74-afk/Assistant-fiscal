@@ -34,3 +34,10 @@ export function lireEntier(texte: string): number | null {
 export function erreurEntier(texte: string): string | null {
   return Number.isNaN(lireEntier(texte)) ? "Écrivez un nombre entier, par exemple 12." : null;
 }
+
+/** Part d'usage professionnel en %, arrondie vers le bas (prudence) : heures de travail / heures au total. */
+export function partUsagePro(heuresPro: number, heuresPrivees: number): number | null {
+  const total = heuresPro + heuresPrivees;
+  if (heuresPro < 0 || heuresPrivees < 0 || total <= 0) return null;
+  return Math.floor((heuresPro / total) * 100);
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { afficherMontant, erreurEntier, erreurMontant, lireEntier, lireMontant } from "./saisie";
+import { afficherMontant, erreurEntier, erreurMontant, lireEntier, lireMontant, partUsagePro } from "./saisie";
 
 describe("Lecture des montants", () => {
   it.each([
@@ -34,5 +34,13 @@ describe("Lecture des nombres de jours", () => {
     expect(lireEntier("")).toBeNull();
     expect(Number.isNaN(lireEntier("2,5"))).toBe(true);
     expect(erreurEntier("abc")).toContain("entier");
+  });
+});
+
+describe("Part d'usage professionnel d'un appareil", () => {
+  it("heures de travail sur heures au total, arrondi vers le bas", () => {
+    expect(partUsagePro(6, 8)).toBe(42);
+    expect(partUsagePro(10, 0)).toBe(100);
+    expect(partUsagePro(0, 0)).toBeNull();
   });
 });
