@@ -21,6 +21,17 @@ export function justificatifs(r: Reponses): string[] {
     if (trajet.kmAnnuel) liste.push("Relevé de compteur ou carnet de bord justifiant le total de kilomètres");
     if (trajet.peagesParking > 0) liste.push("Relevés de télépéage et tickets de parking");
     if (trajet.interetsCredit > 0) liste.push("Tableau d'amortissement du crédit auto");
+    if (trajet.lieux?.length) liste.push("Arrêtés d'affectation ou ordres de mission pour chaque établissement");
+    if (trajet.covoiturage?.participations) liste.push("Historique des participations reçues des passagers (plateforme de covoiturage, virements)");
+    if (trajet.indemnitesKmRecues) liste.push("Bulletins de paie et notes de frais : indemnités kilométriques remboursées");
+  }
+  if (trajet?.mode === "covoiturage" && trajet.montantPaye) {
+    liste.push("Historique des paiements au conducteur (plateforme de covoiturage, virements)");
+    liste.push("Itinéraire le plus court entre domicile et travail");
+    if (trajet.motifDistance) liste.push(`Pièce justifiant la distance au-delà du plafond (${trajet.motifDistance})`);
+  }
+  if (r.reintegrationsMetier?.length) {
+    liste.push("Déclaration fiscale des traitements et salaires (ENSAP) ou bulletin de décembre : remboursements de frais");
   }
 
   if (r.domicile) {
@@ -55,7 +66,10 @@ export function justificatifs(r: Reponses): string[] {
   if (autres?.transport) liste.push("Attestation annuelle d'abonnement de transport et bulletin de décembre");
   for (const poste of POSTES) {
     if (!autres?.ouverts.includes(poste.id)) continue;
-    if (poste.id === "doubleResidence") {
+    if (poste.id === "bureauDomicile") {
+      liste.push("Bail ou avis de taxe foncière, factures d'énergie et d'eau, assurance habitation, plan du logement avec la surface de la pièce de travail");
+      liste.push("Attestation de l'employeur : aucun bureau fourni sur place");
+    } else if (poste.id === "doubleResidence") {
       liste.push("Bail et quittances du second logement, justificatif du lieu de vie de la famille");
     } else if (poste.id === "cotisationSyndicale") {
       liste.push("Attestation de cotisation syndicale");

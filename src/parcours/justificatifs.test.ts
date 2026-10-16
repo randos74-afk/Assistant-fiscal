@@ -46,3 +46,22 @@ describe("Justificatifs à conserver (F9.2)", () => {
     expect(liste).toContain("Attestation de cotisation syndicale");
   });
 });
+
+describe("Justificatifs des nouveautés (ajout n° 1, F14)", () => {
+  const voiture = { mode: "voiture" as const, allerKm: 20, energie: "diesel" as const, energiePrudente: false, ligne: "5", puissancePrudente: false, kmMissions: 0, peagesParking: 0, interetsCredit: 0 };
+  it("covoiturage, indemnités kilométriques, établissements, remboursements, bureau", () => {
+    const liste = justificatifs({
+      trajet: { ...voiture, lieux: [{ nom: "A", allerKm: 10, joursSurSite: 50 }], indemnitesKmRecues: 300, covoiturage: { participations: 400, joursParSemaine: null } },
+      reintegrationsMetier: [{ libelle: "ISSR", montant: 1800 }],
+      autres: { ouverts: ["bureauDomicile"], montants: {}, telephonePartPro: 0, achats: [], libelleAutre: "", doubleResidence: null, transport: null },
+    }).join(" | ");
+    expect(liste).toContain("ordres de mission");
+    expect(liste).toContain("participations reçues");
+    expect(liste).toContain("indemnités kilométriques remboursées");
+    expect(liste).toContain("ENSAP");
+    expect(liste).toContain("surface de la pièce de travail");
+  });
+  it("passager d'un covoiturage : historique des paiements", () => {
+    expect(justificatifs({ trajet: { ...voiture, mode: "covoiturage", montantPaye: 1200 } }).join(" ")).toContain("paiements au conducteur");
+  });
+});
