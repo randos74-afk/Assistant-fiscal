@@ -28,6 +28,6 @@
 
 **Article 12 — Évolution.** Les barèmes changent chaque année. L'éditeur peut modifier les présentes conditions ; la nouvelle version est présentée à l'utilisateur au lancement suivant.
 
-**Article 13 — Réclamations et médiation.** Toute réclamation s'adresse d'abord à [adresse email FraisFit]. À défaut d'accord, l'utilisateur peut recourir gratuitement au médiateur de la consommation : [nom, site internet du médiateur — à désigner avant le lancement, obligation des articles L612-1 et suivants]. Plateforme européenne de règlement en ligne des litiges : [à vérifier si toujours en service].
+**Article 13 — Réclamations et médiation.** Toute réclamation s'adresse d'abord à [adresse email FraisFit]. À défaut d'accord, l'utilisateur peut recourir gratuitement à un médiateur de la consommation (articles L612-1 et suivants du Code de la consommation). La liste officielle des médiateurs référencés est consultable sur le site du ministère de l'Économie : https://www.economie.gouv.fr/mediation-conso/liste-des-mediateurs-references.
 
 **Article 14 — Droit applicable.** Les présentes conditions sont soumises au droit français.

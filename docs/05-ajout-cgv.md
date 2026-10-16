@@ -51,7 +51,7 @@ Tests : lien de l'annexe lu depuis la configuration (aucune URL en dur) ; case n
 ## Points à régler par Marc avant la publication
 
 1. Compléter les crochets : identité EI, SIRET, adresse, email, prix, régime de TVA.
-2. Désigner un médiateur de la consommation (adhésion payante, obligatoire pour vendre à des particuliers).
+2. Désigner un médiateur de la consommation (adhésion payante, obligatoire pour vendre à des particuliers). **Décision de Marc (16/10/2026) :** l'article 13 ne nomme pas de médiateur et renvoie à la liste officielle des médiateurs référencés (texte de référence : `contenu/cgv-v1.0.md`). Point signalé par Claude Code : selon la DGCCRF, le professionnel doit indiquer dans ses CGV les coordonnées de **son** médiateur ; à faire valider par le juriste. Phrase sur la plateforme européenne de règlement en ligne retirée (plateforme fermée en juillet 2025, à confirmer par le juriste).
 3. Vérifier qui est le vendeur au sens juridique pour un achat sur Google Play, et adapter les articles 5 et 6.
 4. Faire relire l'ensemble par un avocat ou un juriste, notamment l'article 9.
 5. Donner à Claude Code l'adresse définitive de l'annexe sur le site Google pour remplacer `[URL Google Site]`.
