@@ -1,14 +1,17 @@
 // Étape 3 : votre trajet (F3). Choix proposés lus dans le barème du millésime, jamais dans le code.
+import { distanceRetenue } from "../moteur/calcul";
 import type { Energie, EntreeVehicule } from "../moteur/declarant";
+import { nombre } from "../moteur/format";
 import type { Parametres, TypeVehicule } from "../moteur/types";
 import { nomEmployeur, type Employeur } from "./employeurs";
 
-export type ModeTrajet = TypeVehicule | "transports" | "doux";
+export type ModeTrajet = TypeVehicule | "covoiturage" | "transports" | "doux";
 
 export const MODES: { valeur: ModeTrajet; libelle: string; detail?: string }[] = [
   { valeur: "voiture", libelle: "En voiture" },
   { valeur: "moto", libelle: "En moto ou en scooter", detail: "Plus de 50 cm³." },
   { valeur: "cyclomoteur", libelle: "En cyclomoteur", detail: "50 cm³ ou moins, 45 km/h au plus." },
+  { valeur: "covoiturage", libelle: "En covoiturage, comme passager", detail: "Vous payez un conducteur, par une plateforme ou entre collègues." },
   { valeur: "transports", libelle: "En transports en commun" },
   { valeur: "doux", libelle: "À vélo ou à pied" },
 ];
@@ -94,6 +97,13 @@ export interface SaisieTrajet {
   employeurs?: { allerKm: number; joursSurSite: number }[];
   /** F3.8 — Total des kilomètres professionnels de l'année déjà calculé par la personne ; remplace distance × jours. */
   kmAnnuel?: number;
+  /** Ajout n° 1 — Passager d'un covoiturage : somme payée au conducteur dans l'année ; null = « Je ne sais pas » (rien déduit). */
+  montantPaye?: number | null;
+  /**
+   * Ajout n° 1 — Conducteur d'un covoiturage : participations reçues (null = « Je ne sais pas » : les jours de covoiturage
+   * ne sont pas déduits) et jours de covoiturage par semaine (null = « Je ne sais pas » : tous les jours).
+   */
+  covoiturage?: { participations: number | null; joursParSemaine: number | null };
 }
 
 export function estVehicule(mode: ModeTrajet): mode is TypeVehicule {
@@ -123,4 +133,28 @@ export function vehiculePourMoteur(p: Parametres, t: SaisieTrajet, joursSurSite:
     kmForce: t.kmAnnuel,
     trajetsEmployeurs: parEmployeur,
   };
+}
+
+/**
+ * Retire des jours du trajet d'un véhicule (jours en passager, jours de covoiturage non déduits) :
+ * km, péages et parking de ces jours. Renvoie une alerte si le total de km a été saisi sans distance.
+ */
+export function retirerJoursDuTrajet(p: Parametres, v: EntreeVehicule, n: number): string | null {
+  if (n <= 0) return null;
+  if (v.kmForce !== undefined) {
+    if (v.allerKm > 0) {
+      v.kmForce = Math.max(0, v.kmForce - distanceRetenue(p, v.allerKm, Boolean(v.motifDistance)) * 2 * n);
+      return null;
+    }
+    return `Vous avez indiqué un total de km : retirez-en vous-même les km de ces ${nombre(n)} jours.`;
+  }
+  const site = v.trajetsEmployeurs?.length ? v.trajetsEmployeurs.reduce((s, t) => s + t.joursSurSite, 0) : v.joursSurSite;
+  const ratio = site > 0 ? Math.max(0, site - n) / site : 0;
+  if (v.trajetsEmployeurs?.length) {
+    v.trajetsEmployeurs = v.trajetsEmployeurs.map((t) => ({ ...t, joursSurSite: Math.round(t.joursSurSite * ratio) }));
+  } else {
+    v.joursSurSite = Math.max(0, v.joursSurSite - n);
+  }
+  if (v.peagesParking) v.peagesParking = Math.round(v.peagesParking * ratio * 100) / 100;
+  return null;
 }

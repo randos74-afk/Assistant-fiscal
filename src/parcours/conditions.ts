@@ -121,6 +121,17 @@ export function casAdministration(p: Parametres, r: Reponses, v: Vraisemblance):
     });
   }
 
+  if (r.trajet?.mode === "covoiturage" || r.trajet?.covoiturage) {
+    cas.push({
+      id: "covoiturage",
+      phrase:
+        r.trajet.mode === "covoiturage"
+          ? `Vous déduisez ce que vous payez à un conducteur. Gardez l'historique des paiements ; au-delà de ${plafond} km, notre calcul au prorata reste à confirmer.`
+          : "Vous retirez de vos frais les participations reçues de vos passagers. Cette règle de prudence reste à confirmer par l'administration.",
+      ecran: "trajet",
+    });
+  }
+
   const ouverts = r.autres?.ouverts ?? [];
   if (ouverts.some((o) => o === "doubleResidence" || o === "demenagement" || o === "formation")) {
     cas.push({

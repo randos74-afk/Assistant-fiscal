@@ -178,6 +178,16 @@ export const FICHES = {
     siIntrouvable:
       "Choisissez « Je ne sais pas » : nous retiendrons {joursPrudents} jour par semaine, conduit par celui qui a le plus long trajet. C'est le choix le plus prudent.",
   },
+  covoituragePaiements: {
+    titre: "Où retrouver ces montants ?",
+    illustration: "itineraire",
+    texteAlternatif:
+      "Schéma d'un itinéraire entre la maison et le travail : le trajet le plus court est tracé en bleu et mesure 22 km.",
+    ouRegarder:
+      "Sur l'application ou le site de covoiturage, rubrique « historique », « mes trajets » ou « paiements » : l'année entière y figure. Entre collègues, regardez vos relevés bancaires (virements, Lydia, Wero) ou votre accord écrit.",
+    motsAChercher: ["Historique des trajets", "Paiements", "Mes trajets", "Virement", "Participation aux frais"],
+    siIntrouvable: "{siIntrouvable}",
+  },
 } satisfies Record<string, FicheAide>;
 
 /** Remplace les repères {nom} d'un texte de fiche par les valeurs du millésime. */

@@ -24,7 +24,7 @@ import { ChampMontant, ChampNombre } from "./ChampNombre";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
-type Question = "mode" | "distance" | "energie" | "puissance" | "frais" | "bilan";
+type Question = "mode" | "distance" | "paiement" | "energie" | "puissance" | "frais" | "bilan";
 
 interface Props {
   parametres: Parametres;
@@ -76,12 +76,20 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
   const [avecCredit, setAvecCredit] = useState(Boolean(v?.interetsCredit));
   const [interets, setInterets] = useState(v?.interetsCredit ? String(v.interetsCredit) : "");
   const [kmCompteur, setKmCompteur] = useState(v?.kmTotauxCompteur ? String(v.kmTotauxCompteur) : "");
+  // Ajout n° 1 — Covoiturage hors du foyer : passager (somme payée) ou conducteur (participations reçues).
+  const [montantPaye, setMontantPaye] = useState(v?.montantPaye ? String(v.montantPaye) : "");
+  const [montantPayePrudent, setMontantPayePrudent] = useState(v?.mode === "covoiturage" && v.montantPaye === null);
+  const [avecCovoit, setAvecCovoit] = useState(Boolean(v?.covoiturage));
+  const [participations, setParticipations] = useState(v?.covoiturage?.participations ? String(v.covoiturage.participations) : "");
+  const [participationsPrudentes, setParticipationsPrudentes] = useState(v?.covoiturage?.participations === null);
+  const [joursCovoit, setJoursCovoit] = useState(v?.covoiturage?.joursParSemaine ? String(v.covoiturage.joursParSemaine) : "");
+  const [joursCovoitPrudent, setJoursCovoitPrudent] = useState(v?.covoiturage?.participations === null && v.covoiturage.joursParSemaine === null);
   const [aide, setAide] = useState<Fiche | null>(null);
 
   const etape = libelleEtape("votre trajet");
   const plafond = p.deplacements.distance_aller_max_sans_justification_km;
   const allerKm = lireEntier(distance);
-  const plusieurs = listeEmployeurs !== null && !parTotal;
+  const plusieurs = listeEmployeurs !== null && !parTotal && mode !== "covoiturage";
   const distancesEmpNb = distancesEmp.map(lireEntier);
   const joursEmpNb = joursEmp.map(lireEntier);
   const auDelaDuPlafond = plusieurs
@@ -106,6 +114,15 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
       peagesParking: avecPeages ? nombreOuZero(lireMontant(peages)) : 0,
       interetsCredit: avecCredit ? nombreOuZero(lireMontant(interets)) : 0,
       kmTotauxCompteur: avecCredit ? nombreOuZero(lireEntier(kmCompteur)) || undefined : undefined,
+      ...(mode === "covoiturage" ? { montantPaye: montantPayePrudent ? null : nombreOuZero(lireMontant(montantPaye)) } : {}),
+      ...(mode && estVehicule(mode) && avecCovoit
+        ? {
+            covoiturage: {
+              participations: participationsPrudentes ? null : nombreOuZero(lireMontant(participations)),
+              joursParSemaine: participationsPrudentes && !joursCovoitPrudent ? nombreOuZero(lireEntier(joursCovoit)) : null,
+            },
+          }
+        : {}),
     };
   }
 
@@ -115,10 +132,16 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
       ? ["mode", "distance", "energie", "puissance", "frais", "bilan"]
       : mode === "cyclomoteur"
         ? ["mode", "distance", "energie", "frais", "bilan"]
-        : ["mode", "bilan"];
+        : mode === "covoiturage"
+          ? ["mode", "distance", "paiement", "bilan"]
+          : ["mode", "bilan"];
   const rang = suite.indexOf(question);
   const avancer = () => setQuestion(suite[rang + 1]);
   const reculer = () => (rang <= 0 ? onRetour() : setQuestion(suite[rang - 1]));
+
+  const ficheConducteur = completerFiche(FICHES.covoituragePaiements, {
+    siIntrouvable: "Choisissez « Je ne sais pas » : les jours de covoiturage ne seront pas déduits. C'est le choix le plus prudent.",
+  });
 
   let titre = "";
   let contenu: JSX.Element;
@@ -237,9 +260,11 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
           ) : (
             <ChampNombre libelle={titre} unite="km" valeur={distance} onChange={setDistance} />
           )}
-          <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotal(true), setMotif(undefined))}>
-            J'ai déjà calculé mes kilomètres de l'année
-          </button>
+          {mode !== "covoiturage" && (
+            <button type="button" className="lien-je-ne-sais-pas" onClick={() => (setParTotal(true), setMotif(undefined))}>
+              J'ai déjà calculé mes kilomètres de l'année
+            </button>
+          )}
           {!guideDistance ? (
             <LienJeNeSaisPas onClick={() => setGuideDistance(true)} />
           ) : (
@@ -268,6 +293,37 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
         </>
       );
       break;
+
+    case "paiement": {
+      titre = "Combien avez-vous payé au conducteur dans l'année ?";
+      const m = lireMontant(montantPaye);
+      peutContinuer = montantPayePrudent || (m !== null && !Number.isNaN(m) && m > 0);
+      contenu = (
+        <>
+          <p className="texte-secondaire sous-question">
+            {typographie("Le total de vos participations pour aller au travail et en revenir. Gardez l'historique des paiements.")}
+          </p>
+          {montantPayePrudent ? (
+            <Encadre>{typographie("Rien ne sera déduit pour le covoiturage, le choix le plus prudent. Vous pourrez l'ajouter plus tard.")}</Encadre>
+          ) : (
+            <ChampMontant libelle={titre} valeur={montantPaye} onChange={setMontantPaye} />
+          )}
+          {montantPayePrudent ? (
+            <button type="button" className="lien-je-ne-sais-pas" onClick={() => setMontantPayePrudent(false)}>
+              Finalement, je connais le montant
+            </button>
+          ) : (
+            <LienJeNeSaisPas onClick={() => setMontantPayePrudent(true)} />
+          )}
+          <Encadre>
+            {typographie(
+              `Depuis 2022, le passager d'un covoiturage peut déduire ce qu'il paie au conducteur. Au-delà de ${plafond} km sans raison particulière, nous retenons la somme au prorata de ${plafond} km.`,
+            )}
+          </Encadre>
+        </>
+      );
+      break;
+    }
 
     case "energie": {
       titre = mode === "voiture" ? "Quelle énergie utilise votre voiture ?" : "Quelle énergie utilise votre deux-roues ?";
@@ -351,8 +407,14 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
 
     case "frais": {
       titre = "D'autres frais pour ce véhicule ?";
-      const champs = [lireEntier(missions), lireMontant(peages), lireMontant(interets), lireEntier(kmCompteur)];
-      peutContinuer = champs.every(valide);
+      const champs = [lireEntier(missions), lireMontant(peages), lireMontant(interets), lireEntier(kmCompteur), lireMontant(participations), lireEntier(joursCovoit)];
+      const nbJoursCovoit = lireEntier(joursCovoit);
+      peutContinuer =
+        champs.every(valide) &&
+        (!avecCovoit ||
+          (participationsPrudentes
+            ? joursCovoitPrudent || (nbJoursCovoit !== null && nbJoursCovoit >= 1 && nbJoursCovoit <= 7)
+            : lireMontant(participations) !== null));
       contenu = (
         <>
           <p className="texte-secondaire sous-question">
@@ -393,6 +455,50 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
           )}
 
           <label className="case-a-cocher">
+            <input type="checkbox" checked={avecCovoit} onChange={(e) => setAvecCovoit(e.target.checked)} />
+            Je transporte des passagers qui participent aux frais
+          </label>
+          {avecCovoit && (
+            <>
+              <div className="question-titre" style={{ alignItems: "center" }}>
+                <p style={{ flex: 1, margin: 0 }}>{typographie("Participations reçues dans l'année")}</p>
+                <BoutonAsterisque onClick={() => setAide(ficheConducteur)} />
+              </div>
+              {participationsPrudentes ? (
+                <>
+                  <Encadre>
+                    {typographie("Les jours de covoiturage ne seront pas déduits, le choix le plus prudent. Combien de jours par semaine transportez-vous des passagers ?")}
+                  </Encadre>
+                  {joursCovoitPrudent ? (
+                    <Encadre>{typographie("Nous retirons tous vos jours de travail sur site : aucun trajet n'est déduit pour ce véhicule.")}</Encadre>
+                  ) : (
+                    <ChampNombre compact libelleVisible libelle="Jours de covoiturage par semaine" unite="jours" valeur={joursCovoit} onChange={setJoursCovoit} />
+                  )}
+                  {!joursCovoitPrudent && <LienJeNeSaisPas onClick={() => setJoursCovoitPrudent(true)} />}
+                  <button
+                    type="button"
+                    className="lien-je-ne-sais-pas"
+                    onClick={() => (setParticipationsPrudentes(false), setJoursCovoitPrudent(false))}
+                  >
+                    Finalement, je connais le montant
+                  </button>
+                </>
+              ) : (
+                <>
+                  <ChampMontant
+                    compact
+                    libelle="Participations reçues dans l'année"
+                    detail="Elles sont retirées de vos frais : seul ce qui reste à votre charge est déductible."
+                    valeur={participations}
+                    onChange={setParticipations}
+                  />
+                  <LienJeNeSaisPas onClick={() => setParticipationsPrudentes(true)} />
+                </>
+              )}
+            </>
+          )}
+
+          <label className="case-a-cocher">
             <input type="checkbox" checked={avecCredit} onChange={(e) => setAvecCredit(e.target.checked)} />
             J'ai un crédit pour ce véhicule
           </label>
@@ -424,6 +530,34 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
 
     case "bilan": {
       libelleBouton = "Valider mon trajet";
+      if (mode === "covoiturage") {
+        const s = saisie();
+        const r = calculerDeclarant(p, {
+          numero: 1,
+          salairePrerempli: 0,
+          covoituragePassager: s.montantPaye ? { montantPaye: s.montantPaye, allerKm: s.allerKm, motifDistance: s.motifDistance } : undefined,
+        });
+        const ligne = r.lignes.find((l) => l.categorie === "vehicule");
+        titre = "Vos frais de trajet";
+        contenu = ligne ? (
+          <>
+            <section className="carte" aria-live="polite">
+              <p className="resultat-jours">
+                <strong className="montant">{ligne.montant.toLocaleString("fr-FR")} €</strong>
+              </p>
+              <p className="detail-calcul">{typographie(ligne.texte)}</p>
+            </section>
+            {r.alertes.map((a) => (
+              <Encadre key={a} ton="attention">
+                {typographie(a)}
+              </Encadre>
+            ))}
+          </>
+        ) : (
+          <Encadre>{typographie("Rien n'est déduit pour le covoiturage tant que le montant payé n'est pas connu. Vos repas et vos autres frais comptent déjà.")}</Encadre>
+        );
+        break;
+      }
       if (!mode || !estVehicule(mode)) {
         titre = "Votre trajet";
         contenu = (
@@ -438,10 +572,12 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
         break;
       }
       const s = saisie();
+      const vehicule = vehiculePourMoteur(p, s, joursSurSite)!;
+      if (s.covoiturage?.participations) vehicule.participationsCovoiturage = s.covoiturage.participations;
       const resultat = calculerDeclarant(p, {
         numero: 1,
         salairePrerempli: 0,
-        vehicules: [vehiculePourMoteur(p, s, joursSurSite)!],
+        vehicules: [vehicule],
       });
       const lignes = resultat.lignes.filter((l) => l.montant > 0 || l.categorie === "vehicule");
       const prudences = [s.puissancePrudente && "puissance", s.energiePrudente && "énergie"].filter(Boolean);
@@ -465,6 +601,9 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
                 {typographie(a)}
               </Encadre>
             ))}
+          {s.covoiturage?.participations === null && (
+            <Encadre>{typographie("Les jours de covoiturage seront retirés de ce calcul dans votre résultat.")}</Encadre>
+          )}
           {prudences.length > 0 && (
             <Encadre>{typographie(`Valeur prudente retenue pour : ${prudences.join(" et ")}. Vous pourrez la corriger.`)}</Encadre>
           )}
@@ -483,6 +622,9 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
 
   const fichePourQuestion: Partial<Record<Question, Fiche>> = {
     distance: FICHES.distance,
+    paiement: completerFiche(FICHES.covoituragePaiements, {
+      siIntrouvable: "Choisissez « Je ne sais pas » : rien ne sera déduit pour le covoiturage. C'est le choix le plus prudent, et vous pourrez l'ajouter plus tard.",
+    }),
     energie: FICHES.energie,
     puissance:
       mode === "voiture" || mode === "moto"

@@ -62,3 +62,14 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Astérisque des jours ensemble : la fiche « Comment compter ces jours ? » s'ouvre.
 - [ ] Relecture : section « Vos trajets à deux » avec son résumé et « Modifier » qui rouvre l'écran puis revient à la relecture.
 - [ ] Simulation enregistrée puis rouverte : les réponses des trajets à deux sont retrouvées.
+
+## Covoiturage avec une personne extérieure au foyer (ajout n° 1) — livré le 16/10/2026
+
+- [ ] Étape du trajet : le choix « En covoiturage, comme passager » apparaît ; il demande la distance puis la somme payée au conducteur.
+- [ ] Passager, 1 200 € à 25 km : 1 200 € dans le bilan du trajet et dans la case.
+- [ ] Passager à 60 km sans motif : la somme est ramenée au prorata de 40 km, avec un message.
+- [ ] Passager « Je ne sais pas » : rien n'est déduit, la valeur est signalée « non vérifiée ».
+- [ ] Astérisque de la somme payée : la fiche « Où retrouver ces montants ? » s'ouvre (historique de la plateforme, relevés bancaires).
+- [ ] Conducteur : case « Je transporte des passagers qui participent aux frais » dans « D'autres frais pour ce véhicule ? », montant retiré de la ligne véhicule.
+- [ ] Conducteur « Je ne sais pas » sur les participations : question des jours de covoiturage par semaine, jours retirés au résultat, valeurs signalées.
+- [ ] Carte « Ce cas doit être tranché par l'administration » pour le covoiturage (passager ou conducteur).

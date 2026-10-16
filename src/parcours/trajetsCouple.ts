@@ -1,14 +1,13 @@
 // Ajout n° 1 — Trajets d'un couple : même voiture (règle de prudence), même lieu de travail,
 // jours faits ensemble (seul le conducteur déduit), motif « emploi du conjoint » proposé automatiquement.
-import { distanceRetenue } from "../moteur/calcul";
 import { motifEmploiConjointPropose } from "../moteur/couple";
-import { calculerDeclarant, type EntreeDeclarant, type EntreeVehicule } from "../moteur/declarant";
+import { calculerDeclarant, type EntreeDeclarant } from "../moteur/declarant";
 import { nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
 import { totaux } from "./calendrier";
 import { memeLieuDeTravail, type LieuDeTravail } from "./couple";
 import type { Profil } from "./profils";
-import { estVehicule } from "./trajet";
+import { estVehicule, retirerJoursDuTrajet } from "./trajet";
 
 export type Conducteur = "vous" | "conjoint" | "alternance";
 
@@ -83,27 +82,6 @@ export function joursPassager(p: Parametres, profils: Profil[], s: SaisieTrajets
 
 const pluriel = (n: number, mot: string) => `${nombre(n)} ${mot}${n > 1 ? "s" : ""}`;
 
-/** Retire les jours en passager du trajet d'un déclarant ; renvoie une alerte si le total de km a été saisi directement. */
-function retirerJours(p: Parametres, v: EntreeVehicule, n: number): string | null {
-  if (n <= 0) return null;
-  if (v.kmForce !== undefined) {
-    if (v.allerKm > 0) {
-      v.kmForce = Math.max(0, v.kmForce - distanceRetenue(p, v.allerKm, Boolean(v.motifDistance)) * 2 * n);
-      return null;
-    }
-    return `Vous avez indiqué un total de km : retirez-en vous-même les ${pluriel(n, "jour")} où vous êtes passager.`;
-  }
-  const site = v.trajetsEmployeurs?.length ? v.trajetsEmployeurs.reduce((s, t) => s + t.joursSurSite, 0) : v.joursSurSite;
-  const ratio = site > 0 ? Math.max(0, site - n) / site : 0;
-  if (v.trajetsEmployeurs?.length) {
-    v.trajetsEmployeurs = v.trajetsEmployeurs.map((t) => ({ ...t, joursSurSite: Math.round(t.joursSurSite * ratio) }));
-  } else {
-    v.joursSurSite = Math.max(0, v.joursSurSite - n);
-  }
-  if (v.peagesParking) v.peagesParking = Math.round(v.peagesParking * ratio * 100) / 100;
-  return null;
-}
-
 /**
  * Applique les réponses « Vos trajets à deux » aux entrées des deux déclarants : jours en passager retirés,
  * mêmes caractéristiques pour la voiture commune, km du conjoint pour la règle du véhicule partagé, phrases du résumé.
@@ -128,7 +106,7 @@ export function appliquerTrajetsCouple(
     const frequence = `${pluriel(joursParSemaine, "jour")} par semaine en covoiturage avec mon conjoint`;
     [e0, e1].forEach((e, i) => {
       const v = i === 0 ? v0 : v1;
-      const alerte = retirerJours(p, v, passager[i]);
+      const alerte = retirerJoursDuTrajet(p, v, passager[i]);
       if (alerte) alertes[i].push(alerte);
       const moiConducteur = conducteur === "alternance" ? null : (conducteur === "vous") === (i === 0);
       e.motifs.push(

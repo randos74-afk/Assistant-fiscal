@@ -6,7 +6,7 @@ import { autresFraisPourMoteur, type SaisieAutresFrais } from "./autresFrais";
 import { totaux, type JoursDuMois } from "./calendrier";
 import { repasPourMoteur, type SaisieRepas } from "./repas";
 import { entreeReel, reintegrationsTeletravail, type SaisieTeletravail } from "./teletravail";
-import { vehiculePourMoteur, type SaisieTrajet } from "./trajet";
+import { retirerJoursDuTrajet, vehiculePourMoteur, type SaisieTrajet } from "./trajet";
 import { domicilePourMoteur, type SaisieDomicile } from "./domicile";
 import { resumeEmployeurs, type Employeur } from "./employeurs";
 
@@ -31,6 +31,25 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
   const vehicule = domicile ? domicile.vehicule : r.trajet ? vehiculePourMoteur(p, r.trajet, t.site, employeurs) : null;
   if (vehicule && autres.kmVehiculeEnPlus > 0) vehicule.kmDoubleResidence = autres.kmVehiculeEnPlus;
 
+  // Ajout n° 1 — Covoiturage comme conducteur : participations retirées ; inconnues, les jours de covoiturage ne sont pas déduits.
+  const motifsCovoiturage: string[] = [];
+  const covoit = r.trajet?.covoiturage;
+  if (vehicule && covoit) {
+    if (covoit.participations !== null) {
+      vehicule.participationsCovoiturage = covoit.participations || undefined;
+    } else {
+      const parSemaine = r.jours?.joursParSemaine ?? 5;
+      const n = Math.min(t.site, Math.round((t.site * (covoit.joursParSemaine ?? parSemaine)) / parSemaine));
+      retirerJoursDuTrajet(p, vehicule, n);
+      motifsCovoiturage.push(`covoiturage comme conducteur : participations des passagers non connues, ${n} jours de covoiturage non déduits`);
+    }
+  }
+  // Ajout n° 1 — Passager d'un covoiturage : somme payée au conducteur (« Je ne sais pas » : rien).
+  const passager =
+    r.trajet?.mode === "covoiturage" && r.trajet.montantPaye
+      ? { montantPaye: r.trajet.montantPaye, allerKm: r.trajet.allerKm, motifDistance: r.trajet.motifDistance }
+      : undefined;
+
   const repas = r.repas ? repasPourMoteur(r.repas, t.site, p) : { repas: null, reintegrations: [] };
   const teletravailParMois = mois.map((m) => m.teletravail);
 
@@ -39,6 +58,7 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
     salairePrerempli: r.salaire?.montant ?? 0,
     allocationsChomage: r.salaire?.chomage,
     vehicules: vehicule ? [vehicule] : [],
+    covoituragePassager: passager,
     repas: repas.repas ? [repas.repas] : [],
     teletravailJoursParMois: teletravailParMois,
     teletravailMethode: r.teletravail?.methode ?? "forfait",
@@ -53,6 +73,7 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
     motifs: [
       ...(employeurs ? [resumeEmployeurs(employeurs, vehicule?.trajetsEmployeurs ? r.trajet?.employeurs?.map((e) => e.allerKm) : undefined)] : []),
       ...autres.motifs,
+      ...motifsCovoiturage,
     ],
   };
 }

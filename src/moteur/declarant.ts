@@ -13,7 +13,7 @@ import {
 } from "./calcul";
 import { arrondiEuro, euros, eurosCentimes, nombre } from "./format";
 import { teletravailReel, type EntreeTeletravailReel } from "./teletravail";
-import { vehiculePartage } from "./couple";
+import { covoiturageConducteur, covoituragePassager, vehiculePartage } from "./couple";
 
 /** « thermique » : énergie inconnue, valeur prudente (barème non majoré). */
 export type Energie = "essence" | "diesel" | "hybride" | "GPL" | "hydrogène" | "électrique" | "thermique";
@@ -55,6 +55,15 @@ export interface EntreeVehicule {
    * Règle de prudence : la plus faible des deux méthodes (prorata du total, ou barème séparé).
    */
   partageKmConjoint?: number;
+  /** Ajout n° 1 — Covoiturage comme conducteur : participations reçues des passagers, retirées des frais du véhicule. */
+  participationsCovoiturage?: number;
+}
+
+/** Ajout n° 1 — Passager d'un covoiturage hors du foyer (LFR 2022 art. 20) : somme payée au conducteur. */
+export interface EntreeCovoituragePassager {
+  montantPaye: number;
+  allerKm: number;
+  motifDistance?: string;
 }
 
 export interface TrajetEmployeur {
@@ -100,6 +109,7 @@ export interface EntreeDeclarant {
   /** F12.7 — Allocations chômage de l'année : la déduction de 10 % porte aussi sur elles (BOI-RSA-BASE-30-50-20). */
   allocationsChomage?: number;
   vehicules?: EntreeVehicule[];
+  covoituragePassager?: EntreeCovoituragePassager;
   repas?: EntreeRepasDeclarant[];
   teletravailJoursParMois?: number[];
   /** F5.10 — Méthode retenue ; « reel » exige le détail des frais. */
@@ -244,6 +254,14 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
           ? `véhicule partagé avec mon conjoint, barème sur le total de ${nombre(totalKm)} km (mes ${nombre(km)} km + ${nombre(v.partageKmConjoint)} km de mon conjoint) = ${euros(r.prorata[0] + r.prorata[1])}, ma part au prorata de mes km = ${euros(montantVehicule)}`
           : `barème : ${b.formule} (véhicule partagé avec mon conjoint, calcul séparé retenu car plus faible)`;
     }
+    if (v.participationsCovoiturage) {
+      const avant = montantVehicule;
+      montantVehicule = covoiturageConducteur(montantVehicule, v.participationsCovoiturage);
+      formule += `, moins ${euros(v.participationsCovoiturage)} de participations reçues des passagers en covoiturage = ${euros(montantVehicule)}`;
+      if (v.participationsCovoiturage > avant) {
+        alertes.push("Les participations reçues dépassent les frais du véhicule : rien n'est déduit pour ce véhicule.");
+      }
+    }
     lignes.push({
       categorie: "vehicule",
       texte: `Véhicule : ${libelleVehicule(v, b.ligne)}, ${nombre(km)} km dans l'année (${detail}), ${formule}.`,
@@ -259,6 +277,23 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
       }
     }
   }
+  // Passager d'un covoiturage : somme payée au conducteur, règle des 40 km au prorata (règle FraisFit à confirmer).
+  const cp = e.covoituragePassager;
+  if (cp) {
+    const montant = covoituragePassager(p, cp.montantPaye, cp.allerKm, Boolean(cp.motifDistance));
+    const plafond = p.deplacements.distance_aller_max_sans_justification_km;
+    const reduit = montant < cp.montantPaye;
+    lignes.push({
+      categorie: "vehicule",
+      texte: `Covoiturage comme passager : ${euros(cp.montantPaye)} versés au conducteur dans l'année${
+        reduit ? `, ramenés à ${nombre(plafond)} km sur ${nombre(cp.allerKm)} km aller = ${euros(montant)}` : ""
+      }.`,
+      montant: arrondiEuro(montant),
+    });
+    if (reduit) alertes.push(`Trajet de ${nombre(cp.allerKm)} km : la somme payée est retenue pour ${nombre(plafond)} km seulement, sauf motif.`);
+    if (cp.motifDistance) motifs.push(`distance de ${nombre(cp.allerKm)} km retenue (${cp.motifDistance})`);
+  }
+
   if (vehicules.length) {
     lignes.push({ categorie: "peages", texte: `Péages et parking : ${euros(peages)}.`, montant: arrondiEuro(peages) });
     lignes.push({ categorie: "interets", texte: `Intérêts crédit auto : ${euros(interets)}.`, montant: arrondiEuro(interets) });

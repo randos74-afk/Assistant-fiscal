@@ -75,6 +75,35 @@ export function valeursNonVerifiees(p: Parametres, r: Reponses): ValeurNonVerifi
     }
   }
 
+  // Ajout n° 1 — Covoiturage hors du foyer.
+  if (r.trajet?.mode === "covoiturage" && r.trajet.montantPaye === null) {
+    liste.push({
+      champ: "montantPaye",
+      libelle: "Somme payée au conducteur",
+      statut: "prudent",
+      valeurRetenue: "rien n'est déduit",
+      ecran: "trajet",
+    });
+  }
+  if (r.trajet?.covoiturage?.participations === null) {
+    liste.push({
+      champ: "participationsCovoiturage",
+      libelle: "Participations reçues des passagers",
+      statut: "prudent",
+      valeurRetenue: "les jours de covoiturage ne sont pas déduits",
+      ecran: "trajet",
+    });
+    if (r.trajet.covoiturage.joursParSemaine === null) {
+      liste.push({
+        champ: "joursCovoiturage",
+        libelle: "Jours de covoiturage par semaine",
+        statut: "prudent",
+        valeurRetenue: "tous vos jours de travail sur site",
+        ecran: "trajet",
+      });
+    }
+  }
+
   if (r.domicile?.forfaitsPrudents) {
     liste.push({
       champ: "forfaitsTransport",
