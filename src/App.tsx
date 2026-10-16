@@ -18,7 +18,7 @@ import { Repas } from "./ui/Repas";
 import { Resultat } from "./ui/Resultat";
 import { ResultatFoyer } from "./ui/ResultatFoyer";
 import { Salaire } from "./ui/Salaire";
-import { charger, effacer, enregistrer, existeSauvegarde, telechargerDossier, type ContenuDossier, type Dossier } from "./ui/sauvegarde";
+import { charger, effacer, enregistrer, existeSauvegarde, type ContenuDossier, type Dossier } from "./ui/sauvegarde";
 import { justificatifs } from "./parcours/justificatifs";
 import { autresRevenusFoyer, type SaisieFoyer } from "./parcours/foyer";
 import { comparerImpot } from "./moteur/impot";
@@ -502,7 +502,6 @@ export default function App() {
             onFoyer={setFoyer}
             onVerifier={corriger}
             onPdf={(synthese) => ouvrirPdfFoyer(ds.map((d) => contenuPdf(d, true)), synthese)}
-            onEnregistrerFichier={() => telechargerDossier(contenu)}
             onModifier={() => setEcran("relecture")}
             onRecommencer={recommencer}
           />
@@ -519,7 +518,6 @@ export default function App() {
           vraisemblance={d.vraisemblance}
           onFoyer={setFoyer}
           onPdf={() => pdf(d)}
-          onEnregistrerFichier={() => telechargerDossier(contenu)}
           onModifier={() => setEcran("relecture")}
           onVerifier={(e) => corriger(e, 0)}
           onRecommencer={recommencer}
@@ -532,13 +530,11 @@ export default function App() {
         <Accueil
           millesime={millesime}
           sauvegardeDisponible={existeSauvegarde(millesime)}
-          millesimesDisponibles={millesimesDisponibles()}
           onCommencer={() => setEcran("filtrage")}
           onReprendre={() => {
             const d = charger(millesime);
             if (d) reprendre(d);
           }}
-          onOuvrirDossier={reprendre}
         />
       );
   }

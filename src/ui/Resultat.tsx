@@ -28,14 +28,13 @@ interface Props {
   onFoyer: (f: SaisieFoyer) => void;
   /** Renvoie false si le navigateur a bloqué la fenêtre. */
   onPdf: () => boolean;
-  onEnregistrerFichier: () => void;
   onModifier: () => void;
   /** Retour à l'étape qui contient une valeur non vérifiée. */
   onVerifier: (ecran: EcranModifiable) => void;
   onRecommencer: () => void;
 }
 
-export function Resultat({ parametres: p, resultat: r, nonVerifiees, casAdministration, foyer, vraisemblance: v, onFoyer, onPdf, onEnregistrerFichier, onModifier, onVerifier, onRecommencer }: Props) {
+export function Resultat({ parametres: p, resultat: r, nonVerifiees, casAdministration, foyer, vraisemblance: v, onFoyer, onPdf, onModifier, onVerifier, onRecommencer }: Props) {
   const [pdfBloque, setPdfBloque] = useState(false);
   const [verifies, setVerifies] = useState<string[]>([]);
   // Ajout n° 2 — L'écran « Avant de recopier » s'intercale tant que l'utilisateur ne l'a pas accepté.
@@ -266,14 +265,7 @@ export function Resultat({ parametres: p, resultat: r, nonVerifiees, casAdminist
           {pdfBloque && (
             <p className="champ-erreur">{typographie("Votre navigateur a bloqué la fenêtre : autorisez les fenêtres pour ce site, puis réessayez.")}</p>
           )}
-          <button type="button" className="bouton bouton-secondaire" onClick={onEnregistrerFichier}>
-            Enregistrer pour reprendre plus tard
-          </button>
-          <p className="champ-detail">
-            {typographie(
-              `Un fichier FraisFit (.json) qui reste chez vous : l'an prochain, ouvrez-le pour repartir de vos réponses. Ce n'est pas un PDF : il ne s'imprime pas. Calcul fait avec les paramètres des revenus ${p.millesime.revenus}.`,
-            )}
-          </p>
+          <p className="champ-detail">{typographie(`Calcul fait avec les paramètres des revenus ${p.millesime.revenus}.`)}</p>
         </section>
 
         <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>

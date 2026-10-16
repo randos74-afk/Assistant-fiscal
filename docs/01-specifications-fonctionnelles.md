@@ -243,9 +243,9 @@ F9 rend le résultat utilisable hors de l'application sans jamais faire sortir d
 | --- | --- | --- |
 | F9.1 | Export PDF | Fenêtre autonome sur fond blanc (contournement déjà validé), détail des calculs, résumé 1AK, sources et date des paramètres |
 | F9.2 | Liste des justificatifs | Générée selon les postes ouverts (carte grise, relevés km, factures, attestation employeur de télétravail, tickets) avec rappel de conservation 3 ans |
-| F9.3 | Sauvegarde locale | Dossier par année enregistré sur l'appareil, reprise l'année suivante (comme la reprise des mentions sur impots.gouv.fr) ; export/import fichier JSON |
+| F9.3 | Sauvegarde locale | Dossier par année enregistré sur l'appareil, reprise l'année suivante (comme la reprise des mentions sur impots.gouv.fr). **Décision de Marc (16/10/2026) : aucun export ni import de fichier (.json) nulle part, le client ne saurait ni le retrouver ni l'ouvrir ; seule la sauvegarde automatique sur l'appareil reste.** |
 | F9.4 | Partage de l'outil par lien | Accès réservé aux personnes ayant reçu le lien ; contrôle d'accès gratuit à trancher (piste Cloudflare Access) ; site non indexé par les moteurs |
-| F9.5 | Partage d'une simulation | Lien ou fichier généré à la demande, données chiffrées dans le fichier, jamais stockées sur un serveur |
+| F9.5 | Partage d'une simulation | ~~Lien ou fichier généré à la demande~~ Abandonné (décision du 16/10/2026, voir F9.3) : on partage le PDF |
 | F9.6 | Confidentialité | Aucun compte, aucun traceur, calcul local ; politique RGPD existante reprise dans l'app |
 | F9.7 | Paramètres annuels | Fichier de paramètres signé et daté, mis à jour par publication de l'application ; mention « paramètres valables pour les revenus 2025 » visible sur chaque résultat |
 | F9.8 | Mentions légales | Estimation indicative, non constitutive de conseil fiscal ; seuls impots.gouv.fr et l'avis d'imposition font foi |

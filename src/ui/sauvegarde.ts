@@ -98,7 +98,7 @@ export function effacer(millesime: number): void {
   }
 }
 
-/** Lit un dossier (stockage ou fichier importé) ; null s'il n'est pas reconnu. */
+/** Lit un dossier enregistré sur l'appareil ; null s'il n'est pas reconnu. */
 export function lireDossier(texte: string): Dossier | null {
   try {
     const d = JSON.parse(texte);
@@ -109,17 +109,4 @@ export function lireDossier(texte: string): Dossier | null {
   } catch {
     return null;
   }
-}
-
-/** F9.3 — Export en fichier JSON, enregistré par la personne sur son appareil. */
-export function telechargerDossier(contenu: ContenuDossier): void {
-  const dossier: Dossier = { application: "FraisFit", version: VERSION, enregistreLe: new Date().toISOString(), ...contenu };
-  const blob = new Blob([JSON.stringify(dossier, null, 2)], { type: "application/json" });
-  const lien = document.createElement("a");
-  lien.href = URL.createObjectURL(blob);
-  lien.download = `fraisfit-revenus-${contenu.millesime}.json`;
-  document.body.appendChild(lien);
-  lien.click();
-  lien.remove();
-  setTimeout(() => URL.revokeObjectURL(lien.href), 1000);
 }

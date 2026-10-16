@@ -43,7 +43,7 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Bloc à copier case 1AK pour vous, case 1BK pour le conjoint, seulement pour celui qui gagne à opter.
 - [ ] « Avant de recopier » regroupe les points des deux personnes ; « Vérifier maintenant » ramène au bon profil.
 - [x] ~~Un PDF par personne qui opte~~ remplacé le 16/10/2026 par un PDF commun du foyer (voir plus bas).
-- [ ] « Enregistrer notre simulation dans un fichier », puis réouverture : les deux profils sont retrouvés.
+- [ ] Quitter puis « Reprendre ma simulation » à l'accueil : les deux profils sont retrouvés (sauvegarde automatique sur l'appareil).
 - [ ] Une ancienne sauvegarde (avant le 16/10/2026) en couple se rouvre avec le conjoint en « juste son salaire ».
 - [ ] Affichage sur téléphone (360 px) : le tableau des quatre possibilités tient dans la largeur.
 
@@ -61,7 +61,7 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] « Je ne sais pas » pour les jours et pour le conducteur : valeurs prudentes, signalées « non vérifiées ».
 - [ ] Astérisque des jours ensemble : la fiche « Comment compter ces jours ? » s'ouvre.
 - [ ] Relecture : section « Vos trajets à deux » avec son résumé et « Modifier » qui rouvre l'écran puis revient à la relecture.
-- [ ] Simulation enregistrée puis rouverte : les réponses des trajets à deux sont retrouvées.
+- [ ] Quitter puis « Reprendre ma simulation » : les réponses des trajets à deux sont retrouvées.
 
 ## Covoiturage avec une personne extérieure au foyer (ajout n° 1) — livré le 16/10/2026
 
@@ -108,7 +108,7 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Oui : montant obligatoire (bulletins + notes de frais remboursées à part), ajouté au salaire dans le bilan et au résultat.
 - [ ] La question des déplacements pour le travail dit « remboursés ou non » et renvoie au remboursement.
 - [ ] Fiche d'aide : bulletin de décembre, notes de frais, différence avec les avantages en nature.
-- [ ] Simulation enregistrée avant ce changement : rouverte, le trajet reste valide (indemnités à 0).
+- [ ] Simulation sauvegardée sur l'appareil avant ce changement : reprise, le trajet reste valide (indemnités à 0).
 
 ## Parcours métier : enseignant (F14) — livré le 16/10/2026
 
@@ -132,10 +132,10 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Poste double résidence : « Calculer avec mes allers-retours » (distance, allers-retours par semaine, semaines) → « Utiliser X km » ; message si plus d'un aller-retour par semaine.
 - [ ] Frais élevés (niveau 1) : message « Montant élevé, normal pour vos trajets », sans ton d'alerte.
 
-## PDF du foyer et fichier de reprise (retour de test de Marc, 16/10/2026)
+## PDF du foyer (retour de test de Marc, 16/10/2026)
 
 - [ ] Résultat du foyer : un seul bouton « Imprimer ou enregistrer en PDF », présent même si personne ne gagne aux frais réels.
 - [ ] Le PDF commence par la synthèse du foyer (meilleure combinaison, tableau des quatre possibilités, choix de chacun), puis une partie par personne avec son nom, sa case (1AK, 1BK…) et sa note explicative.
 - [ ] Dans la fenêtre d'impression, « Enregistrer au format PDF » produit bien un fichier PDF.
-- [ ] Le bouton « Enregistrer pour reprendre plus tard » explique qu'il produit un fichier FraisFit (.json), pas un PDF ; ce fichier se rouvre depuis l'accueil.
-- [ ] Même clarification sur l'écran de résultat d'une personne seule.
+- [ ] Plus aucun fichier de reprise (.json) nulle part : ni bouton sur les résultats (seul ou foyer), ni « Ouvrir une simulation enregistrée » à l'accueil (décision de Marc du 16/10/2026).
+- [ ] La sauvegarde automatique sur l'appareil fonctionne toujours : « Reprendre ma simulation » à l'accueil.

@@ -1,7 +1,5 @@
 // Écran d'accueil (docs/02 §3, maquette design/maquettes/01-accueil.html).
-import { useState } from "react";
 import { EnTete, PiedDePage } from "./Cadre";
-import { lireDossier, type Dossier } from "./sauvegarde";
 
 const traitIcone = {
   width: 22,
@@ -86,26 +84,12 @@ const garanties = [
 
 interface Props {
   millesime: number;
-  millesimesDisponibles: number[];
   sauvegardeDisponible: boolean;
   onCommencer: () => void;
   onReprendre: () => void;
-  onOuvrirDossier: (d: Dossier) => void;
 }
 
-export function Accueil({ millesime, millesimesDisponibles, sauvegardeDisponible, onCommencer, onReprendre, onOuvrirDossier }: Props) {
-  const [erreurFichier, setErreurFichier] = useState<string | null>(null);
-
-  async function ouvrirFichier(fichier: File | undefined) {
-    if (!fichier) return;
-    const d = lireDossier(await fichier.text());
-    if (!d) return setErreurFichier("Ce fichier n'est pas une simulation FraisFit.");
-    if (!millesimesDisponibles.includes(d.millesime)) {
-      return setErreurFichier(`Cette simulation concerne les revenus ${d.millesime}, que cette version ne connaît pas.`);
-    }
-    setErreurFichier(null);
-    onOuvrirDossier(d);
-  }
+export function Accueil({ millesime, sauvegardeDisponible, onCommencer, onReprendre }: Props) {
 
   return (
     <div className="ecran">
@@ -153,16 +137,6 @@ export function Accueil({ millesime, millesimesDisponibles, sauvegardeDisponible
             Reprendre ma simulation
           </button>
         )}
-        <label className="lien-je-ne-sais-pas lien-fichier">
-          Ouvrir une simulation enregistrée
-          <input
-            type="file"
-            accept="application/json,.json"
-            className="visuellement-cache"
-            onChange={(e) => ouvrirFichier(e.target.files?.[0])}
-          />
-        </label>
-        {erreurFichier && <p className="champ-erreur">{erreurFichier}</p>}
       </PiedDePage>
     </div>
   );

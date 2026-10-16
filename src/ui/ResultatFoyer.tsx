@@ -28,12 +28,11 @@ interface Props {
   onVerifier: (ecran: EcranModifiable, profil: number) => void;
   /** PDF commun du foyer ; renvoie false si le navigateur a bloqué la fenêtre. */
   onPdf: (synthese: SyntheseFoyer) => boolean;
-  onEnregistrerFichier: () => void;
   onModifier: () => void;
   onRecommencer: () => void;
 }
 
-export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVerifier, onPdf, onEnregistrerFichier, onModifier, onRecommencer }: Props) {
+export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVerifier, onPdf, onModifier, onRecommencer }: Props) {
   const [avantDeRecopier, setAvantDeRecopier] = useState(false);
   const [risqueAccepte, setRisqueAccepte] = useState(false);
   const [verifies, setVerifies] = useState<string[]>([]);
@@ -303,12 +302,6 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
           {pdfBloque && (
             <p className="champ-erreur">{typographie("Votre navigateur a bloqué la fenêtre : autorisez les fenêtres pour ce site, puis réessayez.")}</p>
           )}
-          <button type="button" className="bouton bouton-secondaire" onClick={onEnregistrerFichier}>
-            Enregistrer pour reprendre plus tard
-          </button>
-          <p className="champ-detail">
-            {typographie("Un fichier FraisFit (.json) à rouvrir dans l'application, par exemple l'an prochain. Ce n'est pas un PDF : il ne s'imprime pas.")}
-          </p>
         </section>
 
         <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>
