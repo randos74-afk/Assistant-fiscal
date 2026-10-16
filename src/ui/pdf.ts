@@ -17,13 +17,15 @@ export interface ContenuPdf {
   nonVerifiees: { libelle: string; valeurRetenue: string }[];
   justificatifs: string[];
   date: Date;
-  /** Mode foyer : 1 pour « Vous », 2 pour le conjoint. */
+  /** Mode foyer : 1 pour « Vous », 2 pour le conjoint, 3 et 4 pour les personnes à charge. */
   numeroDeclarant?: number;
+  /** Mode foyer : nom affiché en tête de la partie de cette personne. */
+  nom?: string;
   /** Estimation de l'impôt si le foyer a été renseigné. */
   impot?: { avecAbattement: number; avecFraisReels: number; gain: number } | null;
 }
 
-export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, justificatifs, date, impot, numeroDeclarant = 1 }: ContenuPdf, urlLogo: string): string {
+export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, justificatifs, date, impot, numeroDeclarant = 1, nom }: ContenuPdf, urlLogo: string): string {
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
   const verdict = c.fraisReelsConseilles
@@ -73,7 +75,7 @@ export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, j
   <p>Simulation du ${date.toLocaleDateString("fr-FR")}<br>Paramètres valables pour les revenus ${p.millesime.revenus} (version du ${new Date(p.millesime.date_gel).toLocaleDateString("fr-FR")})</p>
 </header>
 
-<h1>Frais réels ou abattement de ${taux} : revenus ${p.millesime.revenus}</h1>
+<h1>${nom ? `${echapper(nom)} (case ${r.caseFraisReels}) : ` : ""}frais réels ou abattement de ${taux}, revenus ${p.millesime.revenus}</h1>
 <p class="verdict">${echapper(verdict)}</p>
 
 <section>
@@ -179,20 +181,71 @@ ${
 </body></html>`;
 }
 
-/** Ouvre la fenêtre d'impression ; renvoie false si le navigateur l'a bloquée. */
-export function ouvrirPdf(contenu: ContenuPdf): boolean {
+/** Ajout n° 1 — Synthèse du foyer, en première page du PDF commun. */
+export interface SyntheseFoyer {
+  verdict: string;
+  /** Les 4 possibilités d'un couple (absent pour une personne seule avec personnes à charge). */
+  combinaisons?: { choix: string; base1: number; base2: number; impot: number; meilleure: boolean }[];
+  noms: string[];
+  /** Choix retenu pour chaque personne, dans l'ordre des noms. */
+  choix: string[];
+}
+
+/** Ajout n° 1 — PDF du foyer : synthèse, puis la partie de chaque personne avec sa note explicative. */
+export function htmlPdfFoyer(contenus: ContenuPdf[], s: SyntheseFoyer, urlLogo: string): string {
+  const documents = contenus.map((c) => htmlPdf(c, urlLogo));
+  const tete = documents[0].slice(0, documents[0].indexOf("<body>") + "<body>".length);
+  const corps = documents.map((d) => d.slice(d.indexOf("<body>") + "<body>".length, d.lastIndexOf("</body>")));
+  const p = contenus[0].parametres;
+  const tableau = s.combinaisons
+    ? `<table><thead><tr><th>Choix</th><th class="m">${echapper(s.noms[0])}</th><th class="m">${echapper(s.noms[1] ?? "")}</th><th class="m">Impôt du foyer</th></tr></thead>
+<tbody>${s.combinaisons
+        .map(
+          (c) =>
+            `<tr${c.meilleure ? ' style="font-weight:bold"' : ""}><td>${echapper(c.choix)}${c.meilleure ? " (retenu)" : ""}</td><td class="m">${euros(c.base1)}</td><td class="m">${euros(c.base2)}</td><td class="m">${euros(c.impot)}</td></tr>`,
+        )
+        .join("")}</tbody></table>`
+    : "";
+  return `${tete}
+<header>
+  <img src="${echapper(urlLogo)}" alt="FraisFit">
+  <p>Simulation du ${contenus[0].date.toLocaleDateString("fr-FR")}<br>Revenus ${p.millesime.revenus}</p>
+</header>
+<h1>Votre foyer : frais réels ou abattement, revenus ${p.millesime.revenus}</h1>
+<p class="verdict">${echapper(s.verdict)}</p>
+${tableau ? `<section><h2>Les possibilités</h2>${tableau}<p>Montants par déclarant : revenu imposable après abattement ou frais réels.</p></section>` : ""}
+<section><h2>Choix de chacun</h2><ul>${s.noms.map((n, i) => `<li>${echapper(n)} : ${echapper(s.choix[i])}</li>`).join("")}</ul>
+<p>La partie de chaque personne suit, avec le texte à recopier et la note explicative à signer.</p></section>
+${corps.map((c) => `<div style="break-before: page">${c}</div>`).join("\n")}
+</body></html>`;
+}
+
+/** Ouvre une fenêtre autonome sur fond blanc et lance l'impression ; renvoie false si le navigateur l'a bloquée. */
+function imprimer(html: string): boolean {
   const fenetre = window.open("", "_blank");
   if (!fenetre) return false;
   fenetre.document.open();
-  fenetre.document.write(htmlPdf(contenu, new URL(logoComplet, window.location.href).href));
+  fenetre.document.write(html);
   fenetre.document.close();
-  const imprimer = () => {
+  const lancer = () => {
     fenetre.focus();
     fenetre.print();
   };
   // Attendre le logo avant d'imprimer.
   const image = fenetre.document.images[0];
-  if (image && !image.complete) image.addEventListener("load", imprimer, { once: true });
-  else setTimeout(imprimer, 200);
+  if (image && !image.complete) image.addEventListener("load", lancer, { once: true });
+  else setTimeout(lancer, 200);
   return true;
+}
+
+const urlDuLogo = () => new URL(logoComplet, window.location.href).href;
+
+/** PDF d'une personne seule. */
+export function ouvrirPdf(contenu: ContenuPdf): boolean {
+  return imprimer(htmlPdf(contenu, urlDuLogo()));
+}
+
+/** PDF commun du foyer (couple, personnes à charge). */
+export function ouvrirPdfFoyer(contenus: ContenuPdf[], synthese: SyntheseFoyer): boolean {
+  return imprimer(htmlPdfFoyer(contenus, synthese, urlDuLogo()));
 }

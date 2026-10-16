@@ -22,7 +22,7 @@ import { charger, effacer, enregistrer, existeSauvegarde, telechargerDossier, ty
 import { justificatifs } from "./parcours/justificatifs";
 import { autresRevenusFoyer, type SaisieFoyer } from "./parcours/foyer";
 import { comparerImpot } from "./moteur/impot";
-import { ouvrirPdf } from "./ui/pdf";
+import { ouvrirPdf, ouvrirPdfFoyer, type ContenuPdf } from "./ui/pdf";
 import { Teletravail } from "./ui/Teletravail";
 import { Trajet } from "./ui/Trajet";
 import { Domicile } from "./ui/Domicile";
@@ -122,18 +122,21 @@ export default function App() {
     return { avecAbattement: i.avecAbattement.impot, avecFraisReels: i.avecFraisReels.impot, gain: i.gain };
   }
 
-  function pdf(d: DonneesDeclarant): boolean {
-    return ouvrirPdf({
+  function contenuPdf(d: DonneesDeclarant, plusieurs: boolean): ContenuPdf {
+    return {
       parametres,
       resultat: d.resultat,
       prudentes: valeursPrudentes(d.reponses),
       nonVerifiees: d.nonVerifiees.map((n) => n.valeur),
       justificatifs: justificatifs(d.reponses),
       date: new Date(),
-      impot: enCouple ? null : estimationImpot(),
+      impot: plusieurs ? null : estimationImpot(),
       numeroDeclarant: d.index + 1,
-    });
+      nom: plusieurs ? d.nom : undefined,
+    };
   }
+
+  const pdf = (d: DonneesDeclarant): boolean => ouvrirPdf(contenuPdf(d, false));
 
   /** Étape suivante, ou retour direct à la relecture si l'on corrigeait une réponse. */
   const suivant = (prochain: Ecran) => setEcran(depuisRelecture ? "relecture" : prochain);
@@ -498,7 +501,7 @@ export default function App() {
             foyer={foyer}
             onFoyer={setFoyer}
             onVerifier={corriger}
-            onPdf={(i) => pdf(ds[i])}
+            onPdf={(synthese) => ouvrirPdfFoyer(ds.map((d) => contenuPdf(d, true)), synthese)}
             onEnregistrerFichier={() => telechargerDossier(contenu)}
             onModifier={() => setEcran("relecture")}
             onRecommencer={recommencer}

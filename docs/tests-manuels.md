@@ -42,7 +42,7 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Résultat : phrase de la meilleure combinaison, impôt économisé, tableau des quatre possibilités avec la meilleure surlignée.
 - [ ] Bloc à copier case 1AK pour vous, case 1BK pour le conjoint, seulement pour celui qui gagne à opter.
 - [ ] « Avant de recopier » regroupe les points des deux personnes ; « Vérifier maintenant » ramène au bon profil.
-- [ ] Un PDF par personne qui opte, avec « déclarant 2 » et la case 1BK pour le conjoint.
+- [x] ~~Un PDF par personne qui opte~~ remplacé le 16/10/2026 par un PDF commun du foyer (voir plus bas).
 - [ ] « Enregistrer notre simulation dans un fichier », puis réouverture : les deux profils sont retrouvés.
 - [ ] Une ancienne sauvegarde (avant le 16/10/2026) en couple se rouvre avec le conjoint en « juste son salaire ».
 - [ ] Affichage sur téléphone (360 px) : le tableau des quatre possibilités tient dans la largeur.
@@ -131,3 +131,11 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Double résidence « Non » : le poste n'est plus coché d'office ; « Oui » : il l'est, avec le conseil sur le loyer et les trajets familiaux.
 - [ ] Poste double résidence : « Calculer avec mes allers-retours » (distance, allers-retours par semaine, semaines) → « Utiliser X km » ; message si plus d'un aller-retour par semaine.
 - [ ] Frais élevés (niveau 1) : message « Montant élevé, normal pour vos trajets », sans ton d'alerte.
+
+## PDF du foyer et fichier de reprise (retour de test de Marc, 16/10/2026)
+
+- [ ] Résultat du foyer : un seul bouton « Imprimer ou enregistrer en PDF », présent même si personne ne gagne aux frais réels.
+- [ ] Le PDF commence par la synthèse du foyer (meilleure combinaison, tableau des quatre possibilités, choix de chacun), puis une partie par personne avec son nom, sa case (1AK, 1BK…) et sa note explicative.
+- [ ] Dans la fenêtre d'impression, « Enregistrer au format PDF » produit bien un fichier PDF.
+- [ ] Le bouton « Enregistrer pour reprendre plus tard » explique qu'il produit un fichier FraisFit (.json), pas un PDF ; ce fichier se rouvre depuis l'accueil.
+- [ ] Même clarification sur l'écran de résultat d'une personne seule.

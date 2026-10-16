@@ -11,6 +11,7 @@ import type { SaisieFoyer } from "../parcours/foyer";
 import { minuscule, phraseCombinaison } from "../parcours/profils";
 import { nValeurs } from "../parcours/valeursNonVerifiees";
 import { AvantDeRecopier } from "./AvantDeRecopier";
+import type { SyntheseFoyer } from "./pdf";
 import { PiedDePage } from "./Cadre";
 import { BlocACopier } from "./Copier";
 import { EstimationImpot } from "./EstimationImpot";
@@ -25,8 +26,8 @@ interface Props {
   foyer?: SaisieFoyer;
   onFoyer: (f: SaisieFoyer) => void;
   onVerifier: (ecran: EcranModifiable, profil: number) => void;
-  /** PDF d'un déclarant ; renvoie false si le navigateur a bloqué la fenêtre. */
-  onPdf: (index: number) => boolean;
+  /** PDF commun du foyer ; renvoie false si le navigateur a bloqué la fenêtre. */
+  onPdf: (synthese: SyntheseFoyer) => boolean;
   onEnregistrerFichier: () => void;
   onModifier: () => void;
   onRecommencer: () => void;
@@ -112,6 +113,28 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
       ))}
     </section>
   );
+
+  /** Synthèse en première page du PDF du foyer. */
+  const synthese = (): SyntheseFoyer => ({
+    verdict:
+      optants.length === 0
+        ? `Ne changez rien : l'abattement automatique de ${taux} est plus avantageux pour ${declarants.length > 2 ? "chacun" : "vous deux"}.`
+        : `La meilleure combinaison : ${[phraseAdultes.charAt(0).toLowerCase() + phraseAdultes.slice(1), ...phraseCharges].join(", ")}.` +
+          (gain > 0 ? ` Impôt du foyer en moins : ${euros(gain)}.` : ""),
+    combinaisons: couple?.combinaisons.map((c) => ({
+      choix: libelleCombinaison(c.reels1, c.reels2),
+      base1: c.base1,
+      base2: c.base2,
+      impot: c.impot,
+      meilleure: c === couple.meilleure,
+    })),
+    noms: declarants.map((d) => d.nom),
+    choix: declarants.map((d) =>
+      optants.includes(d)
+        ? `frais réels, ${nombre(d.resultat.montantCase)} € en case ${d.resultat.caseFraisReels}`
+        : `abattement de ${taux}, rien à changer`,
+    ),
+  });
 
   const blocsDeclarant = (d: DonneesDeclarant) => {
     const r = d.resultat;
@@ -269,17 +292,23 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
 
         <section className="carte" aria-labelledby="titre-garder">
           <h2 id="titre-garder">Garder une trace</h2>
-          {optants.map((d) => (
-            <button key={d.index} type="button" className="bouton bouton-secondaire" onClick={() => setPdfBloque(!onPdf(d.index))}>
-              {typographie(`PDF et note explicative : ${minuscule(d.nom)}`)}
-            </button>
-          ))}
+          <button type="button" className="bouton bouton-secondaire" onClick={() => setPdfBloque(!onPdf(synthese()))}>
+            Imprimer ou enregistrer en PDF
+          </button>
+          <p className="champ-detail">
+            {typographie(
+              "Un seul document pour le foyer : la synthèse, puis la partie de chacun avec sa note explicative à signer. Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ».",
+            )}
+          </p>
           {pdfBloque && (
             <p className="champ-erreur">{typographie("Votre navigateur a bloqué la fenêtre : autorisez les fenêtres pour ce site, puis réessayez.")}</p>
           )}
           <button type="button" className="bouton bouton-secondaire" onClick={onEnregistrerFichier}>
-            Enregistrer notre simulation dans un fichier
+            Enregistrer pour reprendre plus tard
           </button>
+          <p className="champ-detail">
+            {typographie("Un fichier FraisFit (.json) à rouvrir dans l'application, par exemple l'an prochain. Ce n'est pas un PDF : il ne s'imprime pas.")}
+          </p>
         </section>
 
         <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>

@@ -253,6 +253,9 @@ export function Resultat({ parametres: p, resultat: r, nonVerifiees, casAdminist
           <button type="button" className="bouton bouton-secondaire" onClick={() => setPdfBloque(!onPdf())}>
             Imprimer ou enregistrer en PDF
           </button>
+          <p className="champ-detail">
+            {typographie("Dans la fenêtre d'impression, choisissez « Enregistrer au format PDF ».")}
+          </p>
           {r.montantCase > 0 && (
             <p className="champ-detail">
               {typographie(
@@ -264,11 +267,11 @@ export function Resultat({ parametres: p, resultat: r, nonVerifiees, casAdminist
             <p className="champ-erreur">{typographie("Votre navigateur a bloqué la fenêtre : autorisez les fenêtres pour ce site, puis réessayez.")}</p>
           )}
           <button type="button" className="bouton bouton-secondaire" onClick={onEnregistrerFichier}>
-            Enregistrer ma simulation dans un fichier
+            Enregistrer pour reprendre plus tard
           </button>
           <p className="champ-detail">
             {typographie(
-              `Le fichier reste chez vous. L'an prochain, ouvrez-le pour repartir de vos réponses. Calcul fait avec les paramètres des revenus ${p.millesime.revenus}.`,
+              `Un fichier FraisFit (.json) qui reste chez vous : l'an prochain, ouvrez-le pour repartir de vos réponses. Ce n'est pas un PDF : il ne s'imprime pas. Calcul fait avec les paramètres des revenus ${p.millesime.revenus}.`,
             )}
           </p>
         </section>
