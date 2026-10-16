@@ -877,6 +877,178 @@
         }
       },
       "source": "Simulation du 14/10/2026"
+    },
+    {
+      "id": "FOY-01",
+      "titre": "Couple : déclarant 1 à 45 km, conjoint à 10 km → motif « emploi du conjoint » proposé, 45 km retenus",
+      "entrees": {
+        "aller_moi": 45,
+        "aller_conjoint": 10
+      },
+      "attendu": {
+        "motif_propose": true,
+        "distance_retenue": 45
+      },
+      "source": "Ajout n° 1, test 1 ; F10"
+    },
+    {
+      "id": "FOY-02",
+      "titre": "Couple : les deux à plus de 40 km sans autre motif → 40 km chacun",
+      "entrees": {
+        "aller_moi": 55,
+        "aller_conjoint": 48
+      },
+      "attendu": {
+        "motif_propose_1": false,
+        "motif_propose_2": false,
+        "distance_retenue_1": 40,
+        "distance_retenue_2": 40
+      },
+      "source": "Ajout n° 1, test 2"
+    },
+    {
+      "id": "FOY-03",
+      "titre": "Couple sans enfant : déclarant 1 à 5 000 € de frais réels, déclarant 2 à 1 000 € → réels / 10 %",
+      "entrees": {
+        "declarant_1": {
+          "salaire": 30000,
+          "reintegrations": 0,
+          "frais_reels": 5000
+        },
+        "declarant_2": {
+          "salaire": 25000,
+          "reintegrations": 0,
+          "frais_reels": 1000
+        },
+        "enfants": 0
+      },
+      "attendu": {
+        "combinaisons": [
+          {
+            "reels_1": false,
+            "reels_2": false,
+            "base_1": 27000.0,
+            "base_2": 22500.0,
+            "impot": 2719.08
+          },
+          {
+            "reels_1": false,
+            "reels_2": true,
+            "base_1": 27000.0,
+            "base_2": 24000.0,
+            "impot": 2958.75
+          },
+          {
+            "reels_1": true,
+            "reels_2": false,
+            "base_1": 25000.0,
+            "base_2": 22500.0,
+            "impot": 2399.53
+          },
+          {
+            "reels_1": true,
+            "reels_2": true,
+            "base_1": 25000.0,
+            "base_2": 24000.0,
+            "impot": 2639.2
+          }
+        ],
+        "meilleure": {
+          "reels_1": true,
+          "reels_2": false
+        }
+      },
+      "source": "Ajout n° 1, test 3 : abattement et frais réels choisis séparément, impôt calculé sur le foyer"
+    },
+    {
+      "id": "FOY-04",
+      "titre": "Couple : salaires 3 000 € et 60 000 € → abattements 509 € et 6 000 €, calculés séparément",
+      "entrees": {
+        "salaires": [
+          3000,
+          60000
+        ]
+      },
+      "attendu": {
+        "abattements": [
+          509.0,
+          6000.0
+        ]
+      },
+      "source": "Ajout n° 1, test 4"
+    },
+    {
+      "id": "FOY-05",
+      "titre": "Voiture 5 CV partagée : 6 000 km (conjoint 1) + 4 000 km (conjoint 2)",
+      "entrees": {
+        "km_1": 6000,
+        "km_2": 4000,
+        "cv": 5
+      },
+      "attendu": {
+        "methode": "prorata",
+        "montants": [
+          2979.0,
+          1986.0
+        ],
+        "total": 4965.0
+      },
+      "source": "Ajout n° 1, test 5 : barème sur 10 000 km = 4 965 €, réparti 2 979 € / 1 986 € (séparément : 3 537 + 2 544 = 6 081 €)"
+    },
+    {
+      "id": "FOY-06",
+      "titre": "Covoiturage conjugal : 25 km, 210 jours, ensemble 42 jours, conducteur = conjoint 1, deux voitures 5 CV",
+      "entrees": {
+        "aller_km": 25,
+        "jours": 210,
+        "jours_ensemble": 42,
+        "conducteur": 1,
+        "cv": 5
+      },
+      "attendu": {
+        "km_1": 10500,
+        "km_2": 8400,
+        "montant_1": 5143.5,
+        "montant_2": 4393.8
+      },
+      "source": "Ajout n° 1, test 6 : 10 500 km soit 5 143,50 € ; 8 400 km soit 4 393,80 €"
+    },
+    {
+      "id": "FOY-07",
+      "titre": "Passager d'un covoiturage hors du foyer : 1 200 € payés au conducteur, 25 km",
+      "entrees": {
+        "montant_paye": 1200,
+        "aller_km": 25
+      },
+      "attendu": {
+        "montant": 1200.0
+      },
+      "source": "Ajout n° 1, test 7 ; LFR 2022 art. 20"
+    },
+    {
+      "id": "FOY-09",
+      "titre": "Passager hors du foyer à 60 km sans motif : 1 200 € ramenés au prorata de 40 km",
+      "entrees": {
+        "montant_paye": 1200,
+        "aller_km": 60
+      },
+      "attendu": {
+        "montant": 800.0
+      },
+      "source": "Ajout n° 1 : règle des 40 km applicable au passager ; prorata = règle FraisFit à confirmer par la DGFiP"
+    },
+    {
+      "id": "FOY-08",
+      "titre": "Conducteur d'un covoiturage : barème 4 965 € (10 000 km, 5 CV), 900 € de participations reçues",
+      "entrees": {
+        "km": 10000,
+        "cv": 5,
+        "participations": 900
+      },
+      "attendu": {
+        "montant": 4065.0
+      },
+      "source": "Ajout n° 1, test 8 : 4 065 €"
     }
   ]
 }

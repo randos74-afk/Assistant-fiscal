@@ -5,6 +5,7 @@ import { calculerDeclarant } from "./declarant";
 import { materielAnnee, partSurface, ratioTemps } from "./teletravail";
 import { comparerImpot, impotFoyer, partsFoyer } from "./impot";
 import { arrondiEuro } from "./format";
+import { combinaisonsFoyer, covoiturageConducteur, covoituragePassager, kmCovoiturageConjugal, motifEmploiConjointPropose, vehiculePartage } from "./couple";
 import { chargerParametres } from "./parametres";
 import {
   abattement,
@@ -87,6 +88,8 @@ function calculer(c: Cas): Record<string, unknown> {
       return { montant_retenu: plafondFraisReelsVehicule(p, e.km, e.frais_justifies).montant };
     case "RES":
       return calculerResume(c);
+    case "FOY":
+      return calculerFoyer(c);
     case "ADM":
       return calculerAideDomicile(c);
     case "SEU": {
@@ -189,6 +192,53 @@ function calculerAideDomicile(c: Cas): Record<string, unknown> {
   };
 }
 
+/** Ajout n° 1 — Mode foyer. */
+function calculerFoyer(c: Cas): Record<string, unknown> {
+  const e = c.entrees;
+  switch (c.id) {
+    case "FOY-01": {
+      const motif = motifEmploiConjointPropose(p, e.aller_moi, e.aller_conjoint);
+      return { motif_propose: motif, distance_retenue: distanceRetenue(p, e.aller_moi, motif) };
+    }
+    case "FOY-02":
+      return {
+        motif_propose_1: motifEmploiConjointPropose(p, e.aller_moi, e.aller_conjoint),
+        motif_propose_2: motifEmploiConjointPropose(p, e.aller_conjoint, e.aller_moi),
+        distance_retenue_1: distanceRetenue(p, e.aller_moi),
+        distance_retenue_2: distanceRetenue(p, e.aller_conjoint),
+      };
+    case "FOY-03": {
+      const d = (x: { salaire: number; reintegrations: number; frais_reels: number }) => ({
+        salairePrerempli: x.salaire,
+        reintegrations: x.reintegrations,
+        fraisReels: x.frais_reels,
+      });
+      const r = combinaisonsFoyer(p, d(e.declarant_1), d(e.declarant_2), { enfants: e.enfants, parentIsole: false });
+      return {
+        combinaisons: r.combinaisons.map((k) => ({ reels_1: k.reels1, reels_2: k.reels2, base_1: k.base1, base_2: k.base2, impot: k.impot })),
+        meilleure: { reels_1: r.meilleure.reels1, reels_2: r.meilleure.reels2 },
+      };
+    }
+    case "FOY-04":
+      return { abattements: e.salaires.map((s: number) => abattement(p, s)) };
+    case "FOY-05": {
+      const r = vehiculePartage(p, e.km_1, e.km_2, { cv: e.cv });
+      return { methode: r.methode, montants: r.montants, total: r.montants[0] + r.montants[1] };
+    }
+    case "FOY-06": {
+      const km1 = kmCovoiturageConjugal(p, e.aller_km, e.jours, e.conducteur === 1 ? 0 : e.jours_ensemble);
+      const km2 = kmCovoiturageConjugal(p, e.aller_km, e.jours, e.conducteur === 2 ? 0 : e.jours_ensemble);
+      return { km_1: km1, km_2: km2, montant_1: baremeKm(p, { km: km1, cv: e.cv }).montant, montant_2: baremeKm(p, { km: km2, cv: e.cv }).montant };
+    }
+    case "FOY-07":
+    case "FOY-09":
+      return { montant: covoituragePassager(p, e.montant_paye, e.aller_km) };
+    case "FOY-08":
+      return { montant: covoiturageConducteur(baremeKm(p, { km: e.km, cv: e.cv }).montant, e.participations) };
+  }
+  return {};
+}
+
 function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
   if (typeof attendu === "number") {
     expect(typeof obtenu, chemin).toBe("number");
@@ -205,8 +255,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 55 cas", () => {
-    expect(casDeTest.cas.length).toBe(55);
+  it("contient bien les 64 cas", () => {
+    expect(casDeTest.cas.length).toBe(64);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

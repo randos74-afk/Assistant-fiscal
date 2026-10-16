@@ -181,6 +181,59 @@ def gain_base_imposable(salaire_prerempli, reintegrations, frais_reels, chomage=
     return base_10, base_reel, base_10 - base_reel
 
 
+# --- Mode foyer (ajout n° 1, docs/03-ajout-mode-foyer.md) ---
+def motif_emploi_conjoint_propose(aller_moi, aller_conjoint):
+    """F10 : le motif « emploi du conjoint » est proposé si l'un travaille au-delà de 40 km et l'autre à 40 km ou moins."""
+    plafond = P["deplacements"]["distance_aller_max_sans_justification_km"]
+    return aller_moi > plafond and aller_conjoint <= plafond
+
+
+def vehicule_partage(km1, km2, vehicule="voiture", cv=5, electrique=False):
+    """Véhicule utilisé par les deux conjoints (règle de prudence FraisFit) : barème sur le total du véhicule réparti
+    au prorata des km, ou barème séparé de chacun ; la méthode qui donne la déduction totale la plus faible est retenue."""
+    separe = [bareme_km(km1, vehicule, cv, electrique), bareme_km(km2, vehicule, cv, electrique)]
+    total = bareme_km(km1 + km2, vehicule, cv, electrique)
+    prorata = [total * km1 / (km1 + km2), total * km2 / (km1 + km2)]
+    if sum(prorata) <= sum(separe):
+        return "prorata", prorata
+    return "separe", separe
+
+
+def covoiturage_conjugal_km(aller_km, jours, jours_passager, motif=False):
+    """Trajets faits ensemble : les jours où il est passager de son conjoint, le déclarant ne compte aucun km."""
+    return distance_retenue(aller_km, motif) * 2 * (jours - jours_passager)
+
+
+def covoiturage_passager(montant_paye, aller_km, motif=False):
+    """Passager hors du foyer (LFR 2022 art. 20, CGI 83, 3°) : montant réellement payé ; au-delà de 40 km sans motif,
+    réduit au prorata de 40 km (application de la règle des 40 km, à confirmer par la DGFiP)."""
+    plafond = P["deplacements"]["distance_aller_max_sans_justification_km"]
+    if motif or aller_km <= plafond:
+        return montant_paye
+    return montant_paye * plafond / aller_km
+
+
+def covoiturage_conducteur(frais_vehicule, participations_recues):
+    """Conducteur : seul ce qui reste à sa charge est déductible."""
+    return max(0.0, frais_vehicule - participations_recues)
+
+
+def combinaisons_foyer(d1, d2, enfants=0):
+    """Ajout n° 1 : les 4 combinaisons 10 % / frais réels d'un couple, impôt du foyer pour chacune.
+    d = (salaire prérempli, réintégrations, frais réels). Retourne la liste et la combinaison la moins chère."""
+    def base(d, reel):
+        b10, br, _ = gain_base_imposable(*d)
+        return br if reel else b10
+    res = []
+    for r1 in (False, True):
+        for r2_ in (False, True):
+            b1, b2 = base(d1, r1), base(d2, r2_)
+            res.append({"reels_1": r1, "reels_2": r2_, "base_1": b1, "base_2": b2, "impot": impot_foyer(b1 + b2, True, enfants)})
+    # À impôt égal, la base imposable la plus faible (revenu fiscal de référence), puis le moins d'options.
+    meilleure = min(res, key=lambda c: (round(c["impot"], 2), c["base_1"] + c["base_2"], c["reels_1"] + c["reels_2"]))
+    return res, meilleure
+
+
 def r2(x):
     return round(x + 1e-9, 2)
 
@@ -361,6 +414,45 @@ for s in (20000, 25000, 30000, 40000):
     cas(f"SEU-{s}", f"Distance aller minimale pour battre le 10 %, salaire {s} €", {"salaire": s, "cv": 5, "jours": 218},
         {"km_aller_min": res}, "Simulation du 14/10/2026")
 
+# --- Mode foyer (ajout n° 1) ---
+cas("FOY-01", "Couple : déclarant 1 à 45 km, conjoint à 10 km → motif « emploi du conjoint » proposé, 45 km retenus",
+    {"aller_moi": 45, "aller_conjoint": 10},
+    {"motif_propose": motif_emploi_conjoint_propose(45, 10), "distance_retenue": distance_retenue(45, motif_emploi_conjoint_propose(45, 10))},
+    "Ajout n° 1, test 1 ; F10")
+cas("FOY-02", "Couple : les deux à plus de 40 km sans autre motif → 40 km chacun",
+    {"aller_moi": 55, "aller_conjoint": 48},
+    {"motif_propose_1": motif_emploi_conjoint_propose(55, 48), "motif_propose_2": motif_emploi_conjoint_propose(48, 55),
+     "distance_retenue_1": distance_retenue(55), "distance_retenue_2": distance_retenue(48)},
+    "Ajout n° 1, test 2")
+foy3, foy3_best = combinaisons_foyer((30000, 0, 5000), (25000, 0, 1000))
+cas("FOY-03", "Couple sans enfant : déclarant 1 à 5 000 € de frais réels, déclarant 2 à 1 000 € → réels / 10 %",
+    {"declarant_1": {"salaire": 30000, "reintegrations": 0, "frais_reels": 5000}, "declarant_2": {"salaire": 25000, "reintegrations": 0, "frais_reels": 1000}, "enfants": 0},
+    {"combinaisons": [{"reels_1": c["reels_1"], "reels_2": c["reels_2"], "base_1": r2(c["base_1"]), "base_2": r2(c["base_2"]), "impot": r2(c["impot"])} for c in foy3],
+     "meilleure": {"reels_1": foy3_best["reels_1"], "reels_2": foy3_best["reels_2"]}},
+    "Ajout n° 1, test 3 : abattement et frais réels choisis séparément, impôt calculé sur le foyer")
+cas("FOY-04", "Couple : salaires 3 000 € et 60 000 € → abattements 509 € et 6 000 €, calculés séparément",
+    {"salaires": [3000, 60000]}, {"abattements": [r2(abattement(3000)), r2(abattement(60000))]}, "Ajout n° 1, test 4")
+foy5 = vehicule_partage(6000, 4000, cv=5)
+cas("FOY-05", "Voiture 5 CV partagée : 6 000 km (conjoint 1) + 4 000 km (conjoint 2)",
+    {"km_1": 6000, "km_2": 4000, "cv": 5},
+    {"methode": foy5[0], "montants": [r2(x) for x in foy5[1]], "total": r2(sum(foy5[1]))},
+    "Ajout n° 1, test 5 : barème sur 10 000 km = 4 965 €, réparti 2 979 € / 1 986 € (séparément : 3 537 + 2 544 = 6 081 €)")
+foy6_1 = covoiturage_conjugal_km(25, 210, 0)
+foy6_2 = covoiturage_conjugal_km(25, 210, 42)
+cas("FOY-06", "Covoiturage conjugal : 25 km, 210 jours, ensemble 42 jours, conducteur = conjoint 1, deux voitures 5 CV",
+    {"aller_km": 25, "jours": 210, "jours_ensemble": 42, "conducteur": 1, "cv": 5},
+    {"km_1": foy6_1, "km_2": foy6_2, "montant_1": r2(bareme_km(foy6_1, cv=5)), "montant_2": r2(bareme_km(foy6_2, cv=5))},
+    "Ajout n° 1, test 6 : 10 500 km soit 5 143,50 € ; 8 400 km soit 4 393,80 €")
+cas("FOY-07", "Passager d'un covoiturage hors du foyer : 1 200 € payés au conducteur, 25 km",
+    {"montant_paye": 1200, "aller_km": 25}, {"montant": r2(covoiturage_passager(1200, 25))},
+    "Ajout n° 1, test 7 ; LFR 2022 art. 20")
+cas("FOY-09", "Passager hors du foyer à 60 km sans motif : 1 200 € ramenés au prorata de 40 km",
+    {"montant_paye": 1200, "aller_km": 60}, {"montant": r2(covoiturage_passager(1200, 60))},
+    "Ajout n° 1 : règle des 40 km applicable au passager ; prorata = règle FraisFit à confirmer par la DGFiP")
+cas("FOY-08", "Conducteur d'un covoiturage : barème 4 965 € (10 000 km, 5 CV), 900 € de participations reçues",
+    {"km": 10000, "cv": 5, "participations": 900}, {"montant": r2(covoiturage_conducteur(bareme_km(10000, cv=5), 900))},
+    "Ajout n° 1, test 8 : 4 065 €")
+
 
 if __name__ == "__main__":
     out = os.path.join(ICI, "cas-de-test.json")
@@ -395,4 +487,8 @@ if __name__ == "__main__":
     assert impot_foyer(13000, False, 0) == 0.0
     assert r2(impot_foyer(100000, False, 1, veuf=True)) == 17368.52
     assert r2(impot_foyer(60000, False, 2, veuf=True)) == 2772.0
+    assert foy5 == ("prorata", [2979.0, 1986.0])
+    assert r2(bareme_km(foy6_1, cv=5)) == 5143.5 and r2(bareme_km(foy6_2, cv=5)) == 4393.8
+    assert r2(covoiturage_conducteur(bareme_km(10000, cv=5), 900)) == 4065.0
+    assert (foy3_best["reels_1"], foy3_best["reels_2"]) == (True, False)
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")
