@@ -1,7 +1,7 @@
 // Vérifie le moteur contre tests/cas-de-test.json (générés par tests/reference_calcul.py).
 import { describe, expect, it } from "vitest";
 import casDeTest from "../../tests/cas-de-test.json";
-import { calculerDeclarant } from "./declarant";
+import { calculerDeclarant, kmJournee } from "./declarant";
 import { materielAnnee, partSurface, ratioTemps } from "./teletravail";
 import { comparerImpot, impotFoyer, partsFoyer } from "./impot";
 import { arrondiEuro } from "./format";
@@ -90,6 +90,8 @@ function calculer(c: Cas): Record<string, unknown> {
       return calculerResume(c);
     case "FOY":
       return calculerFoyer(c);
+    case "MET":
+      return calculerMetier(c);
     case "ADM":
       return calculerAideDomicile(c);
     case "SEU": {
@@ -239,6 +241,75 @@ function calculerFoyer(c: Cas): Record<string, unknown> {
   return {};
 }
 
+/** F14 — Parcours métier : un déclarant complet par cas. */
+function calculerMetier(c: Cas): Record<string, unknown> {
+  const e = c.entrees;
+  const voiture = { type: "voiture" as const, energie: "essence" as const, cv: e.cv };
+  const entree = (() => {
+    switch (c.id) {
+      case "MET-01":
+        return {
+          numero: 1,
+          salairePrerempli: e.salaire_prerempli,
+          vehicules: [{ ...voiture, allerKm: e.aller_km, joursSurSite: e.jours_sur_site }],
+          repas: [{ nb: e.repas_forfait, prix: null }],
+          autresFrais: [
+            { libelle: "chaussures de travail", montant: e.chaussures_de_travail },
+            { libelle: "cotisation à l'ordre", montant: e.cotisation_ordre },
+          ],
+        };
+      case "MET-02":
+        return {
+          numero: 1,
+          salairePrerempli: e.salaire_prerempli,
+          vehicules: [{ ...voiture, allerKm: 0, joursSurSite: 0, journeesTypes: [{ troncons: e.troncons, jours: e.jours }] }],
+          repas: [{ nb: e.repas_forfait, prix: null }],
+        };
+      case "MET-03":
+        return {
+          numero: 1,
+          salairePrerempli: e.salaire_prerempli,
+          vehicules: [
+            {
+              ...voiture,
+              allerKm: 0,
+              joursSurSite: 0,
+              motifDistance: e.motif,
+              trajetsEmployeurs: e.trajets.map(([allerKm, joursSurSite]: number[], i: number) => ({ nom: `école ${i + 1}`, allerKm, joursSurSite })),
+            },
+          ],
+          autresFrais: [
+            { libelle: "documentation", montant: e.documentation },
+            { libelle: "cotisation syndicale", montant: e.cotisation_syndicale },
+          ],
+          reintegrations: [{ libelle: "indemnité de sujétion spéciale de remplacement", montant: e.reintegration_issr }],
+        };
+      default:
+        return {
+          numero: 1,
+          salairePrerempli: e.salaire_prerempli,
+          vehicules: [{ ...voiture, allerKm: e.aller_km, joursSurSite: e.jours_sur_site, kmDoubleResidence: e.km_double_residence }],
+          autresFrais: [
+            { libelle: "double résidence", montant: e.loyer_second_logement },
+            { libelle: "déménagement", montant: e.demenagement },
+          ],
+        };
+    }
+  })();
+  const r = calculerDeclarant(p, entree);
+  return {
+    km: r.kmVehicules[0],
+    lignes: r.lignes.filter((l) => l.categorie !== "peages" && l.categorie !== "interets").map((l) => l.montant),
+    montant_1AK: r.montantCase,
+    base_abattement_10: r.comparaison.baseAbattement10,
+    base_frais_reels: r.comparaison.baseFraisReels,
+    gain_base: r.comparaison.gainBase,
+    // MET-02 : répartition domicile-travail / professionnel d'après la journée type.
+    km_domicile_travail: e.troncons ? kmJournee(p, { troncons: e.troncons, jours: 1 }, false).domicileTravail * e.jours : undefined,
+    km_professionnels: e.troncons ? kmJournee(p, { troncons: e.troncons, jours: 1 }, false).professionnels * e.jours : undefined,
+  };
+}
+
 function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
   if (typeof attendu === "number") {
     expect(typeof obtenu, chemin).toBe("number");
@@ -255,8 +326,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 64 cas", () => {
-    expect(casDeTest.cas.length).toBe(64);
+  it("contient bien les 68 cas", () => {
+    expect(casDeTest.cas.length).toBe(68);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

@@ -1049,6 +1049,122 @@
         "montant": 4065.0
       },
       "source": "Ajout n° 1, test 8 : 4 065 €"
+    },
+    {
+      "id": "MET-01",
+      "titre": "Infirmière de nuit en 12 h : 134 nuits, 18 km, voiture 5 CV, repas de nuit au forfait, tenues lavées par l'employeur",
+      "entrees": {
+        "salaire_prerempli": 31000,
+        "aller_km": 18,
+        "jours_sur_site": 134,
+        "cv": 5,
+        "repas_forfait": 134,
+        "chaussures_de_travail": 90,
+        "cotisation_ordre": 30
+      },
+      "attendu": {
+        "km": 4824,
+        "lignes": [
+          3068,
+          730,
+          90,
+          30
+        ],
+        "montant_1AK": 3918,
+        "gain_base": 818.0
+      },
+      "source": "F14 soignant : repas de nuit sans restauration ouverte = forfait ; employeur qui lave les tenues = seul l'achat compte"
+    },
+    {
+      "id": "MET-02",
+      "titre": "Infirmière de SSIAD : journée type 8 + 5 + 6 + 10 km, 200 jours, voiture 4 CV, repas au forfait",
+      "entrees": {
+        "salaire_prerempli": 24000,
+        "troncons": [
+          8,
+          5,
+          6,
+          10
+        ],
+        "jours": 200,
+        "cv": 4,
+        "repas_forfait": 200
+      },
+      "attendu": {
+        "km": 5800,
+        "km_domicile_travail": 3600,
+        "km_professionnels": 2200,
+        "lignes": [
+          3302,
+          1090
+        ],
+        "montant_1AK": 4392,
+        "gain_base": 1992.0
+      },
+      "source": "F14 soignant + F13 : soins à domicile, premier et dernier tronçon en domicile-travail, tronçons entre patients en professionnel"
+    },
+    {
+      "id": "MET-03",
+      "titre": "Professeur des écoles remplaçant : écoles à 12 km (60 j), 25 km (50 j), 45 km (70 j), emploi mobile, ISSR 1 800 € à réintégrer",
+      "entrees": {
+        "salaire_prerempli": 28000,
+        "trajets": [
+          [
+            12,
+            60
+          ],
+          [
+            25,
+            50
+          ],
+          [
+            45,
+            70
+          ]
+        ],
+        "motif": "emploi précaire ou mobile",
+        "cv": 5,
+        "documentation": 120,
+        "cotisation_syndicale": 150,
+        "reintegration_issr": 1800
+      },
+      "attendu": {
+        "km": 10240,
+        "lignes": [
+          5050,
+          120,
+          150
+        ],
+        "montant_1AK": 5320,
+        "base_abattement_10": 25200.0,
+        "base_frais_reels": 24480.0,
+        "gain_base": 720.0
+      },
+      "source": "F14 enseignant : trajets réels vers chaque établissement au même barème ; indemnité de sujétion de remplacement réintégrée"
+    },
+    {
+      "id": "MET-04",
+      "titre": "Professeur de collège muté à 400 km : 3 km sur place (175 j), 34 retours au domicile familial, voiture 6 CV, loyer 450 € × 10 mois, déménagement 900 €",
+      "entrees": {
+        "salaire_prerempli": 32000,
+        "aller_km": 3,
+        "jours_sur_site": 175,
+        "km_double_residence": 27200,
+        "cv": 6,
+        "loyer_second_logement": 4500,
+        "demenagement": 900
+      },
+      "attendu": {
+        "km": 28250,
+        "lignes": [
+          12627,
+          4500,
+          900
+        ],
+        "montant_1AK": 18027,
+        "gain_base": 14827.0
+      },
+      "source": "F14 grand rouleur / double résidence : trajets hebdomadaires ajoutés au même véhicule avant le barème (BOI-RSA-BASE-30-50-30-20)"
     }
   ]
 }

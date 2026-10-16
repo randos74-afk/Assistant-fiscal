@@ -11,7 +11,7 @@ Langue : toute l'interface, les messages, les commentaires métier et les commit
 | `docs/01-specifications-fonctionnelles.md` | 14 modules F1 à F14 figés : règles de calcul, réintégrations, alertes, parcours métier | Fait foi pour le calcul |
 | `docs/02-specifications-cosmetiques-accompagnement.md` | Public, exclusions, couleurs, polices, logo, parcours, aide « astérisque », ton | Fait foi pour l'interface |
 | `parametres/revenus-2025.json` | Tous les chiffres fiscaux (barèmes, plafonds, forfaits, seuils d'alerte, valeurs prudentes) | Seule source des chiffres |
-| `tests/cas-de-test.json` | 64 cas avec résultats attendus, vérifiés contre les exemples officiels DGFiP | Doivent tous passer |
+| `tests/cas-de-test.json` | 68 cas avec résultats attendus, vérifiés contre les exemples officiels DGFiP | Doivent tous passer |
 | `tests/reference_calcul.py` | Calcul de référence en Python qui génère les cas | Pour comprendre une formule |
 | `design/tokens.json` | Jetons de couleurs, polices, tailles | Thème de l'interface |
 | `design/maquettes/*.html` | Maquettes validées (accueil, question, fiche d'aide, journée type, logo) | Référence visuelle |

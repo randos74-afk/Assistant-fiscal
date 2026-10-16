@@ -453,6 +453,59 @@ cas("FOY-08", "Conducteur d'un covoiturage : barème 4 965 € (10 000 km, 5 CV)
     {"km": 10000, "cv": 5, "participations": 900}, {"montant": r2(covoiturage_conducteur(bareme_km(10000, cv=5), 900))},
     "Ajout n° 1, test 8 : 4 065 €")
 
+# --- Parcours métier (F14) : quatre cas demandés par la spécification avant développement ---
+# Chiffres d'exemple (distances, jours, loyers) choisis pour être réalistes ; règles et barèmes lus dans les paramètres.
+def total_1ak(lignes):
+    return sum(arrondi_euro(x) for x in lignes)
+
+
+# MET-01 : infirmière de nuit en 12 h, sans transport en commun la nuit.
+met1_km = distance_retenue(18) * 2 * 134
+met1 = [bareme_km(met1_km, cv=5), repas(134, None), 90, 30]
+met1_case = total_1ak(met1)
+b10, br, g = gain_base_imposable(31000, 0, met1_case)
+cas("MET-01", "Infirmière de nuit en 12 h : 134 nuits, 18 km, voiture 5 CV, repas de nuit au forfait, tenues lavées par l'employeur",
+    {"salaire_prerempli": 31000, "aller_km": 18, "jours_sur_site": 134, "cv": 5, "repas_forfait": 134,
+     "chaussures_de_travail": 90, "cotisation_ordre": 30},
+    {"km": met1_km, "lignes": [arrondi_euro(x) for x in met1], "montant_1AK": met1_case, "gain_base": r2(g)},
+    "F14 soignant : repas de nuit sans restauration ouverte = forfait ; employeur qui lave les tenues = seul l'achat compte")
+
+# MET-02 : infirmière de SSIAD, journée type maison → 3 patients → maison.
+met2_dt = distance_retenue(8) + distance_retenue(10)
+met2_pro = 5 + 6
+met2_km = (met2_dt + met2_pro) * 200
+met2 = [bareme_km(met2_km, cv=4), repas(200, None)]
+met2_case = total_1ak(met2)
+b10, br, g = gain_base_imposable(24000, 0, met2_case)
+cas("MET-02", "Infirmière de SSIAD : journée type 8 + 5 + 6 + 10 km, 200 jours, voiture 4 CV, repas au forfait",
+    {"salaire_prerempli": 24000, "troncons": [8, 5, 6, 10], "jours": 200, "cv": 4, "repas_forfait": 200},
+    {"km": met2_km, "km_domicile_travail": met2_dt * 200, "km_professionnels": met2_pro * 200,
+     "lignes": [arrondi_euro(x) for x in met2], "montant_1AK": met2_case, "gain_base": r2(g)},
+    "F14 soignant + F13 : soins à domicile, premier et dernier tronçon en domicile-travail, tronçons entre patients en professionnel")
+
+# MET-03 : professeur des écoles remplaçant sur trois écoles, emploi mobile.
+met3_km = km_plusieurs_employeurs([(12, 60), (25, 50), (45, 70)], motif=True)
+met3 = [bareme_km(met3_km, cv=5), 120, 150]
+met3_case = total_1ak(met3)
+b10, br, g = gain_base_imposable(28000, 1800, met3_case)
+cas("MET-03", "Professeur des écoles remplaçant : écoles à 12 km (60 j), 25 km (50 j), 45 km (70 j), emploi mobile, ISSR 1 800 € à réintégrer",
+    {"salaire_prerempli": 28000, "trajets": [[12, 60], [25, 50], [45, 70]], "motif": "emploi précaire ou mobile", "cv": 5,
+     "documentation": 120, "cotisation_syndicale": 150, "reintegration_issr": 1800},
+    {"km": met3_km, "lignes": [arrondi_euro(x) for x in met3], "montant_1AK": met3_case,
+     "base_abattement_10": r2(b10), "base_frais_reels": r2(br), "gain_base": r2(g)},
+    "F14 enseignant : trajets réels vers chaque établissement au même barème ; indemnité de sujétion de remplacement réintégrée")
+
+# MET-04 : professeur de collège muté à 400 km, double résidence.
+met4_km = distance_retenue(3) * 2 * 175 + 400 * 2 * 34
+met4 = [bareme_km(met4_km, cv=6), 450 * 10, 900]
+met4_case = total_1ak(met4)
+b10, br, g = gain_base_imposable(32000, 0, met4_case)
+cas("MET-04", "Professeur de collège muté à 400 km : 3 km sur place (175 j), 34 retours au domicile familial, voiture 6 CV, loyer 450 € × 10 mois, déménagement 900 €",
+    {"salaire_prerempli": 32000, "aller_km": 3, "jours_sur_site": 175, "km_double_residence": 400 * 2 * 34, "cv": 6,
+     "loyer_second_logement": 4500, "demenagement": 900},
+    {"km": met4_km, "lignes": [arrondi_euro(x) for x in met4], "montant_1AK": met4_case, "gain_base": r2(g)},
+    "F14 grand rouleur / double résidence : trajets hebdomadaires ajoutés au même véhicule avant le barème (BOI-RSA-BASE-30-50-30-20)")
+
 
 if __name__ == "__main__":
     out = os.path.join(ICI, "cas-de-test.json")
