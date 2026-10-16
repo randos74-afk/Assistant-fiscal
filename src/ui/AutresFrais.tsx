@@ -8,6 +8,7 @@ import {
   autresFraisPourMoteur,
   creditImpotSyndicalPerdu,
   GROUPES,
+  kmVersDomicileFamilial,
   POSTES,
   priseEnChargePrudente,
   type IdAutreFrais,
@@ -63,6 +64,10 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
   const [logementDR, setLogementDR] = useState(texte(v?.doubleResidence?.logement));
   const [billetsDR, setBilletsDR] = useState(texte(v?.doubleResidence?.billets));
   const [kmDR, setKmDR] = useState(v?.doubleResidence?.kmVehicule ? String(v.doubleResidence.kmVehicule) : "");
+  const [aideKmDR, setAideKmDR] = useState(false);
+  const [distanceFamille, setDistanceFamille] = useState("");
+  const [arSemaine, setArSemaine] = useState("1");
+  const [semainesDR, setSemainesDR] = useState("");
   // F6.11 — Bureau à domicile hors télétravail.
   const b = v?.bureau;
   const [bureauUsage, setBureauUsage] = useState<"dedie" | "mixte" | undefined>(b?.usage);
@@ -267,6 +272,33 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
                 onChange={setKmDR}
               />
             ) : null}
+            {aVehicule && !aideKmDR && (
+              <button type="button" className="lien-je-ne-sais-pas" onClick={() => setAideKmDR(true)}>
+                Calculer avec mes allers-retours
+              </button>
+            )}
+            {aVehicule && aideKmDR && (() => {
+              const n = (t: string) => {
+                const x = lireEntier(t);
+                return x === null || Number.isNaN(x) ? 0 : x;
+              };
+              const km = kmVersDomicileFamilial(n(distanceFamille), n(arSemaine), n(semainesDR));
+              return (
+                <div className="encadre encadre-info" style={{ flexDirection: "column", alignItems: "stretch", gap: 8 }}>
+                  <ChampNombre compact libelleVisible libelle="Distance entre les deux logements, aller" unite="km" valeur={distanceFamille} onChange={setDistanceFamille} />
+                  <ChampNombre compact libelleVisible libelle="Allers-retours par semaine" unite="" valeur={arSemaine} onChange={setArSemaine} />
+                  <ChampNombre compact libelleVisible libelle="Semaines concernées dans l'année" unite="semaines" valeur={semainesDR} onChange={setSemainesDR} />
+                  {n(arSemaine) > 1 && (
+                    <p style={{ margin: 0 }}>{typographie("Plus d'un aller-retour par semaine : l'administration peut n'en retenir qu'un. Gardez de quoi expliquer ce rythme.")}</p>
+                  )}
+                  {km > 0 && (
+                    <button type="button" className="bouton bouton-secondaire" onClick={() => (setKmDR(String(km)), setAideKmDR(false))}>
+                      {typographie(`Utiliser ${km.toLocaleString("fr-FR")} km`)}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
             <ChampMontant compact libelleVisible libelle="Billets de train ou de car pour ces trajets" valeur={billetsDR} onChange={setBilletsDR} />
           </>
         );

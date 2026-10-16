@@ -177,3 +177,8 @@ export function autresFraisPourMoteur(p: Parametres, s: SaisieAutresFrais): Resu
 export function creditImpotSyndicalPerdu(p: Parametres, cotisation: number): number {
   return Math.round(cotisation * p.cotisations_syndicales.taux_credit_impot * 100) / 100;
 }
+
+/** F14 grand rouleur — Km des allers-retours vers le domicile familial : distance × 2 × allers-retours par semaine × semaines. */
+export function kmVersDomicileFamilial(distanceAller: number, allersRetoursParSemaine: number, semaines: number): number {
+  return Math.max(0, distanceAller) * 2 * Math.max(0, allersRetoursParSemaine) * Math.max(0, semaines);
+}

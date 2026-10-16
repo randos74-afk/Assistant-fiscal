@@ -141,6 +141,48 @@ export function QuestionsEnseignant({ valeurInitiale: v, onValider, onRetour }: 
   );
 }
 
+/** F14 — Grand rouleur : double résidence ou non. La distance et son motif sont demandés à l'étape du trajet. */
+export function QuestionsGrandRouleur({ valeurInitiale: v, onValider, onRetour }: { valeurInitiale?: Reponses; onValider: (q: Reponses) => void; onRetour: () => void }) {
+  const [double, setDouble] = useState(v?.doubleResidence);
+  const titre = "Avez-vous un second logement pour votre travail ?";
+  return (
+    <div className="ecran">
+      <EnTeteEtape libelle="Avant de commencer : votre métier" etape={0} total={ETAPES.length} onRetour={onRetour} />
+
+      <main className="ecran-contenu" style={{ gap: 16 }}>
+        <h1 className="titre-question">{titre}</h1>
+        <p className="texte-secondaire sous-question">
+          {typographie("Votre famille vit ailleurs et vous logez près de votre travail en semaine : c'est la double résidence.")}
+        </p>
+        <ChoixUnique
+          nom="double-residence"
+          legende={titre}
+          options={[
+            { valeur: "non", libelle: "Non", detail: "Je fais la route tous les jours." },
+            { valeur: "oui", libelle: "Oui, un second logement", detail: "Je rentre au domicile familial le week-end ou moins souvent." },
+          ]}
+          valeur={lire(double)}
+          onChoix={(x) => setDouble(x === "oui")}
+        />
+        {double && (
+          <Encadre>
+            {typographie(
+              "La double résidence doit s'expliquer par une raison qui ne relève pas de la convenance personnelle : emploi du conjoint, mutation, emploi précaire… Vous l'indiquerez dans vos autres frais.",
+            )}
+          </Encadre>
+        )}
+      </main>
+
+      <PiedDePage onPrecedent={onRetour}>
+        <BandeauConfidentialite />
+        <button type="button" className="bouton bouton-principal" disabled={double === undefined} onClick={() => onValider({ doubleResidence: double })}>
+          Continuer
+        </button>
+      </PiedDePage>
+    </div>
+  );
+}
+
 /** Conseils du métier, en tête de la première question d'une étape. */
 export function ConseilsMetier({ conseils }: { conseils?: string[] }) {
   if (!conseils?.length) return null;

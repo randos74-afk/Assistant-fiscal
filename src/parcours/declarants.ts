@@ -103,7 +103,12 @@ export function donneesDeclarants(
     const profil = profils[index];
     const calcul = calculerDeclarant(p, entrees[k]);
     const resultat = { ...calcul, alertes: [...calcul.alertes, ...(alertes[k] ?? [])] };
-    const v = vraisemblance(p, reponses[k], resultat, couple ?? enCouple);
+    const brute = vraisemblance(p, reponses[k], resultat, couple ?? enCouple);
+    // F14 — Grand rouleur : l'alerte de niveau 1 est attendue et normale.
+    const v =
+      profil.metier === "grandRouleur" && brute.niveau === 1
+        ? { ...brute, message: "Montant élevé, normal pour vos trajets. Gardez vos justificatifs : relevés de kilométrage, péages, note qui explique la distance." }
+        : brute;
     const nom = nomProfil(index, profil);
     // Plusieurs déclarants : chaque point porte le nom et la place du profil pour y revenir.
     const prefixe = (libelle: string) => (plusieurs ? `${nom} : ${libelle.charAt(0).toLowerCase()}${libelle.slice(1)}` : libelle);

@@ -99,13 +99,15 @@ export interface QuestionsMetier {
   travailMaison?: boolean;
   /** Enseignant : remboursements de frais professionnels (ISSR, forfait mobilités durables…), à ajouter au salaire. */
   remboursementsFrais?: number;
+  /** Grand rouleur : second logement pour le travail (double résidence). */
+  doubleResidence?: boolean;
 }
 
 export type EtapeConseillee = "jours" | "trajet" | "repas" | "teletravail" | "autres";
 
 /** Le métier pose-t-il des questions propres avant le salaire ? */
 export function aDesQuestionsMetier(id: IdProfil | undefined): boolean {
-  return id === "soignant" || id === "enseignant";
+  return id === "soignant" || id === "enseignant" || id === "grandRouleur";
 }
 
 /** Conseils affichés en tête des étapes, selon le métier et ses réponses. Aucune règle de calcul n'est changée. */
@@ -130,6 +132,19 @@ export function conseilsMetier(param: Parametres, id: IdProfil | undefined, q: Q
       "Ordinateur aussi utilisé en privé : estimez la part du travail d'après vos heures d'utilisation (l'aide « M'aider à estimer » fait le calcul), jamais un pourcentage forfaitaire.",
     );
     c.autres.push("Justificatifs utiles : calendrier scolaire, emploi du temps, arrêté d'affectation, factures.");
+    return c;
+  }
+  if (id === "grandRouleur") {
+    c.trajet.push(
+      `Au-delà de ${plafond} km aller, choisissez votre raison : elle est recopiée telle quelle dans le texte à déclarer. Gardez une note qui l'explique.`,
+    );
+    c.trajet.push("Péages, parking et intérêts du crédit auto s'ajoutent au barème : cochez-les si vous avez les justificatifs.");
+    if (q.doubleResidence) {
+      c.autres.push(
+        "Double résidence : loyer et charges du second logement, et vos trajets vers le domicile familial. Ces kilomètres s'ajoutent à ceux de votre véhicule avant le barème.",
+      );
+      c.repas.push("Loin de chez vous, seul le surcoût de vos repas par rapport à un repas pris à la maison compte.");
+    }
     return c;
   }
   if (id !== "soignant") return c;

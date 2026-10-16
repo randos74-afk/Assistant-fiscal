@@ -123,3 +123,11 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Étape télétravail : conseil « votre bureau se déclare dans Vos autres frais ».
 - [ ] Conseils restaurant scolaire, ordinateur à usage mixte, justificatifs (calendrier scolaire, arrêté d'affectation).
 - [ ] Achat de matériel (télétravail ou autres frais) : lien « M'aider à estimer cette part » ; heures pour le travail et pour la vie privée → pourcentage arrondi vers le bas ; « Utiliser X % » remplit le champ.
+
+## Parcours métier : grand rouleur (F14) — livré le 16/10/2026
+
+- [ ] Métier « Grand rouleur ou double résidence » : question « Avez-vous un second logement pour votre travail ? » avant le salaire.
+- [ ] Étape du trajet : conseils sur le motif recopié tel quel et sur les péages, le parking et les intérêts.
+- [ ] Double résidence « Non » : le poste n'est plus coché d'office ; « Oui » : il l'est, avec le conseil sur le loyer et les trajets familiaux.
+- [ ] Poste double résidence : « Calculer avec mes allers-retours » (distance, allers-retours par semaine, semaines) → « Utiliser X km » ; message si plus d'un aller-retour par semaine.
+- [ ] Frais élevés (niveau 1) : message « Montant élevé, normal pour vos trajets », sans ton d'alerte.

@@ -6,7 +6,7 @@ import { postesDuProfil } from "./parcours/autresFrais";
 import { totaux } from "./parcours/calendrier";
 import { QUESTIONS_FILTRAGE, type Reponses as ReponsesFiltrage } from "./parcours/filtrage";
 import { aDesQuestionsMetier, conseilsMetier, profil as profilMetier } from "./parcours/metiers";
-import { QuestionsEnseignant, QuestionsSoignant } from "./ui/QuestionsMetier";
+import { QuestionsEnseignant, QuestionsGrandRouleur, QuestionsSoignant } from "./ui/QuestionsMetier";
 import { estVehicule } from "./parcours/trajet";
 import { Accueil } from "./ui/Accueil";
 import { AutresFrais } from "./ui/AutresFrais";
@@ -149,6 +149,7 @@ export default function App() {
   /** F14 — Les réponses du métier ferment les postes inutiles (pas muté : ni déménagement ni double résidence). */
   function posteUtile(id: string): boolean {
     const q = profilActif.questionsMetier;
+    if (metier === "grandRouleur" && id === "doubleResidence") return q?.doubleResidence !== false;
     if (metier !== "enseignant" || !q) return true;
     if ((id === "demenagement" || id === "doubleResidence") && q.mute === false) return false;
     if (id === "bureauDomicile" && q.travailMaison === false) return false;
@@ -327,7 +328,7 @@ export default function App() {
       );
 
     case "questionsMetier": {
-      const Questions = metier === "enseignant" ? QuestionsEnseignant : QuestionsSoignant;
+      const Questions = metier === "enseignant" ? QuestionsEnseignant : metier === "grandRouleur" ? QuestionsGrandRouleur : QuestionsSoignant;
       return avecProfil(
         <Questions
           valeurInitiale={profilActif.questionsMetier}
