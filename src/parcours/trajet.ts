@@ -104,6 +104,8 @@ export interface SaisieTrajet {
    * ne sont pas déduits) et jours de covoiturage par semaine (null = « Je ne sais pas » : tous les jours).
    */
   covoiturage?: { participations: number | null; joursParSemaine: number | null };
+  /** F14 enseignant remplaçant — Un trajet par établissement (nom, distance aller, jours), additionnés avant le barème. */
+  lieux?: { nom: string; allerKm: number; joursSurSite: number }[];
   /** F14 soignant (soins à domicile) — Indemnités kilométriques reçues dans l'année, à ajouter au salaire. */
   indemnitesKmRecues?: number;
 }
@@ -118,7 +120,9 @@ export function vehiculePourMoteur(p: Parametres, t: SaisieTrajet, joursSurSite:
   const parEmployeur =
     employeurs && employeurs.length > 1 && t.employeurs?.length === employeurs.length && t.kmAnnuel === undefined
       ? t.employeurs.map((e, i) => ({ nom: nomEmployeur(employeurs[i], i), allerKm: e.allerKm, joursSurSite: e.joursSurSite }))
-      : undefined;
+      : t.lieux?.length && t.kmAnnuel === undefined
+        ? t.lieux.map((l, i) => ({ nom: l.nom.trim() || `établissement ${i + 1}`, allerKm: l.allerKm, joursSurSite: l.joursSurSite }))
+        : undefined;
   const lignes = lignesDuBareme(p, t.mode);
   return {
     type: t.mode,

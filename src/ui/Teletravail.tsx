@@ -1,4 +1,5 @@
 // Étape 5 : le télétravail (F5). Forfait déjà calculé mois par mois ; comparaison facultative avec les frais réels.
+import { ConseilsMetier } from "./QuestionsMetier";
 import { useState } from "react";
 import { teletravailForfait } from "../moteur/calcul";
 import { calculerDeclarant } from "../moteur/declarant";
@@ -35,6 +36,8 @@ interface Props {
   valeurInitiale?: SaisieTeletravail;
   onValider: (t: SaisieTeletravail) => void;
   onRetour: () => void;
+  /** F14 — Conseils du métier, en tête de la première question. */
+  conseils?: string[];
 }
 
 const montant = (t: string) => {
@@ -55,7 +58,7 @@ const CHARGES = [
   { cle: "impots", libelle: "Taxe foncière ou impôts locaux de l'année" },
 ] as const;
 
-export function Teletravail({ parametres: p, joursParMois, joursTravailles, employeurs, valeurInitiale: v, onValider, onRetour }: Props) {
+export function Teletravail({ parametres: p, joursParMois, joursTravailles, employeurs, valeurInitiale: v, onValider, onRetour, conseils }: Props) {
   const annee = p.millesime.revenus;
   const joursTeletravail = joursParMois.reduce((s, j) => s + j, 0);
 
@@ -361,6 +364,7 @@ export function Teletravail({ parametres: p, joursParMois, joursTravailles, empl
           <h1 className="titre-question">{typographie(titre)}</h1>
           {fiche && <BoutonAsterisque onClick={() => setAide(fiche!)} />}
         </div>
+        {(question === "allocation" || question === "local") && <ConseilsMetier conseils={conseils} />}
         {contenu}
       </main>
 

@@ -43,12 +43,14 @@ interface Props {
   conseils?: string[];
   /** F14 — Soins à domicile (SSIAD, HAD) : trajets saisis par leur total annuel. */
   totalAnnuelConseille?: boolean;
+  /** F14 — Enseignant remplaçant : un trajet par établissement. */
+  plusieursLieux?: boolean;
 }
 
 const nombreOuZero = (n: number | null) => (n === null || Number.isNaN(n) ? 0 : n);
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
-export function Trajet({ parametres: p, joursSurSite, couple, employeurs, siteParMois, valeurInitiale: v, onValider, onRetour, conseils, totalAnnuelConseille }: Props) {
+export function Trajet({ parametres: p, joursSurSite, couple, employeurs, siteParMois, valeurInitiale: v, onValider, onRetour, conseils, totalAnnuelConseille, plusieursLieux }: Props) {
   // Employeurs changés depuis la dernière saisie : on repasse par les distances.
   const employeursAJour = !employeurs || employeurs.length < 2 || v?.kmAnnuel !== undefined || v?.employeurs?.length === employeurs.length;
   const [question, setQuestion] = useState<Question>(v ? (employeursAJour ? "bilan" : "distance") : "mode");
@@ -69,6 +71,15 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
       : [],
   );
   const [total, setTotal] = useState(v?.kmAnnuel ? String(v.kmAnnuel) : "");
+  // F14 — Remplaçant : établissements (nom facultatif, distance aller, jours).
+  const [lieux, setLieux] = useState<{ nom: string; km: string; jours: string }[]>(
+    v?.lieux?.length
+      ? v.lieux.map((l) => ({ nom: l.nom, km: String(l.allerKm || ""), jours: String(l.joursSurSite) }))
+      : [
+          { nom: "", km: "", jours: joursSurSite ? String(joursSurSite) : "" },
+          { nom: "", km: "", jours: "" },
+        ],
+  );
   const [guideDistance, setGuideDistance] = useState(false);
   const [motif, setMotif] = useState<string | undefined>(v ? (v.motifDistance ?? "aucun") : undefined);
   const [energie, setEnergie] = useState<SaisieTrajet["energie"] | undefined>(v?.energie);
@@ -102,15 +113,22 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
   const plusieurs = listeEmployeurs !== null && !parTotal && mode !== "covoiturage";
   const distancesEmpNb = distancesEmp.map(lireEntier);
   const joursEmpNb = joursEmp.map(lireEntier);
+  const avecLieux = Boolean(plusieursLieux) && !parTotal && !plusieurs && mode !== undefined && estVehicule(mode);
+  const lieuxNb = lieux.map((l) => ({ nom: l.nom, km: lireEntier(l.km), jours: lireEntier(l.jours) }));
   const auDelaDuPlafond = plusieurs
     ? distancesEmpNb.some((d) => d !== null && !Number.isNaN(d) && d > plafond)
-    : allerKm !== null && !Number.isNaN(allerKm) && allerKm > plafond;
+    : avecLieux
+      ? lieuxNb.some((l) => l.km !== null && !Number.isNaN(l.km) && l.km > plafond)
+      : allerKm !== null && !Number.isNaN(allerKm) && allerKm > plafond;
   const kmTotal = lireEntier(total);
 
   function saisie(): SaisieTrajet {
     return {
       mode: mode!,
-      allerKm: parTotal || plusieurs ? 0 : nombreOuZero(allerKm),
+      allerKm: parTotal || plusieurs || avecLieux ? 0 : nombreOuZero(allerKm),
+      ...(avecLieux
+        ? { lieux: lieuxNb.filter((l) => (l.km ?? 0) > 0).map((l) => ({ nom: l.nom.trim(), allerKm: nombreOuZero(l.km), joursSurSite: nombreOuZero(l.jours) })) }
+        : {}),
       ...(plusieurs
         ? { employeurs: distancesEmpNb.map((d, i) => ({ allerKm: nombreOuZero(d), joursSurSite: nombreOuZero(joursEmpNb[i]) })) }
         : {}),
@@ -236,10 +254,15 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
         );
         break;
       }
-      titre = plusieurs
-        ? "Combien de kilomètres entre chez vous et chacun de vos travails, aller simple ?"
+      titre = plusieurs || avecLieux
+        ? "Combien de kilomètres entre chez vous et chacun de vos lieux de travail, aller simple ?"
         : "Combien de kilomètres entre chez vous et votre travail, aller simple ?";
-      peutContinuer = plusieurs
+      peutContinuer = avecLieux
+        ? lieuxNb.every((l) => l.km === null || (!Number.isNaN(l.km) && l.km >= 0)) &&
+          lieuxNb.some((l) => (l.km ?? 0) > 0 && (l.jours ?? 0) > 0) &&
+          lieuxNb.every((l) => l.jours === null || !Number.isNaN(l.jours)) &&
+          (!auDelaDuPlafond || motif !== undefined)
+        : plusieurs
         ? distancesEmpNb.every((d) => d !== null && !Number.isNaN(d) && d >= 0) &&
           distancesEmpNb.some((d) => (d ?? 0) > 0) &&
           joursEmpNb.every((j) => j !== null && !Number.isNaN(j)) &&
@@ -247,7 +270,59 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
         : allerKm !== null && !Number.isNaN(allerKm) && allerKm > 0 && (!auDelaDuPlafond || motif !== undefined);
       contenu = (
         <>
-          {plusieurs ? (
+          {avecLieux ? (
+            <>
+              {lieux.map((l, i) => (
+                <section key={i} className="carte" aria-labelledby={`lieu-${i}`}>
+                  <h2 id={`lieu-${i}`}>{`Établissement ${i + 1}`}</h2>
+                  <div className="champ champ-compact">
+                    <label className="champ-libelle" htmlFor={`lieu-nom-${i}`}>
+                      Nom (facultatif)
+                    </label>
+                    <div className="champ-saisie">
+                      <input
+                        id={`lieu-nom-${i}`}
+                        type="text"
+                        autoComplete="off"
+                        maxLength={40}
+                        value={l.nom}
+                        onChange={(e) => setLieux(lieux.map((x, k) => (k === i ? { ...x, nom: e.target.value } : x)))}
+                      />
+                    </div>
+                  </div>
+                  <ChampNombre
+                    compact
+                    libelleVisible
+                    libelle="Distance aller simple"
+                    unite="km"
+                    valeur={l.km}
+                    onChange={(t) => setLieux(lieux.map((x, k) => (k === i ? { ...x, km: t } : x)))}
+                  />
+                  <ChampNombre
+                    compact
+                    libelleVisible
+                    libelle="Jours dans cet établissement"
+                    unite="jours"
+                    valeur={l.jours}
+                    onChange={(t) => setLieux(lieux.map((x, k) => (k === i ? { ...x, jours: t } : x)))}
+                  />
+                  {lieux.length > 1 && (
+                    <button type="button" className="lien-je-ne-sais-pas" onClick={() => setLieux(lieux.filter((_, k) => k !== i))}>
+                      Retirer cet établissement
+                    </button>
+                  )}
+                </section>
+              ))}
+              <button type="button" className="bouton bouton-secondaire" onClick={() => setLieux([...lieux, { nom: "", km: "", jours: "" }])}>
+                Ajouter un établissement
+              </button>
+              <Encadre>
+                {typographie(
+                  `Jours indiqués : ${lieuxNb.reduce((t, l) => t + (l.jours && !Number.isNaN(l.jours) ? l.jours : 0), 0)} ; vos jours sur site : ${joursSurSite}. Nous additionnons les kilomètres de tous les établissements avant d'appliquer le barème.`,
+                )}
+              </Encadre>
+            </>
+          ) : plusieurs ? (
             <>
               {listeEmployeurs!.map((e, i) => (
                 <section key={i} className="carte" aria-labelledby={`trajet-employeur-${i}`}>

@@ -59,6 +59,9 @@ export function reponsesDuProfil(profil: Profil): Reponses {
     repas: profil.repas,
     teletravail: profil.teletravail,
     autres: profil.autres,
+    reintegrationsMetier: profil.questionsMetier?.remboursementsFrais
+      ? [{ libelle: "remboursements de frais professionnels (ISSR, forfait mobilités durables…)", montant: profil.questionsMetier.remboursementsFrais }]
+      : undefined,
   };
 }
 

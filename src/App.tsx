@@ -6,7 +6,7 @@ import { postesDuProfil } from "./parcours/autresFrais";
 import { totaux } from "./parcours/calendrier";
 import { QUESTIONS_FILTRAGE, type Reponses as ReponsesFiltrage } from "./parcours/filtrage";
 import { aDesQuestionsMetier, conseilsMetier, profil as profilMetier } from "./parcours/metiers";
-import { QuestionsSoignant } from "./ui/QuestionsMetier";
+import { QuestionsEnseignant, QuestionsSoignant } from "./ui/QuestionsMetier";
 import { estVehicule } from "./parcours/trajet";
 import { Accueil } from "./ui/Accueil";
 import { AutresFrais } from "./ui/AutresFrais";
@@ -144,6 +144,15 @@ export default function App() {
     setActif(profil);
     setDepuisRelecture(true);
     setEcran(e === "foyer" || e === "trajetsCouple" ? e : profils[profil]?.salaireSeulement ? "salaire" : e);
+  }
+
+  /** F14 — Les réponses du métier ferment les postes inutiles (pas muté : ni déménagement ni double résidence). */
+  function posteUtile(id: string): boolean {
+    const q = profilActif.questionsMetier;
+    if (metier !== "enseignant" || !q) return true;
+    if ((id === "demenagement" || id === "doubleResidence") && q.mute === false) return false;
+    if (id === "bureauDomicile" && q.travailMaison === false) return false;
+    return true;
   }
 
   /** Après les adultes : trajets à deux, puis personnes à charge, puis relecture. */
@@ -317,14 +326,16 @@ export default function App() {
         />,
       );
 
-    case "questionsMetier":
+    case "questionsMetier": {
+      const Questions = metier === "enseignant" ? QuestionsEnseignant : QuestionsSoignant;
       return avecProfil(
-        <QuestionsSoignant
+        <Questions
           valeurInitiale={profilActif.questionsMetier}
           onRetour={() => setEcran("metier")}
           onValider={(q) => (maj("questionsMetier")(q), setEcran("salaire"))}
         />,
       );
+    }
 
     case "salaire":
       return avecProfil(
@@ -389,6 +400,7 @@ export default function App() {
           valeurInitiale={trajet}
           conseils={conseils.trajet}
           totalAnnuelConseille={profilActif.questionsMetier?.soinsDomicile}
+          plusieursLieux={metier === "enseignant" && profilActif.questionsMetier?.remplacant}
           onRetour={precedent("jours")}
           onValider={(t) => (maj("trajet")(t), suivant("repas"))}
         />,
@@ -414,6 +426,7 @@ export default function App() {
           joursTravailles={jours ? totaux(jours.mois).travailles : 0}
           employeurs={salaire?.employeurs}
           valeurInitiale={teletravail}
+          conseils={conseils.teletravail}
           onRetour={precedent("repas")}
           onValider={(t) => (maj("teletravail")(t), suivant("autres"))}
         />,
@@ -426,7 +439,7 @@ export default function App() {
           enTransports={!estDomicile && trajet?.mode === "transports"}
           aVehicule={estDomicile ? domicile !== undefined : trajet ? estVehicule(trajet.mode) : false}
           postesOuvertsDOffice={[
-            ...(metier ? postesDuProfil(profilMetier(metier).postesOuverts) : []),
+            ...(metier ? postesDuProfil(profilMetier(metier).postesOuverts).filter((id) => posteUtile(id)) : []),
             // F12.7 — Allocations chômage : les frais de recherche d'emploi sont proposés d'office.
             ...(salaire?.chomage ? (["rechercheEmploi"] as const) : []),
           ]}

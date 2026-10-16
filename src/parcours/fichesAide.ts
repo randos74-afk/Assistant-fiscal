@@ -188,6 +188,17 @@ export const FICHES = {
     motsAChercher: ["Historique des trajets", "Paiements", "Mes trajets", "Virement", "Participation aux frais"],
     siIntrouvable: "{siIntrouvable}",
   },
+  remboursementsEnseignant: {
+    titre: "Où trouver ce montant ?",
+    illustration: "bulletin-transport",
+    texteAlternatif:
+      "Exemple de bulletin de paie de décembre : la ligne « Remboursement transport », colonne « Cumul annuel », est entourée en orange. Elle indique 450 €.",
+    ouRegarder:
+      "Sur l'ENSAP (ensap.gouv.fr), document « Déclaration fiscale des traitements et salaires » de l'année : ligne « remboursements de frais professionnels » (ISSR, forfait mobilités durables…). Dans le privé sous contrat, regardez le cumul de votre bulletin de décembre.",
+    motsAChercher: ["Remboursements de frais professionnels", "ISSR", "Indemnité de sujétion spéciale de remplacement", "Forfait mobilités durables", "FMD"],
+    siIntrouvable:
+      "Ce montant est indispensable : avec les frais réels, il s'ajoute à votre salaire. Demandez-le à votre service de gestion ou au rectorat.",
+  },
 } satisfies Record<string, FicheAide>;
 
 /** Remplace les repères {nom} d'un texte de fiche par les valeurs du millésime. */

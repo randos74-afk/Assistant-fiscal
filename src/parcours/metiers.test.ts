@@ -37,8 +37,9 @@ describe("Étapes du parcours", () => {
 describe("F14 — soignant : questions et conseils", () => {
   const param = chargerParametres(2025);
 
-  it("seul le soignant a des questions propres pour l'instant", () => {
+  it("le soignant et l'enseignant ont des questions propres", () => {
     expect(aDesQuestionsMetier("soignant")).toBe(true);
+    expect(aDesQuestionsMetier("enseignant")).toBe(true);
     expect(aDesQuestionsMetier("autre")).toBe(false);
     expect(aDesQuestionsMetier(undefined)).toBe(false);
   });
@@ -59,6 +60,6 @@ describe("F14 — soignant : questions et conseils", () => {
   });
 
   it("autre métier : aucun conseil", () => {
-    expect(conseilsMetier(param, "autre", {})).toEqual({ jours: [], trajet: [], repas: [], autres: [] });
+    expect(conseilsMetier(param, "autre", {})).toEqual({ jours: [], trajet: [], repas: [], teletravail: [], autres: [] });
   });
 });

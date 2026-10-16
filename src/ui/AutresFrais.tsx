@@ -22,7 +22,7 @@ import { MontantsParEmployeur, totalParEmployeur } from "./MontantsParEmployeur"
 import type { Employeur } from "../parcours/employeurs";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
 import { ListeAchats, lignesValides, versAchats, versLignes, type LigneAchat } from "./ListeAchats";
-import { BandeauConfidentialite, Encadre, EnTeteEtape } from "./Question";
+import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
 type Question = "transport" | "postes" | "bilan";
@@ -63,6 +63,16 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
   const [logementDR, setLogementDR] = useState(texte(v?.doubleResidence?.logement));
   const [billetsDR, setBilletsDR] = useState(texte(v?.doubleResidence?.billets));
   const [kmDR, setKmDR] = useState(v?.doubleResidence?.kmVehicule ? String(v.doubleResidence.kmVehicule) : "");
+  // F6.11 — Bureau à domicile hors télétravail.
+  const b = v?.bureau;
+  const [bureauUsage, setBureauUsage] = useState<"dedie" | "mixte" | undefined>(b?.usage);
+  const [bureauStudio, setBureauStudio] = useState(b?.studio ?? false);
+  const [bureauSurface, setBureauSurface] = useState(b?.surfaceBureau ? String(b.surfaceBureau) : "");
+  const [logementSurface, setLogementSurface] = useState(b?.surfaceTotale ? String(b.surfaceTotale) : "");
+  const [bureauCharges, setBureauCharges] = useState(texte(b?.charges));
+  const [bureauHeures, setBureauHeures] = useState(b?.heuresParSemaine ? String(b.heuresParSemaine) : "");
+  const [bureauSemaines, setBureauSemaines] = useState(b?.semaines ? String(b.semaines) : "");
+  const [salleDisponible, setSalleDisponible] = useState<boolean | undefined>(b?.salleDisponible);
   const [abonnement, setAbonnement] = useState(texte(v?.transport?.abonnement));
   const [priseEnCharge, setPriseEnCharge] = useState(v?.transport && !v.transport.priseEnChargePrudente ? texte(v.transport.priseEnCharge) : "");
   const [pecPrudente, setPecPrudente] = useState(v?.transport?.priseEnChargePrudente ?? false);
@@ -79,6 +89,18 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
       ? (totalPecEmp ?? 0)
       : montant(priseEnCharge);
 
+  const entier = (t: string) => {
+    const n = lireEntier(t);
+    return n === null || Number.isNaN(n) ? 0 : n;
+  };
+  const bureauValide =
+    !ouverts.includes("bureauDomicile") ||
+    (bureauUsage !== undefined &&
+      salleDisponible !== undefined &&
+      montant(bureauCharges) > 0 &&
+      (bureauStudio || (entier(bureauSurface) > 0 && entier(logementSurface) >= entier(bureauSurface))) &&
+      (bureauUsage === "dedie" || (entier(bureauHeures) > 0 && entier(bureauSemaines) > 0 && entier(bureauSemaines) <= 52)));
+
   function saisie(): SaisieAutresFrais {
     const km = lireEntier(kmDR);
     return {
@@ -90,6 +112,19 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
       doubleResidence: ouverts.includes("doubleResidence")
         ? { motif: motifDR.trim(), logement: montant(logementDR), billets: montant(billetsDR), kmVehicule: km && !Number.isNaN(km) ? km : 0 }
         : null,
+      bureau:
+        ouverts.includes("bureauDomicile") && bureauUsage
+          ? {
+              usage: bureauUsage,
+              studio: bureauStudio || undefined,
+              surfaceBureau: entier(bureauSurface),
+              surfaceTotale: entier(logementSurface),
+              charges: montant(bureauCharges),
+              heuresParSemaine: bureauUsage === "mixte" ? entier(bureauHeures) : undefined,
+              semaines: bureauUsage === "mixte" ? entier(bureauSemaines) : undefined,
+              salleDisponible: Boolean(salleDisponible),
+            }
+          : null,
       transport:
         enTransports && montant(abonnement) > 0
           ? {
@@ -151,6 +186,62 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
           </>
         );
       }
+      case "bureauDomicile":
+        return (
+          <>
+            <ChoixUnique
+              nom="bureau-usage"
+              legende="La pièce où vous travaillez"
+              options={[
+                { valeur: "dedie", libelle: "Une pièce réservée au travail", detail: "Bureau fermé, utilisé seulement pour le travail." },
+                { valeur: "mixte", libelle: "Une pièce aussi utilisée en famille", detail: "Salon, chambre, coin bureau." },
+              ]}
+              valeur={bureauUsage}
+              onChoix={(x) => setBureauUsage(x as "dedie" | "mixte")}
+            />
+            <label className="case-a-cocher">
+              <input type="checkbox" checked={bureauStudio} onChange={(e) => setBureauStudio(e.target.checked)} />
+              {typographie(`J'habite un studio (nous retenons ${Math.round(p.teletravail.studio_part_professionnelle * 100)} % de la surface)`)}
+            </label>
+            {!bureauStudio && (
+              <>
+                <ChampNombre compact libelleVisible libelle="Surface de la pièce de travail" unite="m²" valeur={bureauSurface} onChange={setBureauSurface} />
+                <ChampNombre compact libelleVisible libelle="Surface totale du logement" unite="m²" valeur={logementSurface} onChange={setLogementSurface} />
+              </>
+            )}
+            <ChampMontant
+              compact
+              libelleVisible
+              libelle="Charges du logement sur l'année"
+              detail="Loyer ou intérêts d'emprunt, électricité, chauffage, eau, assurance habitation, taxe foncière."
+              valeur={bureauCharges}
+              onChange={setBureauCharges}
+            />
+            {bureauUsage === "mixte" && (
+              <>
+                <ChampNombre compact libelleVisible libelle="Heures de travail à la maison par semaine" unite="h" valeur={bureauHeures} onChange={setBureauHeures} />
+                <ChampNombre compact libelleVisible libelle="Semaines concernées dans l'année" detail="Semaines de classe, en général." unite="semaines" valeur={bureauSemaines} onChange={setBureauSemaines} />
+              </>
+            )}
+            <ChoixUnique
+              nom="salle-disponible"
+              legende="Salle de travail disponible"
+              options={[
+                { valeur: "non", libelle: "Mon établissement ne me fournit aucun bureau" },
+                { valeur: "oui", libelle: "Une salle de travail existe sur place", detail: "Salle des professeurs comprise." },
+              ]}
+              valeur={salleDisponible === undefined ? undefined : salleDisponible ? "oui" : "non"}
+              onChoix={(x) => setSalleDisponible(x === "oui")}
+            />
+            {salleDisponible && (
+              <Encadre ton="attention">
+                {typographie(
+                  "L'administration peut considérer qu'un bureau vous est fourni et refuser cette déduction. Demandez confirmation par la messagerie sécurisée de votre espace impots.gouv.fr avant de déclarer.",
+                )}
+              </Encadre>
+            )}
+          </>
+        );
       case "doubleResidence":
         return (
           <>
@@ -256,6 +347,7 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
         Object.values(montants).every((t) => !Number.isNaN(lireMontant(t))) &&
         lignesValides(achats) &&
         (!ouverts.includes("doubleResidence") || motifDR.trim().length > 0) &&
+        bureauValide &&
         (!ouverts.includes("autre") || libelleAutre.trim().length > 0);
       contenu = (
         <>

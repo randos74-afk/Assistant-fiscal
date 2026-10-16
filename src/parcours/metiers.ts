@@ -91,21 +91,46 @@ export interface QuestionsMetier {
   nuit12h?: boolean;
   /** Soignant : soins à domicile (SSIAD, HAD) ; trajets saisis par leur total annuel (décision du 16/10/2026). */
   soinsDomicile?: boolean;
+  /** Enseignant : remplaçant (TZR, brigade) ou sur plusieurs établissements ; un trajet par établissement. */
+  remplacant?: boolean;
+  /** Enseignant : muté cette année (déménagement, double résidence). */
+  mute?: boolean;
+  /** Enseignant : travail à la maison (préparations, corrections) ; ouvre le bureau à domicile. */
+  travailMaison?: boolean;
+  /** Enseignant : remboursements de frais professionnels (ISSR, forfait mobilités durables…), à ajouter au salaire. */
+  remboursementsFrais?: number;
 }
 
-export type EtapeConseillee = "jours" | "trajet" | "repas" | "autres";
+export type EtapeConseillee = "jours" | "trajet" | "repas" | "teletravail" | "autres";
 
 /** Le métier pose-t-il des questions propres avant le salaire ? */
 export function aDesQuestionsMetier(id: IdProfil | undefined): boolean {
-  return id === "soignant";
+  return id === "soignant" || id === "enseignant";
 }
 
 /** Conseils affichés en tête des étapes, selon le métier et ses réponses. Aucune règle de calcul n'est changée. */
 export function conseilsMetier(param: Parametres, id: IdProfil | undefined, q: QuestionsMetier | undefined): Record<EtapeConseillee, string[]> {
-  const c: Record<EtapeConseillee, string[]> = { jours: [], trajet: [], repas: [], autres: [] };
-  if (id !== "soignant" || !q) return c;
+  const c: Record<EtapeConseillee, string[]> = { jours: [], trajet: [], repas: [], teletravail: [], autres: [] };
+  if (!q) return c;
   const forfait = eurosCentimes(param.repas.forfait_sans_justificatif_detaille);
   const foyer = eurosCentimes(param.repas.valeur_repas_au_foyer);
+  const plafond = param.deplacements.distance_aller_max_sans_justification_km;
+  if (id === "enseignant") {
+    if (q.remplacant) {
+      c.trajet.push(
+        `Remplaçant : comptez chaque établissement où vous êtes allé, avec ses jours (école de rattachement les jours sans remplacement). Au-delà de ${plafond} km, le motif « emploi précaire ou mobile » convient.`,
+      );
+    }
+    c.repas.push(`Restaurant administratif ou scolaire subventionné : seul ce que vous payez au-delà de ${foyer} par repas compte.`);
+    if (q.travailMaison) {
+      c.teletravail.push("Votre bureau à la maison se déclare à l'étape suivante, « Vos autres frais ». Ne le comptez pas ici en plus.");
+    }
+    if (q.mute) c.autres.push("Muté dans l'intérêt du service ou par avancement : vos frais de déménagement sont déductibles. Gardez l'arrêté d'affectation.");
+    c.autres.push("Ordinateur aussi utilisé en privé : indiquez votre part réelle d'usage professionnel, jamais un pourcentage forfaitaire.");
+    c.autres.push("Justificatifs utiles : calendrier scolaire, emploi du temps, arrêté d'affectation, factures.");
+    return c;
+  }
+  if (id !== "soignant") return c;
   if (q.nuit12h) {
     c.jours.push("En 12 h ou de nuit, comptez vos gardes : chaque garde compte pour un jour de trajet et de repas.");
     c.trajet.push("La nuit ou en horaires décalés, sans transport en commun, la voiture se justifie. Gardez votre planning de gardes.");

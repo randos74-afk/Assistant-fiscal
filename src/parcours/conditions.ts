@@ -133,6 +133,13 @@ export function casAdministration(p: Parametres, r: Reponses, v: Vraisemblance):
   }
 
   const ouverts = r.autres?.ouverts ?? [];
+  if (ouverts.includes("bureauDomicile") && r.autres?.bureau?.salleDisponible) {
+    cas.push({
+      id: "point_a_confirmer",
+      phrase: "Une salle de travail existe dans votre établissement : l'administration peut considérer qu'un bureau vous est fourni et refuser le bureau à domicile.",
+      ecran: "autres",
+    });
+  }
   if (ouverts.some((o) => o === "doubleResidence" || o === "demenagement" || o === "formation")) {
     cas.push({
       id: "double_residence_ou_demenagement_ou_formation",

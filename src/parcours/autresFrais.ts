@@ -1,7 +1,7 @@
 // Étape 6 : vos autres frais (F6) et abonnement de transport (F3.12).
 // Chaque poste s'ouvre par une question oui/non ; le métier en ouvre certains d'office.
 import type { MontantLibelle } from "../moteur/declarant";
-import type { Achat } from "../moteur/teletravail";
+import type { Achat, EntreeLocalProfessionnel } from "../moteur/teletravail";
 import { materielAnnee } from "../moteur/teletravail";
 import type { Parametres } from "../moteur/types";
 import type { IdPoste } from "./metiers";
@@ -17,6 +17,7 @@ export type IdAutreFrais =
   | "fournitures"
   | "telephone"
   | "materiel"
+  | "bureauDomicile"
   | "demenagement"
   | "grandsDeplacements"
   | "invitations"
@@ -43,6 +44,7 @@ export const POSTES: Poste[] = [
   { id: "fournitures", groupe: "metier", question: "J'achète des fournitures pour mon travail", detail: "Hors télétravail, déjà compté à l'étape précédente.", libelleResume: "fournitures" },
   { id: "telephone", groupe: "metier", question: "J'utilise mon téléphone portable pour le travail", detail: "Seulement si votre employeur ne le paie pas.", libelleResume: "téléphone portable, part professionnelle" },
   { id: "materiel", groupe: "metier", question: "J'achète du matériel ou des outils pour mon travail", detail: "Outillage, instruments, ordinateur hors télétravail.", libelleResume: "matériel et outillage" },
+  { id: "bureauDomicile", groupe: "metier", question: "Je travaille chez moi, sans bureau fourni par mon employeur", detail: "Préparations, corrections. Hors télétravail, déjà compté à l'étape précédente.", libelleResume: "bureau à domicile" },
   { id: "cotisationOrdre", groupe: "metier", question: "Je paie une cotisation professionnelle obligatoire", detail: "Ordre professionnel, par exemple ordre des infirmiers.", libelleResume: "cotisation professionnelle obligatoire" },
   { id: "cotisationSyndicale", groupe: "metier", question: "Je paie une cotisation syndicale", libelleResume: "cotisation syndicale" },
   { id: "formation", groupe: "emploi", question: "J'ai payé une formation pour mon travail", detail: "Non remboursée : frais d'inscription, déplacements, repas de formation.", libelleResume: "formation professionnelle" },
@@ -71,6 +73,7 @@ const DEPUIS_PROFIL: Partial<Record<IdPoste, IdAutreFrais>> = {
   cotisationOrdre: "cotisationOrdre",
   cotisationSyndicale: "cotisationSyndicale",
   materiel: "materiel",
+  bureauDomicile: "bureauDomicile",
   fournitures: "fournitures",
   telephone: "telephone",
   demenagement: "demenagement",
@@ -107,6 +110,8 @@ export interface SaisieAutresFrais {
   libelleAutre: string;
   doubleResidence: DoubleResidence | null;
   transport: Transport | null;
+  /** F6.11 — Bureau à domicile hors télétravail ; salle de travail disponible sur place = point à faire confirmer. */
+  bureau?: (EntreeLocalProfessionnel & { salleDisponible: boolean }) | null;
 }
 
 /** « Je ne sais pas » : prise en charge prudente de l'abonnement (paramètres), la plus forte. */
@@ -121,6 +126,8 @@ export interface ResultatAutresFrais {
   motifs: string[];
   /** Km de double résidence à ajouter au véhicule déclaré (barème sur le total annuel). */
   kmVehiculeEnPlus: number;
+  /** F6.11 — Bureau à domicile, calculé par le moteur. */
+  localProfessionnel?: EntreeLocalProfessionnel;
 }
 
 /** Traduit les réponses en lignes du résumé 1AK. */
@@ -135,7 +142,7 @@ export function autresFraisPourMoteur(p: Parametres, s: SaisieAutresFrais): Resu
   }
 
   for (const poste of POSTES) {
-    if (!s.ouverts.includes(poste.id)) continue;
+    if (!s.ouverts.includes(poste.id) || poste.id === "bureauDomicile") continue;
     let montant = s.montants[poste.id] ?? 0;
     if (poste.id === "telephone") montant = montant * Math.min(Math.max(s.telephonePartPro, 0), 1);
     if (poste.id === "materiel") montant = s.achats.reduce((t, a) => t + materielAnnee(p, a, p.millesime.revenus), 0);
@@ -147,7 +154,23 @@ export function autresFraisPourMoteur(p: Parametres, s: SaisieAutresFrais): Resu
     const libelle = poste.id === "autre" && s.libelleAutre.trim() ? s.libelleAutre.trim() : poste.libelleResume;
     if (montant > 0) lignes.push({ libelle, montant });
   }
-  return { autresFrais: lignes, motifs, kmVehiculeEnPlus };
+  const bureau = s.ouverts.includes("bureauDomicile") && s.bureau ? s.bureau : undefined;
+  return {
+    autresFrais: lignes,
+    motifs,
+    kmVehiculeEnPlus,
+    localProfessionnel: bureau
+      ? {
+          usage: bureau.usage,
+          charges: bureau.charges,
+          surfaceBureau: bureau.surfaceBureau,
+          surfaceTotale: bureau.surfaceTotale,
+          studio: bureau.studio,
+          heuresParSemaine: bureau.heuresParSemaine,
+          semaines: bureau.semaines,
+        }
+      : undefined,
+  };
 }
 
 /** F6.6 — Crédit d'impôt auquel on renonce en déduisant ses cotisations syndicales. */

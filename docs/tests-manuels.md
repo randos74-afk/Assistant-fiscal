@@ -109,3 +109,16 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] La question des déplacements pour le travail dit « remboursés ou non » et renvoie au remboursement.
 - [ ] Fiche d'aide : bulletin de décembre, notes de frais, différence avec les avantages en nature.
 - [ ] Simulation enregistrée avant ce changement : rouverte, le trajet reste valide (indemnités à 0).
+
+## Parcours métier : enseignant (F14) — livré le 16/10/2026
+
+- [ ] Métier « Enseignant » : écran « Quelques questions sur votre poste » (remplaçant, remboursements de frais, mutation, travail à la maison) ; « Continuer » inactif tant qu'une réponse manque.
+- [ ] Remboursements « Oui » : montant obligatoire ; astérisque → fiche ENSAP « Déclaration fiscale des traitements et salaires ».
+- [ ] Remplaçant : à la distance, une carte par établissement (nom facultatif, distance, jours), « Ajouter » / « Retirer » ; le total des jours est comparé aux jours sur site.
+- [ ] Un établissement au-delà de 40 km : choix du motif ; conseil « emploi précaire ou mobile » en tête de l'étape.
+- [ ] Résultat : texte à copier avec un trajet par établissement ; remboursements ajoutés au salaire (case 1AJ corrigée).
+- [ ] Pas muté : déménagement et double résidence ne sont plus cochés d'office. Muté : ils le sont, avec le conseil sur l'arrêté d'affectation.
+- [ ] Travail à la maison : poste « Je travaille chez moi, sans bureau fourni » coché d'office ; pièce réservée ou mixte, surfaces (ou studio), charges, heures et semaines si mixte.
+- [ ] « Une salle de travail existe sur place » : message d'attention, puis carte « Ce cas doit être tranché par l'administration ».
+- [ ] Étape télétravail : conseil « votre bureau se déclare dans Vos autres frais ».
+- [ ] Conseils restaurant scolaire, ordinateur à usage mixte, justificatifs (calendrier scolaire, arrêté d'affectation).

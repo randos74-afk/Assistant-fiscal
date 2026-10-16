@@ -19,6 +19,8 @@ export interface Reponses {
   repas?: SaisieRepas;
   teletravail?: SaisieTeletravail;
   autres?: SaisieAutresFrais;
+  /** F14 — Remboursements de frais liés au métier (ISSR, forfait mobilités durables…), à ajouter au salaire. */
+  reintegrationsMetier?: { libelle: string; montant: number }[];
 }
 
 export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeDeclarant {
@@ -64,8 +66,10 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
     teletravailMethode: r.teletravail?.methode ?? "forfait",
     teletravailReel: r.teletravail ? entreeReel(r.teletravail, t.teletravail, t.travailles) : undefined,
     autresFrais: autres.autresFrais,
+    localProfessionnel: autres.localProfessionnel,
     reintegrations: [
       ...(domicile?.reintegrations ?? []),
+      ...(r.reintegrationsMetier ?? []),
       ...(r.trajet?.indemnitesKmRecues ? [{ libelle: "indemnités kilométriques", montant: r.trajet.indemnitesKmRecues }] : []),
       ...repas.reintegrations,
       ...(r.teletravail ? reintegrationsTeletravail(r.teletravail) : []),
