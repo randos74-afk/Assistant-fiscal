@@ -31,6 +31,8 @@ import { AvantDeCommencer, LectureConditions } from "./ui/Conditions";
 import { donneesDeclarants, type DonneesDeclarant } from "./parcours/declarants";
 import { reponsesDuProfil, type ModeDeclaration, type Profil } from "./parcours/profils";
 import { ChoixDeclaration, PassageConjoint, SelecteurProfil } from "./ui/ModeFoyer";
+import { resumeTrajetsCouple, trajetsCoupleApplicable, type SaisieTrajetsCouple } from "./parcours/trajetsCouple";
+import { TrajetsCouple } from "./ui/TrajetsCouple";
 
 type Ecran = "accueil" | "filtrage" | "declaration" | "metier" | "conjoint" | EcranModifiable | "relecture" | "resultat";
 
@@ -47,6 +49,7 @@ export default function App() {
   const [profils, setProfils] = useState<Profil[]>([{}]);
   const [actif, setActif] = useState(0);
   const [foyer, setFoyer] = useState<SaisieFoyer | undefined>();
+  const [trajetsCouple, setTrajetsCouple] = useState<SaisieTrajetsCouple | undefined>();
   // Ajout n° 3 — Acceptation des conditions (sur l'appareil) et lecture des conditions par l'adresse « #conditions ».
   const [acceptation, setAcceptation] = useState(lireAcceptation);
   const [conditionsOuvertes, setConditionsOuvertes] = useState(() => window.location.hash === "#conditions");
@@ -71,13 +74,14 @@ export default function App() {
     (valeur: Profil[K]) =>
       setProfils((ps) => ps.map((pr, i) => (i === actif ? { ...pr, [champ]: valeur } : pr)));
 
-  const contenu: ContenuDossier = { millesime, ecran, reponsesFiltrage, mode, profils, profilActif: actif, foyer };
+  const contenu: ContenuDossier = { millesime, ecran, reponsesFiltrage, mode, profils, profilActif: actif, foyer, trajetsCouple };
+  const ecranTrajetsCouple = enCouple && trajetsCoupleApplicable(profils);
 
   // F9.3 — Sauvegarde automatique sur l'appareil dès que le parcours a commencé.
   useEffect(() => {
     if (mode !== undefined) enregistrer(contenu);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ecran, mode, profils, actif, foyer]);
+  }, [ecran, mode, profils, actif, foyer, trajetsCouple]);
 
   function reprendre(d: Dossier) {
     setReponsesFiltrage(d.reponsesFiltrage ?? {});
@@ -85,11 +89,12 @@ export default function App() {
     setProfils(d.profils.length ? d.profils : [{}]);
     setActif(d.profilActif ?? 0);
     setFoyer(d.foyer);
+    setTrajetsCouple(d.trajetsCouple);
     setDepuisRelecture(false);
     setEcran(d.mode ? (d.ecran as Ecran) : "filtrage");
   }
 
-  const declarants = (): DonneesDeclarant[] => donneesDeclarants(parametres, mode, profils, foyer?.couple);
+  const declarants = (): DonneesDeclarant[] => donneesDeclarants(parametres, mode, profils, foyer?.couple, trajetsCouple);
 
   function estimationImpot() {
     if (!foyer) return null;
@@ -119,7 +124,7 @@ export default function App() {
   function corriger(e: EcranModifiable, profil: number) {
     setActif(profil);
     setDepuisRelecture(true);
-    setEcran(e === "foyer" ? "foyer" : profils[profil]?.salaireSeulement ? "salaire" : e);
+    setEcran(e === "foyer" || e === "trajetsCouple" ? e : profils[profil]?.salaireSeulement ? "salaire" : e);
   }
 
   /** Fin du parcours d'un profil : passage au conjoint en mode foyer, sinon relecture. */
@@ -128,7 +133,7 @@ export default function App() {
       setActif(1);
       setEcran("conjoint");
     } else {
-      setEcran("relecture");
+      setEcran(ecranTrajetsCouple && !depuisRelecture ? "trajetsCouple" : "relecture");
     }
   }
 
@@ -157,6 +162,7 @@ export default function App() {
     setProfils([{}]);
     setActif(0);
     setFoyer(undefined);
+    setTrajetsCouple(undefined);
     setDepuisRelecture(false);
     setEcran("accueil");
   }
@@ -342,13 +348,30 @@ export default function App() {
         />,
       );
 
+    case "trajetsCouple":
+      return (
+        <TrajetsCouple
+          parametres={parametres}
+          profils={profils}
+          valeurInitiale={trajetsCouple}
+          onMotifConjoint={(i) =>
+            setProfils((ps) => ps.map((pr, j) => (j === i && pr.trajet ? { ...pr, trajet: { ...pr.trajet, motifDistance: "emploi du conjoint" } } : pr)))
+          }
+          onRetour={() => (depuisRelecture ? setEcran("relecture") : (setActif(1), setEcran("autres")))}
+          onValider={(s) => (setTrajetsCouple(s), setDepuisRelecture(false), setEcran("relecture"))}
+        />
+      );
+
     case "relecture": {
       const dernier = enCouple ? 1 : 0;
       return (
         <Relecture
           declarants={declarants()}
           foyer={foyer}
-          onRetour={() => (setActif(dernier), setEcran(profils[dernier]?.salaireSeulement ? "salaire" : "autres"))}
+          resumeTrajetsCouple={ecranTrajetsCouple ? resumeTrajetsCouple(parametres, profils, trajetsCouple) : undefined}
+          onRetour={() =>
+            ecranTrajetsCouple ? setEcran("trajetsCouple") : (setActif(dernier), setEcran(profils[dernier]?.salaireSeulement ? "salaire" : "autres"))
+          }
           onModifier={corriger}
           onValider={() => {
             setDepuisRelecture(false);

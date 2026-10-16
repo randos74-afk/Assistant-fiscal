@@ -13,6 +13,7 @@ import {
 } from "./calcul";
 import { arrondiEuro, euros, eurosCentimes, nombre } from "./format";
 import { teletravailReel, type EntreeTeletravailReel } from "./teletravail";
+import { vehiculePartage } from "./couple";
 
 /** « thermique » : énergie inconnue, valeur prudente (barème non majoré). */
 export type Energie = "essence" | "diesel" | "hybride" | "GPL" | "hydrogène" | "électrique" | "thermique";
@@ -49,6 +50,11 @@ export interface EntreeVehicule {
   /** F3.10 — Intérêts annuels du crédit auto, proratisés par kmPro / kmTotauxCompteur. */
   interetsCredit?: number;
   kmTotauxCompteur?: number;
+  /**
+   * Ajout n° 1 — Véhicule utilisé aussi par le conjoint : ses km professionnels avec ce véhicule.
+   * Règle de prudence : la plus faible des deux méthodes (prorata du total, ou barème séparé).
+   */
+  partageKmConjoint?: number;
 }
 
 export interface TrajetEmployeur {
@@ -227,10 +233,21 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     }
     if (v.motifDoubleAllerRetour) motifs.push(`second aller-retour quotidien (${v.motifDoubleAllerRetour})`);
 
+    let montantVehicule = b.montant;
+    let formule = `barème : ${b.formule}`;
+    if (v.partageKmConjoint) {
+      const r = vehiculePartage(p, km, v.partageKmConjoint, { vehicule: v.type, cv: v.cv, electrique: v.energie === "électrique" });
+      const totalKm = km + v.partageKmConjoint;
+      montantVehicule = r.montants[0];
+      formule =
+        r.methode === "prorata"
+          ? `véhicule partagé avec mon conjoint, barème sur le total de ${nombre(totalKm)} km (mes ${nombre(km)} km + ${nombre(v.partageKmConjoint)} km de mon conjoint) = ${euros(r.prorata[0] + r.prorata[1])}, ma part au prorata de mes km = ${euros(montantVehicule)}`
+          : `barème : ${b.formule} (véhicule partagé avec mon conjoint, calcul séparé retenu car plus faible)`;
+    }
     lignes.push({
       categorie: "vehicule",
-      texte: `Véhicule : ${libelleVehicule(v, b.ligne)}, ${nombre(km)} km dans l'année (${detail}), barème : ${b.formule}.`,
-      montant: arrondiEuro(b.montant),
+      texte: `Véhicule : ${libelleVehicule(v, b.ligne)}, ${nombre(km)} km dans l'année (${detail}), ${formule}.`,
+      montant: arrondiEuro(montantVehicule),
     });
 
     peages += v.peagesParking ?? 0;

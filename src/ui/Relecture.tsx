@@ -10,12 +10,14 @@ import { PiedDePage } from "./Cadre";
 import { BandeauConfidentialite, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
-export type EcranModifiable = "salaire" | "foyer" | "jours" | "trajet" | "repas" | "teletravail" | "autres";
+export type EcranModifiable = "salaire" | "foyer" | "jours" | "trajet" | "repas" | "teletravail" | "autres" | "trajetsCouple";
 
 interface Props {
   /** Un déclarant, ou deux en mode foyer (ajout n° 1). */
   declarants: DonneesDeclarant[];
   foyer?: SaisieFoyer;
+  /** Mode foyer : résumé de l'écran « Vos trajets à deux », s'il concerne le couple. */
+  resumeTrajetsCouple?: string;
   /** Écran à corriger, et profil concerné en mode foyer. */
   onModifier: (ecran: EcranModifiable, profil: number) => void;
   onValider: () => void;
@@ -74,7 +76,7 @@ function sectionsDuDeclarant(d: DonneesDeclarant): Section[] {
   ];
 }
 
-export function Relecture({ declarants, foyer, onModifier, onValider, onRetour }: Props) {
+export function Relecture({ declarants, foyer, resumeTrajetsCouple, onModifier, onValider, onRetour }: Props) {
   const etape = libelleEtape("relecture");
   const enCouple = declarants.length > 1;
   const sectionFoyer: Section = {
@@ -116,6 +118,7 @@ export function Relecture({ declarants, foyer, onModifier, onValider, onRetour }
         <p className="texte-secondaire sous-question">{typographie("Touchez « Modifier » pour corriger une étape. Tout reste sur votre téléphone.")}</p>
 
         {carteSection(sectionFoyer, declarants[0])}
+        {resumeTrajetsCouple && carteSection({ ecran: "trajetsCouple", titre: "Vos trajets à deux", resume: resumeTrajetsCouple }, declarants[0])}
 
         {declarants.map((d) => {
           const v = d.vraisemblance;

@@ -167,6 +167,17 @@ export const FICHES = {
     siIntrouvable:
       "Choisissez « Je ne sais pas » pour les forfaits : nous comptons le montant d'une fiche, 12 mois, pour chaque personne aidée. C'est le choix le plus prudent.",
   },
+  covoiturageConjoint: {
+    titre: "Comment compter ces jours ?",
+    illustration: "itineraire",
+    texteAlternatif:
+      "Schéma d'un itinéraire entre la maison et le travail : le trajet le plus court est tracé en bleu et mesure 22 km.",
+    ouRegarder:
+      "Prenez une semaine habituelle et comptez les jours où vous partez dans la même voiture. Votre agenda, les passages d'un seul badge de péage ou le carnet de bord du véhicule peuvent vous aider.",
+    motsAChercher: ["Agenda", "Badge de péage", "Carnet de bord"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » : nous retiendrons {joursPrudents} jour par semaine, conduit par celui qui a le plus long trajet. C'est le choix le plus prudent.",
+  },
 } satisfies Record<string, FicheAide>;
 
 /** Remplace les repères {nom} d'un texte de fiche par les valeurs du millésime. */

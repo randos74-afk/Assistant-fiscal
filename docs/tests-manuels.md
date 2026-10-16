@@ -46,3 +46,19 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] « Enregistrer notre simulation dans un fichier », puis réouverture : les deux profils sont retrouvés.
 - [ ] Une ancienne sauvegarde (avant le 16/10/2026) en couple se rouvre avec le conjoint en « juste son salaire ».
 - [ ] Affichage sur téléphone (360 px) : le tableau des quatre possibilités tient dans la largeur.
+
+## Mode foyer, partie 2 : trajets à deux (ajout n° 1) — livré le 16/10/2026
+
+- [ ] Couple où les deux vont travailler en voiture : après les « Autres frais » du conjoint, l'écran « Vos trajets à deux » s'affiche avant la relecture.
+- [ ] Conjoint « juste son salaire », ou l'un des deux en transports en commun : l'écran ne s'affiche pas.
+- [ ] Vous à 45 km, conjoint à 10 km : la carte « Un motif possible pour la distance réelle » apparaît ; « Retenir ce motif » affiche la confirmation, et la relecture montre 45 km retenus.
+- [ ] Les deux à plus de 40 km sans motif : message « chacun est ramené à 40 km ».
+- [ ] « Une seule voiture pour nous deux » : message de prudence ; au résultat, la ligne véhicule de chacun indique « véhicule partagé avec mon conjoint » et la part au prorata.
+- [ ] Voiture commune : « Avant de recopier » montre « Voiture partagée avec votre conjoint » (règle de prudence) et la carte « tranché par l'administration ».
+- [ ] « Même endroit » + deux voitures : le texte « Un point à vérifier ensemble » s'affiche en entier, avec les deux choix.
+- [ ] « Toujours chacun avec notre voiture » : le résumé à copier contient « deux véhicules, trajets séparés confirmés ».
+- [ ] « Parfois ensemble », 1 jour par semaine, conducteur = moi : le conjoint perd les km de ces jours (environ 1 jour sur 5), le résumé de chacun l'explique.
+- [ ] « Je ne sais pas » pour les jours et pour le conducteur : valeurs prudentes, signalées « non vérifiées ».
+- [ ] Astérisque des jours ensemble : la fiche « Comment compter ces jours ? » s'ouvre.
+- [ ] Relecture : section « Vos trajets à deux » avec son résumé et « Modifier » qui rouvre l'écran puis revient à la relecture.
+- [ ] Simulation enregistrée puis rouverte : les réponses des trajets à deux sont retrouvées.

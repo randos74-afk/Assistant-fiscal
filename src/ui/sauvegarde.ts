@@ -10,6 +10,7 @@ import type { SaisieTeletravail } from "../parcours/teletravail";
 import type { SaisieTrajet } from "../parcours/trajet";
 import type { SaisieDomicile } from "../parcours/domicile";
 import type { ModeDeclaration, Profil } from "../parcours/profils";
+import type { SaisieTrajetsCouple } from "../parcours/trajetsCouple";
 import type { SaisieJours } from "./Jours";
 import type { SaisieSalaire } from "./Salaire";
 
@@ -28,6 +29,8 @@ export interface Dossier {
   profils: Profil[];
   profilActif: number;
   foyer?: SaisieFoyer;
+  /** Mode foyer : même voiture, même lieu de travail, jours faits ensemble. */
+  trajetsCouple?: SaisieTrajetsCouple;
 }
 
 /** Dossier de la version 1 : un seul déclarant, réponses à plat, salaire du conjoint dans le foyer. */

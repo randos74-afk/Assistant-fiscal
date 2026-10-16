@@ -126,7 +126,10 @@
     "prise_en_charge_abonnement_public": 0.75,
     "prix_repas": "forfait 5,45 € (pas de surcoût calculé)",
     "peages_parking_interets": 0,
-    "cotisation_syndicale_en_frais_reels": 0
+    "cotisation_syndicale_en_frais_reels": 0,
+    "covoiturage_conjoints_jours_par_semaine": 1,
+    "covoiturage_conjoints_conducteur": "le conjoint au plus long trajet",
+    "_source_covoiturage": "docs/03-ajout-mode-foyer.md, trajets faits ensemble, point 3 (décision FraisFit du 16/10/2026)"
   },
 
   "aide_a_domicile": {
