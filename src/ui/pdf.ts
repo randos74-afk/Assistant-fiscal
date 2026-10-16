@@ -12,13 +12,15 @@ export interface ContenuPdf {
   parametres: Parametres;
   resultat: ResultatDeclarant;
   prudentes: string[];
+  /** Ajout n° 2 — Valeurs non vérifiées, listées dans un encadré. */
+  nonVerifiees: { libelle: string; valeurRetenue: string }[];
   justificatifs: string[];
   date: Date;
   /** Estimation de l'impôt si le foyer a été renseigné. */
   impot?: { avecAbattement: number; avecFraisReels: number; gain: number } | null;
 }
 
-export function htmlPdf({ parametres: p, resultat: r, prudentes, justificatifs, date, impot }: ContenuPdf, urlLogo: string): string {
+export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, justificatifs, date, impot }: ContenuPdf, urlLogo: string): string {
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
   const verdict = c.fraisReelsConseilles
@@ -87,7 +89,13 @@ export function htmlPdf({ parametres: p, resultat: r, prudentes, justificatifs, 
   <tfoot><tr><td>Case ${r.caseFraisReels}</td><td class="m">${nombre(r.montantCase)} €</td></tr></tfoot>
 </table>
 ${r.totalReintegrations > 0 ? `<p>Salaire de la case 1AJ à porter à ${nombre(Math.ceil(c.salaireCorrige - r.allocationsChomage))} € (remboursements de l'employeur : ${euros(r.totalReintegrations)}).</p>` : ""}
-${prudentes.length ? `<p><strong>Valeur prudente retenue pour :</strong> ${echapper(prudentes.join(", "))}.</p>` : ""}
+${
+  nonVerifiees.length
+    ? `<div style="border:1.5px solid #8A5A00;border-radius:8px;padding:8px 12px;margin:12px 0"><strong>Valeurs non vérifiées</strong>
+<ul>${nonVerifiees.map((v) => `<li>${echapper(v.libelle)} : ${echapper(v.valeurRetenue)}</li>`).join("")}</ul>
+<p style="margin:0">Valeurs prudentes retenues faute de chiffre exact. Vérifiez-les avec vos documents avant de déclarer.</p></div>`
+    : ""
+}
 ${r.alertes.length ? `<p><strong>Points d'attention :</strong> ${echapper(r.alertes.join(" "))}</p>` : ""}
 </section>
 

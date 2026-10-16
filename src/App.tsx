@@ -28,6 +28,7 @@ import { Trajet } from "./ui/Trajet";
 import { Domicile } from "./ui/Domicile";
 import { EstimationImpot } from "./ui/EstimationImpot";
 import type { SaisieDomicile } from "./parcours/domicile";
+import { effetPossible, valeursNonVerifiees } from "./parcours/valeursNonVerifiees";
 
 type Ecran = "accueil" | "filtrage" | "metier" | EcranModifiable | "relecture" | "resultat";
 
@@ -232,6 +233,7 @@ export default function App() {
           reponses={reponses}
           foyer={foyer}
           resultat={calculerParcours(parametres, reponses)}
+          nonVerifiees={valeursNonVerifiees(parametres, reponses)}
           vraisemblance={vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple)}
           onRetour={() => setEcran("autres")}
           onModifier={(e) => {
@@ -250,7 +252,7 @@ export default function App() {
         <Resultat
           parametres={parametres}
           resultat={calculerParcours(parametres, reponses)}
-          prudentes={valeursPrudentes(reponses)}
+          nonVerifiees={valeursNonVerifiees(parametres, reponses).map((v) => ({ valeur: v, effet: effetPossible(parametres, reponses, v) }))}
           foyer={foyer}
           vraisemblance={vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple)}
           onFoyer={setFoyer}
@@ -259,6 +261,7 @@ export default function App() {
               parametres,
               resultat: calculerParcours(parametres, reponses),
               prudentes: valeursPrudentes(reponses),
+              nonVerifiees: valeursNonVerifiees(parametres, reponses),
               justificatifs: justificatifs(reponses),
               date: new Date(),
               impot: estimationImpot(),
@@ -266,6 +269,10 @@ export default function App() {
           }
           onEnregistrerFichier={() => telechargerDossier(contenu)}
           onModifier={() => setEcran("relecture")}
+          onVerifier={(e) => {
+            setDepuisRelecture(true);
+            setEcran(e);
+          }}
           onRecommencer={recommencer}
         />
       );

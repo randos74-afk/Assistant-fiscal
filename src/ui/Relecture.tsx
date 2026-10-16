@@ -4,7 +4,8 @@ import type { Vraisemblance } from "../moteur/vraisemblance";
 import { euros, nombre } from "../moteur/format";
 import { totaux } from "../parcours/calendrier";
 import { libelleEtape } from "../parcours/etapes";
-import { valeursPrudentes, type Reponses } from "../parcours/assemblage";
+import type { Reponses } from "../parcours/assemblage";
+import type { ValeurNonVerifiee } from "../parcours/valeursNonVerifiees";
 import { partsFoyer } from "../moteur/impot";
 import type { SaisieFoyer } from "../parcours/foyer";
 import { PiedDePage } from "./Cadre";
@@ -17,18 +18,19 @@ interface Props {
   reponses: Reponses;
   foyer?: SaisieFoyer;
   resultat: ResultatDeclarant;
+  /** Ajout n° 2 — Valeurs prudentes, étiquetées « non vérifiée » dans leur étape. */
+  nonVerifiees: ValeurNonVerifiee[];
   vraisemblance: Vraisemblance;
   onModifier: (ecran: EcranModifiable) => void;
   onValider: () => void;
   onRetour: () => void;
 }
 
-export function Relecture({ reponses: r, foyer, resultat, vraisemblance: v, onModifier, onValider, onRetour }: Props) {
+export function Relecture({ reponses: r, foyer, resultat, nonVerifiees, vraisemblance: v, onModifier, onValider, onRetour }: Props) {
   const etape = libelleEtape("relecture");
   const t = totaux(r.jours?.mois ?? []);
   const lignes = (categories: string[]) => resultat.lignes.filter((l) => categories.includes(l.categorie));
   const somme = (categories: string[]) => lignes(categories).reduce((s, l) => s + l.montant, 0);
-  const prudentes = valeursPrudentes(r);
 
   const sections: { ecran: EcranModifiable; titre: string; resume: string; montant?: number }[] = [
     {
@@ -92,6 +94,13 @@ export function Relecture({ reponses: r, foyer, resultat, vraisemblance: v, onMo
               {s.montant !== undefined && <span className="montant relecture-montant">{euros(s.montant)}</span>}
             </div>
             <p className="detail-calcul">{typographie(s.resume)}</p>
+            {nonVerifiees
+              .filter((n) => n.ecran === s.ecran)
+              .map((n) => (
+                <p key={n.champ} className="detail-calcul">
+                  {typographie(`${n.libelle} : ${n.valeurRetenue}`)} <span className="etiquette-non-verifiee">non vérifiée</span>
+                </p>
+              ))}
             <button type="button" className="lien-je-ne-sais-pas" onClick={() => onModifier(s.ecran)} aria-label={`Modifier : ${s.titre}`}>
               Modifier
             </button>
@@ -109,8 +118,8 @@ export function Relecture({ reponses: r, foyer, resultat, vraisemblance: v, onMo
           )}
         </section>
 
-        {prudentes.length > 0 && (
-          <Encadre>{typographie(`Valeur prudente retenue pour : ${prudentes.join(", ")}. Corrigez-la si vous retrouvez le chiffre.`)}</Encadre>
+        {nonVerifiees.length > 0 && (
+          <Encadre>{typographie("Les valeurs « non vérifiées » sont des valeurs prudentes. Corrigez-les si vous retrouvez le chiffre.")}</Encadre>
         )}
         {v.message && <Encadre ton={v.niveau >= 2 ? "attention" : "info"}>{typographie(v.message)}</Encadre>}
         {[...resultat.alertes, ...v.alertes].map((a) => (

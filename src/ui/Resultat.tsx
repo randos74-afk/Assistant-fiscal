@@ -6,6 +6,9 @@ import type { Parametres } from "../moteur/types";
 import { comparerImpot } from "../moteur/impot";
 import type { Vraisemblance } from "../moteur/vraisemblance";
 import { autresRevenusFoyer, type SaisieFoyer } from "../parcours/foyer";
+import { nValeurs, type EffetPossible, type ValeurNonVerifiee } from "../parcours/valeursNonVerifiees";
+import { AvantDeRecopier } from "./AvantDeRecopier";
+import type { EcranModifiable } from "./Relecture";
 import { PiedDePage } from "./Cadre";
 import { EstimationImpot } from "./EstimationImpot";
 import { BlocACopier } from "./Copier";
@@ -15,7 +18,8 @@ import { typographie } from "./typographie";
 interface Props {
   parametres: Parametres;
   resultat: ResultatDeclarant;
-  prudentes: string[];
+  /** Ajout n° 2 — Valeurs non vérifiées et effet possible de la vraie valeur. */
+  nonVerifiees: { valeur: ValeurNonVerifiee; effet: EffetPossible }[];
   foyer?: SaisieFoyer;
   vraisemblance: Vraisemblance;
   onFoyer: (f: SaisieFoyer) => void;
@@ -23,12 +27,18 @@ interface Props {
   onPdf: () => boolean;
   onEnregistrerFichier: () => void;
   onModifier: () => void;
+  /** Retour à l'étape qui contient une valeur non vérifiée. */
+  onVerifier: (ecran: EcranModifiable) => void;
   onRecommencer: () => void;
 }
 
-export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisemblance: v, onFoyer, onPdf, onEnregistrerFichier, onModifier, onRecommencer }: Props) {
+export function Resultat({ parametres: p, resultat: r, nonVerifiees, foyer, vraisemblance: v, onFoyer, onPdf, onEnregistrerFichier, onModifier, onVerifier, onRecommencer }: Props) {
   const [pdfBloque, setPdfBloque] = useState(false);
   const [verifies, setVerifies] = useState<string[]>([]);
+  // Ajout n° 2 — L'écran « Avant de recopier » s'intercale tant que l'utilisateur ne l'a pas accepté.
+  const [avantDeRecopier, setAvantDeRecopier] = useState(false);
+  const [risqueAccepte, setRisqueAccepte] = useState(false);
+  const nbNonVerifiees = nonVerifiees.length;
   const resteAVerifier = v.postesAVerifier.filter((l) => !verifies.includes(l.texte));
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
@@ -63,9 +73,27 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisem
   const blocs =
     resteAVerifier.length > 0 ? (
       verification
+    ) : nbNonVerifiees > 0 && !risqueAccepte ? (
+    <>
+      {verification}
+      <section className="carte" aria-labelledby="titre-avant-recopier">
+        <h2 id="titre-avant-recopier">Avant de recopier</h2>
+        <p className="detail-calcul">
+          {typographie(`Votre estimation contient ${nValeurs(nbNonVerifiees)}. Relisez-les avant de voir le montant et le texte à recopier.`)}
+        </p>
+        <button type="button" className="bouton bouton-principal" onClick={() => setAvantDeRecopier(true)}>
+          Voir les valeurs à vérifier
+        </button>
+      </section>
+    </>
     ) : (
     <>
       {verification}
+      {nbNonVerifiees > 0 && (
+        <Encadre ton="attention">
+          {typographie(`Ce texte contient ${nValeurs(nbNonVerifiees)}. Corrigez-les avant de le recopier dans votre déclaration.`)}
+        </Encadre>
+      )}
       <BlocACopier titre={`Case ${r.caseFraisReels} : frais réels`} texte={nombre(r.montantCase)} grand />
       {r.totalReintegrations > 0 && (
         <BlocACopier
@@ -93,11 +121,26 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisem
     </>
     );
 
+  if (avantDeRecopier) {
+    return (
+      <AvantDeRecopier
+        valeurs={nonVerifiees}
+        onVerifier={onVerifier}
+        onVerifierTout={onModifier}
+        onContinuer={() => (setRisqueAccepte(true), setAvantDeRecopier(false))}
+        onRetour={() => setAvantDeRecopier(false)}
+      />
+    );
+  }
+
   return (
     <div className="ecran">
       <EnTeteEtape libelle="Votre résultat" etape={1} total={1} onRetour={onModifier} />
 
       <main className="ecran-contenu" style={{ gap: 16 }}>
+        {nbNonVerifiees > 0 && (
+          <p className="bandeau-non-verifiees">{typographie(`Estimation avec ${nValeurs(nbNonVerifiees)}`)}</p>
+        )}
         <section className={conseille ? "verdict verdict-reel" : "verdict verdict-abattement"} aria-live="polite">
           {!conseille ? (
             <p className="verdict-phrase">
@@ -177,9 +220,6 @@ export function Resultat({ parametres: p, resultat: r, prudentes, foyer, vraisem
             {typographie(a)}
           </Encadre>
         ))}
-        {prudentes.length > 0 && (
-          <Encadre>{typographie(`Valeur prudente retenue pour : ${prudentes.join(", ")}. Votre gain réel peut être plus élevé.`)}</Encadre>
-        )}
 
         <details className="depliant">
           <summary>Voir le détail de vos frais</summary>

@@ -236,6 +236,12 @@ a {
   color: var(--primaire);
 }
 
+.bouton-secondaire:disabled {
+  color: var(--texte-secondaire);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .bouton:focus-visible {
   outline: 3px solid var(--primaire);
   outline-offset: 2px;
@@ -1242,4 +1248,33 @@ a {
 
 .barre-pro {
   background: var(--vert-economie);
+}
+
+/* Ajout n° 2 — Valeurs non vérifiées : titre orange, étiquette ambre. */
+.titre-attention,
+.texte-attention {
+  color: var(--orange-attention-texte);
+}
+
+.etiquette-non-verifiee {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--ambre-aide-fond);
+  color: var(--ambre-aide);
+  font-size: var(--taille-texte-min);
+  font-weight: 700;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.bandeau-non-verifiees {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--rayon, 12px);
+  background: var(--orange-attention-fond);
+  color: var(--orange-attention-texte);
+  font-weight: 700;
+  text-align: center;
 }
