@@ -1278,3 +1278,28 @@ a {
   font-weight: 700;
   text-align: center;
 }
+
+/* Ajout n° 3 — Conditions générales et cas à trancher par l'administration. */
+.lien {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--zone-tactile);
+  font-weight: 700;
+}
+
+.mention-independance .lien {
+  min-height: 0;
+  font-weight: 600;
+}
+
+.liste-resume {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.carte-administration {
+  border-left: 4px solid var(--orange-attention-texte);
+}

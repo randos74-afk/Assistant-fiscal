@@ -29,6 +29,8 @@ import { Domicile } from "./ui/Domicile";
 import { EstimationImpot } from "./ui/EstimationImpot";
 import type { SaisieDomicile } from "./parcours/domicile";
 import { effetPossible, valeursNonVerifiees } from "./parcours/valeursNonVerifiees";
+import { casAdministration, CONFIGURATION, doitAfficherConditions, enregistrerAcceptation, lireAcceptation } from "./parcours/conditions";
+import { AvantDeCommencer, LectureConditions } from "./ui/Conditions";
 
 type Ecran = "accueil" | "filtrage" | "metier" | EcranModifiable | "relecture" | "resultat";
 
@@ -46,6 +48,14 @@ export default function App() {
   const [teletravail, setTeletravail] = useState<SaisieTeletravail | undefined>();
   const [autres, setAutres] = useState<SaisieAutresFrais | undefined>();
   const [foyer, setFoyer] = useState<SaisieFoyer | undefined>();
+  // Ajout n° 3 — Acceptation des conditions (sur l'appareil) et lecture des conditions par l'adresse « #conditions ».
+  const [acceptation, setAcceptation] = useState(lireAcceptation);
+  const [conditionsOuvertes, setConditionsOuvertes] = useState(() => window.location.hash === "#conditions");
+  useEffect(() => {
+    const suivre = () => setConditionsOuvertes(window.location.hash === "#conditions");
+    window.addEventListener("hashchange", suivre);
+    return () => window.removeEventListener("hashchange", suivre);
+  }, []);
 
   const millesime = millesimesDisponibles()[0];
   const parametres = chargerParametres(millesime);
@@ -102,6 +112,26 @@ export default function App() {
     setFoyer(undefined);
     setDepuisRelecture(false);
     setEcran("accueil");
+  }
+
+  if (conditionsOuvertes) {
+    return (
+      <LectureConditions
+        onFermer={() => {
+          history.replaceState(null, "", window.location.pathname + window.location.search);
+          setConditionsOuvertes(false);
+        }}
+      />
+    );
+  }
+
+  if (doitAfficherConditions(acceptation, CONFIGURATION.conditions.version)) {
+    return (
+      <AvantDeCommencer
+        versionPrecedente={acceptation !== null}
+        onAccepter={() => setAcceptation(enregistrerAcceptation(CONFIGURATION.conditions.version))}
+      />
+    );
   }
 
   switch (ecran) {
@@ -234,6 +264,7 @@ export default function App() {
           foyer={foyer}
           resultat={calculerParcours(parametres, reponses)}
           nonVerifiees={valeursNonVerifiees(parametres, reponses)}
+          casAdministration={casAdministration(parametres, reponses, vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple))}
           vraisemblance={vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple)}
           onRetour={() => setEcran("autres")}
           onModifier={(e) => {
@@ -253,6 +284,7 @@ export default function App() {
           parametres={parametres}
           resultat={calculerParcours(parametres, reponses)}
           nonVerifiees={valeursNonVerifiees(parametres, reponses).map((v) => ({ valeur: v, effet: effetPossible(parametres, reponses, v) }))}
+          casAdministration={casAdministration(parametres, reponses, vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple))}
           foyer={foyer}
           vraisemblance={vraisemblance(parametres, reponses, calculerParcours(parametres, reponses), foyer?.couple)}
           onFoyer={setFoyer}

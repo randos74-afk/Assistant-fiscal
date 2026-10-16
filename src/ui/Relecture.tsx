@@ -6,6 +6,8 @@ import { totaux } from "../parcours/calendrier";
 import { libelleEtape } from "../parcours/etapes";
 import type { Reponses } from "../parcours/assemblage";
 import type { ValeurNonVerifiee } from "../parcours/valeursNonVerifiees";
+import type { CasAdministration } from "../parcours/conditions";
+import { CarteAdministration } from "./Conditions";
 import { partsFoyer } from "../moteur/impot";
 import type { SaisieFoyer } from "../parcours/foyer";
 import { PiedDePage } from "./Cadre";
@@ -20,13 +22,15 @@ interface Props {
   resultat: ResultatDeclarant;
   /** Ajout n° 2 — Valeurs prudentes, étiquetées « non vérifiée » dans leur étape. */
   nonVerifiees: ValeurNonVerifiee[];
+  /** Ajout n° 3 — Cas à faire trancher par l'administration. */
+  casAdministration: CasAdministration[];
   vraisemblance: Vraisemblance;
   onModifier: (ecran: EcranModifiable) => void;
   onValider: () => void;
   onRetour: () => void;
 }
 
-export function Relecture({ reponses: r, foyer, resultat, nonVerifiees, vraisemblance: v, onModifier, onValider, onRetour }: Props) {
+export function Relecture({ reponses: r, foyer, resultat, nonVerifiees, casAdministration, vraisemblance: v, onModifier, onValider, onRetour }: Props) {
   const etape = libelleEtape("relecture");
   const t = totaux(r.jours?.mois ?? []);
   const lignes = (categories: string[]) => resultat.lignes.filter((l) => categories.includes(l.categorie));
@@ -121,6 +125,9 @@ export function Relecture({ reponses: r, foyer, resultat, nonVerifiees, vraisemb
         {nonVerifiees.length > 0 && (
           <Encadre>{typographie("Les valeurs « non vérifiées » sont des valeurs prudentes. Corrigez-les si vous retrouvez le chiffre.")}</Encadre>
         )}
+        {casAdministration.map((c) => (
+          <CarteAdministration key={c.id} cas={c} onVoir={c.ecran ? () => onModifier(c.ecran!) : undefined} />
+        ))}
         {v.message && <Encadre ton={v.niveau >= 2 ? "attention" : "info"}>{typographie(v.message)}</Encadre>}
         {[...resultat.alertes, ...v.alertes].map((a) => (
           <Encadre key={a} ton="attention">

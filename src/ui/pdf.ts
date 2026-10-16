@@ -5,6 +5,7 @@ import { euros, nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
 import { noteExplicative, texteReintegrations } from "../parcours/noteExplicative";
 import logoComplet from "../../design/logo/logo-complet.png";
+import { CONFIGURATION, lienAnnexe, MENTION_LEGALE } from "../parcours/conditions";
 
 const echapper = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -169,6 +170,8 @@ ${
 
 <footer>
   C'est une estimation indicative, pas un conseil fiscal. Seuls impots.gouv.fr et votre avis d'imposition font foi.<br>
+  ${echapper(MENTION_LEGALE)}<br>
+  Limites d'usage et bonnes pratiques : ${echapper(lienAnnexe() ?? "adresse à venir")}. Conditions générales version ${echapper(CONFIGURATION.conditions.version)}.<br>
   Application indépendante, non affiliée à l'administration fiscale.
 </footer>
 </body></html>`;

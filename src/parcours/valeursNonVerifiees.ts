@@ -160,6 +160,11 @@ export function titreNonVerifiees(n: number): string {
   return n > 1 ? `${n} valeurs n'ont pas été vérifiées` : "1 valeur n'a pas été vérifiée";
 }
 
+/** Titre quand l'écran contient aussi des cas à faire trancher par l'administration. */
+export function pointsAttention(n: number): string {
+  return n > 1 ? `${n} points sont à vérifier` : "1 point est à vérifier";
+}
+
 export function nValeurs(n: number): string {
   return n > 1 ? `${n} valeurs non vérifiées` : "1 valeur non vérifiée";
 }

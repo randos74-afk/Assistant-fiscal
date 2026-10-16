@@ -27,7 +27,12 @@ export function PiedDePage({ children, onPrecedent }: { children?: ReactNode; on
           ‹ Précédent
         </button>
       )}
-      <p className="mention-independance">Application indépendante, non affiliée à l'administration fiscale.</p>
+      <p className="mention-independance">
+        Application indépendante, non affiliée à l'administration fiscale.{" "}
+        <a className="lien" href="#conditions">
+          Conditions et limites d'usage
+        </a>
+      </p>
     </footer>
   );
 }

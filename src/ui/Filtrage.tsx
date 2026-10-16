@@ -1,4 +1,5 @@
 // Écran de filtrage : cinq questions, une par écran, puis accès au parcours ou message d'exclusion.
+import { LienAnnexe } from "./Conditions";
 import { useState } from "react";
 import {
   evaluerFiltrage,
@@ -98,6 +99,7 @@ export function EcranExclusion({
         <h1 className="titre-question">FraisFit ne convient pas à votre situation</h1>
         <p style={{ margin: 0 }}>{typographie(exclusion.raison)}</p>
         <Encadre>{typographie(exclusion.conseil)}</Encadre>
+        <LienAnnexe>Voir les situations exclues dans les limites d'usage</LienAnnexe>
         <p className="texte-secondaire">
           Si vous venez d'acheter FraisFit, vous pouvez demander son remboursement sur Google Play.
         </p>

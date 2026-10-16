@@ -1,8 +1,10 @@
 // Ajout n° 2 — Écran « Avant de recopier », entre le résultat et le texte à copier, affiché seulement
 // s'il reste des valeurs non vérifiées (« Je ne sais pas » ou règle de prudence).
 import { useState } from "react";
+import type { CasAdministration } from "../parcours/conditions";
 import type { EffetPossible, ValeurNonVerifiee } from "../parcours/valeursNonVerifiees";
-import { phraseEffet, titreNonVerifiees } from "../parcours/valeursNonVerifiees";
+import { CarteAdministration } from "./Conditions";
+import { phraseEffet, pointsAttention, titreNonVerifiees } from "../parcours/valeursNonVerifiees";
 import type { EcranModifiable } from "./Relecture";
 import { PiedDePage } from "./Cadre";
 import { EnTeteEtape } from "./Question";
@@ -13,13 +15,15 @@ export const TEXTE_RESPONSABILITE =
 
 interface Props {
   valeurs: { valeur: ValeurNonVerifiee; effet: EffetPossible }[];
+  /** Ajout n° 3 — Cas à faire trancher par l'administration, comptés comme points d'attention. */
+  cas: CasAdministration[];
   onVerifier: (ecran: EcranModifiable) => void;
   onVerifierTout: () => void;
   onContinuer: () => void;
   onRetour: () => void;
 }
 
-export function AvantDeRecopier({ valeurs, onVerifier, onVerifierTout, onContinuer, onRetour }: Props) {
+export function AvantDeRecopier({ valeurs, cas, onVerifier, onVerifierTout, onContinuer, onRetour }: Props) {
   const [compris, setCompris] = useState(false);
 
   return (
@@ -27,7 +31,9 @@ export function AvantDeRecopier({ valeurs, onVerifier, onVerifierTout, onContinu
       <EnTeteEtape libelle="Avant de recopier" etape={1} total={1} onRetour={onRetour} />
 
       <main className="ecran-contenu" style={{ gap: 16 }}>
-        <h1 className="titre-question titre-attention">{typographie(`Attention : ${titreNonVerifiees(valeurs.length)}`)}</h1>
+        <h1 className="titre-question titre-attention">
+          {typographie(`Attention : ${cas.length === 0 ? titreNonVerifiees(valeurs.length) : pointsAttention(valeurs.length + cas.length)}`)}
+        </h1>
 
         {valeurs.map(({ valeur: v, effet }) => {
           const phrase = phraseEffet(v, effet);
@@ -52,11 +58,21 @@ export function AvantDeRecopier({ valeurs, onVerifier, onVerifierTout, onContinu
           );
         })}
 
+        {cas.map((c) => (
+          <CarteAdministration key={c.id} cas={c} onVoir={c.ecran ? () => onVerifier(c.ecran!) : undefined} />
+        ))}
+
         <p>{typographie(TEXTE_RESPONSABILITE)}</p>
 
         <label className="case-a-cocher">
           <input type="checkbox" checked={compris} onChange={(e) => setCompris(e.target.checked)} />
-          <span>{typographie("J'ai compris que ces valeurs ne sont pas vérifiées et que ma déclaration reste sous ma responsabilité.")}</span>
+          <span>
+            {typographie(
+              valeurs.length > 0
+                ? "J'ai compris que ces valeurs ne sont pas vérifiées et que ma déclaration reste sous ma responsabilité."
+                : "J'ai compris que ces points doivent être confirmés et que ma déclaration reste sous ma responsabilité.",
+            )}
+          </span>
         </label>
       </main>
 

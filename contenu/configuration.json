@@ -1,0 +1,12 @@
+{
+  "_note": "Réglages de l'application modifiables sans toucher au code. Remplacer les valeurs entre crochets par les vraies adresses une fois publiées.",
+  "liens": {
+    "annexe_limites_usage": "[URL Google Site]",
+    "politique_confidentialite": "[lien GitHub Pages]"
+  },
+  "conditions": {
+    "version": "1.0",
+    "date": "2026-10-16",
+    "changements": []
+  }
+}
