@@ -5,7 +5,7 @@ import type { Parametres } from "../moteur/types";
 import type { Vraisemblance } from "../moteur/vraisemblance";
 import { entreeDeclarant, vraisemblance, type Reponses } from "./assemblage";
 import { casAdministration, type CasAdministration } from "./conditions";
-import { minuscule, nomProfil, reponsesDuProfil, type ModeDeclaration, type Profil } from "./profils";
+import { minuscule, nomProfil, placesDeclarants, reponsesDuProfil, type ModeDeclaration, type Profil } from "./profils";
 import { appliquerTrajetsCouple, organisationRetenue, trajetsCoupleApplicable, type SaisieTrajetsCouple } from "./trajetsCouple";
 import { effetPossible, valeursNonVerifiees, type EffetPossible, type ValeurNonVerifiee } from "./valeursNonVerifiees";
 
@@ -88,35 +88,41 @@ export function donneesDeclarants(
   trajetsCouple?: SaisieTrajetsCouple,
 ): DonneesDeclarant[] {
   const enCouple = mode === "couple";
-  const liste = enCouple ? profils.slice(0, 2) : profils.slice(0, 1);
-  const reponses = liste.map(reponsesDuProfil);
-  const brutes = reponses.map((r, i) => entreeDeclarant(p, r, i + 1));
-  const { entrees, alertes } = enCouple ? appliquerTrajetsCouple(p, liste, trajetsCouple, brutes) : { entrees: brutes, alertes: [] };
-  const foyer = enCouple ? pointsTrajetsCouple(p, liste, trajetsCouple) : { nonVerifiees: [], cas: [] };
+  // Places fixes : 0 vous, 1 conjoint (en couple), 2 et 3 personnes à charge ; la place donne la case (1AK à 1DK).
+  const places = placesDeclarants(mode, profils);
+  const plusieurs = places.length > 1;
+  const reponses = places.map((i) => reponsesDuProfil(profils[i]));
+  const brutes = reponses.map((r, k) => entreeDeclarant(p, r, places[k] + 1));
+  const adultes = enCouple ? profils.slice(0, 2) : [];
+  const couplees = enCouple ? appliquerTrajetsCouple(p, adultes, trajetsCouple, brutes.slice(0, 2)) : { entrees: [], alertes: [] };
+  const entrees = enCouple ? [...couplees.entrees, ...brutes.slice(2)] : brutes;
+  const alertes = couplees.alertes;
+  const foyer = enCouple ? pointsTrajetsCouple(p, adultes, trajetsCouple) : { nonVerifiees: [], cas: [] };
 
-  return liste.map((profil, index) => {
-    const calcul = calculerDeclarant(p, entrees[index]);
-    const resultat = { ...calcul, alertes: [...calcul.alertes, ...(alertes[index] ?? [])] };
-    const v = vraisemblance(p, reponses[index], resultat, couple ?? enCouple);
+  return places.map((index, k) => {
+    const profil = profils[index];
+    const calcul = calculerDeclarant(p, entrees[k]);
+    const resultat = { ...calcul, alertes: [...calcul.alertes, ...(alertes[k] ?? [])] };
+    const v = vraisemblance(p, reponses[k], resultat, couple ?? enCouple);
     const nom = nomProfil(index, profil);
-    // En couple, chaque point porte le nom du déclarant et l'index de son profil pour y revenir.
-    const prefixe = (libelle: string) => (enCouple ? `${nom} : ${libelle.charAt(0).toLowerCase()}${libelle.slice(1)}` : libelle);
+    // Plusieurs déclarants : chaque point porte le nom et la place du profil pour y revenir.
+    const prefixe = (libelle: string) => (plusieurs ? `${nom} : ${libelle.charAt(0).toLowerCase()}${libelle.slice(1)}` : libelle);
     return {
       index,
       nom,
       profil,
-      reponses: reponses[index],
+      reponses: reponses[k],
       resultat,
       nonVerifiees: [
-        ...valeursNonVerifiees(p, reponses[index]).map((valeur) => ({
+        ...valeursNonVerifiees(p, reponses[k]).map((valeur) => ({
           valeur: { ...valeur, champ: `${index}-${valeur.champ}`, libelle: prefixe(valeur.libelle), profil: index },
-          effet: effetPossible(p, reponses[index], valeur),
+          effet: effetPossible(p, reponses[k], valeur),
         })),
         // Points du foyer, rattachés une seule fois au premier déclarant.
         ...(index === 0 ? foyer.nonVerifiees.map((valeur) => ({ valeur, effet: "aucun" as const })) : []),
       ],
       casAdministration: [
-        ...casAdministration(p, reponses[index], v).map((c) => ({ ...c, phrase: enCouple ? `${nom} : ${c.phrase}` : c.phrase, profil: index })),
+        ...casAdministration(p, reponses[k], v).map((c) => ({ ...c, phrase: plusieurs ? `${nom} : ${c.phrase}` : c.phrase, profil: index })),
         ...(index === 0 ? foyer.cas : []),
       ],
       vraisemblance: v,

@@ -73,3 +73,15 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Conducteur : case « Je transporte des passagers qui participent aux frais » dans « D'autres frais pour ce véhicule ? », montant retiré de la ligne véhicule.
 - [ ] Conducteur « Je ne sais pas » sur les participations : question des jours de covoiturage par semaine, jours retirés au résultat, valeurs signalées.
 - [ ] Carte « Ce cas doit être tranché par l'administration » pour le covoiturage (passager ou conducteur).
+
+## Personnes à charge salariées, cases 1CK et 1DK (ajout n° 1) — livré le 16/10/2026
+
+- [ ] Foyer avec au moins un enfant à charge : après le dernier adulte (et les trajets à deux), l'écran « Une personne à charge a-t-elle un salaire ? » s'affiche ; « Non, continuer » mène à la relecture.
+- [ ] Foyer sans enfant à charge : l'écran ne s'affiche pas.
+- [ ] « Oui, ajouter » : prénom facultatif, « Ses frais aussi » ou « Juste son salaire », puis ses questions ; retour à la liste à la fin.
+- [ ] Deux personnes au plus ; « Retirer » la première fait passer la seconde en case 1CK.
+- [ ] Le sélecteur en haut des écrans montre aussi les personnes à charge, y compris pour une personne seule.
+- [ ] Relecture : un bloc par personne à charge.
+- [ ] Résultat : la phrase de la meilleure combinaison cite chaque personne à charge ; bloc à copier case 1CK (ou 1DK) seulement si elle gagne à opter.
+- [ ] Personne seule avec une personne à charge : résultat du foyer sans tableau des quatre possibilités, impôt calculé sur le foyer.
+- [ ] PDF d'une personne à charge : « déclarant 3 » et case 1CK.

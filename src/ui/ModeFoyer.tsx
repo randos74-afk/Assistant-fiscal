@@ -64,12 +64,15 @@ export function ChoixDeclaration({
 
 type Examen = "complet" | "salaire";
 
-/** Passage au profil du conjoint : prénom facultatif, puis parcours complet ou salaire seul. */
+/** Passage au profil du conjoint ou d'une personne à charge : prénom facultatif, puis parcours complet ou salaire seul. */
 export function PassageConjoint({
+  place = 1,
   valeurInitiale,
   onValider,
   onRetour,
 }: {
+  /** 1 : conjoint ; 2 ou 3 : personne à charge (cases 1CK, 1DK). */
+  place?: number;
   valeurInitiale?: Profil;
   onValider: (prenom: string, salaireSeulement: boolean) => void;
   onRetour: () => void;
@@ -79,15 +82,22 @@ export function PassageConjoint({
   const [examen, setExamen] = useState<Examen | undefined>(
     valeurInitiale?.salaireSeulement ? "salaire" : valeurInitiale?.salaire ? "complet" : undefined,
   );
-  const titre = "À votre conjoint maintenant";
+  const conjoint = place === 1;
+  const titre = conjoint ? "À votre conjoint maintenant" : `${nomProfil(place)} : une personne à charge qui travaille`;
 
   return (
     <div className="ecran">
-      <EnTeteEtape libelle="Votre conjoint" etape={0} total={ETAPES.length} onRetour={onRetour} />
+      <EnTeteEtape libelle={conjoint ? "Votre conjoint" : "Personne à charge"} etape={0} total={ETAPES.length} onRetour={onRetour} />
 
       <main className="ecran-contenu" style={{ gap: 16 }}>
-        <h1 className="titre-question">{titre}</h1>
-        <p className="texte-secondaire sous-question">{typographie("Vos réponses sont enregistrées. Les mêmes questions vont être posées pour votre conjoint.")}</p>
+        <h1 className="titre-question">{typographie(titre)}</h1>
+        <p className="texte-secondaire sous-question">
+          {typographie(
+            conjoint
+              ? "Vos réponses sont enregistrées. Les mêmes questions vont être posées pour votre conjoint."
+              : `Ses frais réels se déclarent à part, case ${place === 2 ? "1CK" : "1DK"}. Les mêmes questions vont lui être posées.`,
+          )}
+        </p>
 
         <div className="champ champ-compact">
           <label htmlFor={id} className="champ-libelle">
@@ -121,10 +131,21 @@ export function PassageConjoint({
 }
 
 /** Sélecteur de profil en haut d'écran : rappelle pour qui l'on répond et permet de changer. */
-export function SelecteurProfil({ profils, actif, onChoix }: { profils: Profil[]; actif: number; onChoix: (index: number) => void }) {
+export function SelecteurProfil({
+  profils,
+  places,
+  actif,
+  onChoix,
+}: {
+  profils: Profil[];
+  /** Places des profils à proposer (vous, conjoint, personnes à charge). */
+  places: number[];
+  actif: number;
+  onChoix: (index: number) => void;
+}) {
   return (
     <nav className="selecteur-profil" aria-label="Pour qui répondez-vous ?">
-      {profils.map((p, i) => (
+      {places.map((i) => ({ p: profils[i], i })).map(({ p, i }) => (
         <button
           key={i}
           type="button"
@@ -136,5 +157,77 @@ export function SelecteurProfil({ profils, actif, onChoix }: { profils: Profil[]
         </button>
       ))}
     </nav>
+  );
+}
+
+/** Personnes à charge qui ont un salaire (enfant majeur rattaché, apprenti…) : jusqu'à deux, cases 1CK et 1DK. */
+export function PersonnesACharge({
+  profils,
+  places,
+  onAjouter,
+  onModifier,
+  onRetirer,
+  onContinuer,
+  onRetour,
+}: {
+  profils: Profil[];
+  /** Places déjà occupées par des personnes à charge (2, 3). */
+  places: number[];
+  onAjouter: () => void;
+  onModifier: (place: number) => void;
+  onRetirer: (place: number) => void;
+  onContinuer: () => void;
+  onRetour: () => void;
+}) {
+  return (
+    <div className="ecran">
+      <EnTeteEtape libelle="Personnes à charge" etape={ETAPES.length - 1} total={ETAPES.length} onRetour={onRetour} />
+
+      <main className="ecran-contenu" style={{ gap: 16 }}>
+        <h1 className="titre-question">Une personne à charge a-t-elle un salaire ?</h1>
+        <p className="texte-secondaire sous-question">
+          {typographie(
+            "Un enfant rattaché à votre foyer (majeur, apprenti, job d'été…) dont le salaire est déclaré avec le vôtre peut, lui aussi, choisir les frais réels. Sinon, continuez.",
+          )}
+        </p>
+
+        {places.map((i) => (
+          <section key={i} className="relecture-section" aria-labelledby={`charge-${i}`}>
+            <div className="relecture-entete">
+              <h2 id={`charge-${i}`}>{typographie(nomProfil(i, profils[i]))}</h2>
+            </div>
+            <p className="detail-calcul">
+              {typographie(
+                profils[i]?.salaire
+                  ? `Salaire de ${profils[i].salaire!.montant.toLocaleString("fr-FR")} €${profils[i].salaireSeulement ? ", pas de frais à examiner" : ""}. Case ${i === 2 ? "1CK" : "1DK"}.`
+                  : "À compléter",
+              )}
+            </p>
+            <button type="button" className="lien-je-ne-sais-pas" onClick={() => onModifier(i)}>
+              Modifier
+            </button>
+            <button type="button" className="lien-je-ne-sais-pas" onClick={() => onRetirer(i)}>
+              Retirer
+            </button>
+          </section>
+        ))}
+
+        {places.length < 2 && (
+          <button type="button" className="bouton bouton-secondaire" onClick={onAjouter}>
+            {places.length === 0 ? "Oui, ajouter une personne à charge" : "Ajouter une autre personne à charge"}
+          </button>
+        )}
+        {places.length > 0 && (
+          <Encadre>{typographie("Ne comptez pas son salaire dans les « autres revenus du foyer » : il est déjà pris en compte ici.")}</Encadre>
+        )}
+      </main>
+
+      <PiedDePage onPrecedent={onRetour}>
+        <BandeauConfidentialite />
+        <button type="button" className="bouton bouton-principal" onClick={onContinuer}>
+          {places.length === 0 ? "Non, continuer" : "Continuer"}
+        </button>
+      </PiedDePage>
+    </div>
   );
 }

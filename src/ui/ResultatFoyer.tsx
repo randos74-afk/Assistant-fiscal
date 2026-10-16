@@ -1,7 +1,9 @@
-// Ajout n° 1 — Résultat du foyer : les 4 combinaisons abattement / frais réels, l'impôt estimé de chacune,
-// la moins chère mise en avant, puis un résumé à copier (1AK, 1BK) pour chaque déclarant qui gagne à opter.
+// Ajout n° 1 — Résultat du foyer : en couple, les 4 combinaisons abattement / frais réels et l'impôt estimé de chacune,
+// la moins chère mise en avant ; chaque personne à charge choisit seule. Puis un résumé à copier (1AK à 1DK)
+// pour chaque déclarant qui gagne à opter.
 import { useState } from "react";
 import { combinaisonsFoyer } from "../moteur/couple";
+import { impotFoyer } from "../moteur/impot";
 import { euros, nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
 import type { DonneesDeclarant } from "../parcours/declarants";
@@ -18,7 +20,7 @@ import { typographie } from "./typographie";
 
 interface Props {
   parametres: Parametres;
-  /** Les deux déclarants : « Vous » (1AK) et le conjoint (1BK). */
+  /** « Vous » (1AK), le conjoint en couple (1BK), les personnes à charge (1CK, 1DK). */
   declarants: DonneesDeclarant[];
   foyer?: SaisieFoyer;
   onFoyer: (f: SaisieFoyer) => void;
@@ -36,22 +38,36 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
   const [verifies, setVerifies] = useState<string[]>([]);
   const [pdfBloque, setPdfBloque] = useState(false);
 
-  const [d1, d2] = declarants;
+  const d1 = declarants[0];
+  const d2 = declarants.find((d) => d.index === 1);
+  const charges = declarants.filter((d) => d.index >= 2);
+  const enCouple = d2 !== undefined;
   const declarantDuFoyer = (d: DonneesDeclarant) => ({
     salairePrerempli: d.resultat.comparaison.salaireCorrige - d.resultat.totalReintegrations,
     reintegrations: d.resultat.totalReintegrations,
     fraisReels: d.resultat.montantCase,
   });
-  const { combinaisons, meilleure } = combinaisonsFoyer(
-    p,
-    declarantDuFoyer(d1),
-    declarantDuFoyer(d2),
-    { enfants: foyer?.enfants ?? 0, parentIsole: false },
-    foyer?.autresRevenus ?? 0,
-  );
-  const sansOption = combinaisons.find((c) => !c.reels1 && !c.reels2)!;
-  const gain = sansOption.impot - meilleure.impot;
-  const optants = declarants.filter((d) => (d.index === 0 ? meilleure.reels1 : meilleure.reels2));
+  // Une personne à charge choisit seule : l'option qui baisse sa propre base baisse aussi l'impôt du foyer.
+  const reelsCharge = (d: DonneesDeclarant) => d.resultat.comparaison.fraisReelsConseilles;
+  const baseCharges = charges.reduce((t, d) => t + (reelsCharge(d) ? d.resultat.comparaison.baseFraisReels : d.resultat.comparaison.baseAbattement10), 0);
+  const baseChargesAbattement = charges.reduce((t, d) => t + d.resultat.comparaison.baseAbattement10, 0);
+  const autresRevenus = foyer?.autresRevenus ?? 0;
+  const situation = { couple: enCouple, enfants: foyer?.enfants ?? 0, parentIsole: foyer?.parentIsole ?? false, veuf: foyer?.veuf };
+
+  const couple = d2
+    ? combinaisonsFoyer(p, declarantDuFoyer(d1), declarantDuFoyer(d2), { enfants: situation.enfants, parentIsole: false }, autresRevenus + baseCharges)
+    : null;
+  const c1 = d1.resultat.comparaison;
+  const reels1 = couple ? couple.meilleure.reels1 : c1.fraisReelsConseilles;
+  const reels2 = couple ? couple.meilleure.reels2 : false;
+  const impotRetenu = couple
+    ? couple.meilleure.impot
+    : impotFoyer(p, (reels1 ? c1.baseFraisReels : c1.baseAbattement10) + baseCharges + autresRevenus, situation).impot;
+  // Référence : tout le monde à l'abattement.
+  const baseSansOption =
+    c1.baseAbattement10 + (d2 ? d2.resultat.comparaison.baseAbattement10 : 0) + baseChargesAbattement + autresRevenus;
+  const gain = impotFoyer(p, baseSansOption, situation).impot - impotRetenu;
+  const optants = declarants.filter((d) => (d.index === 0 ? reels1 : d.index === 1 ? reels2 : reelsCharge(d)));
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
 
   const nonVerifiees = declarants.flatMap((d) => d.nonVerifiees);
@@ -74,7 +90,9 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
     );
   }
 
-  const libelleCombinaison = (reels1: boolean, reels2: boolean) => phraseCombinaison(reels1, reels2, d2.profil);
+  const libelleCombinaison = (r1: boolean, r2: boolean) => phraseCombinaison(r1, r2, d2?.profil);
+  const phraseAdultes = enCouple ? libelleCombinaison(reels1, reels2) : reels1 ? "Vous aux frais réels" : "Vous gardez l'abattement";
+  const phraseCharges = charges.map((d) => `${minuscule(d.nom)} ${reelsCharge(d) ? "aux frais réels" : "à l'abattement"}`);
 
   const verification = postes.length > 0 && (
     <section className="carte" aria-labelledby="titre-verification">
@@ -162,14 +180,16 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
 
         <section className={optants.length > 0 ? "verdict verdict-reel" : "verdict verdict-abattement"} aria-live="polite">
           {optants.length === 0 ? (
-            <p className="verdict-phrase">{typographie(`Ne changez rien : l'abattement automatique de ${taux} est plus avantageux pour vous deux.`)}</p>
+            <p className="verdict-phrase">
+              {typographie(`Ne changez rien : l'abattement automatique de ${taux} est plus avantageux pour ${declarants.length > 2 ? "chacun" : "vous deux"}.`)}
+            </p>
           ) : (
             <>
-              <p className="verdict-phrase">{typographie(`La meilleure combinaison : ${minuscule(libelleCombinaison(meilleure.reels1, meilleure.reels2))}.`)}</p>
+              <p className="verdict-phrase">{typographie(`La meilleure combinaison : ${[phraseAdultes.charAt(0).toLowerCase() + phraseAdultes.slice(1), ...phraseCharges].join(", ")}.`)}</p>
               {gain > 0 ? (
                 <>
                   <p className="verdict-montant montant">{euros(gain)}</p>
-                  <p className="detail-calcul">{typographie("d'impôt en moins pour votre foyer, par rapport à l'abattement pour vous deux.")}</p>
+                  <p className="detail-calcul">{typographie("d'impôt en moins pour votre foyer, par rapport à l'abattement pour tout le monde.")}</p>
                 </>
               ) : (
                 <p className="detail-calcul">
@@ -180,6 +200,7 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
           )}
         </section>
 
+        {couple && d2 && (
         <section className="carte" aria-labelledby="titre-combinaisons">
           <h2 id="titre-combinaisons">Les quatre possibilités</h2>
           <table className="tableau-combinaisons">
@@ -192,8 +213,8 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
               </tr>
             </thead>
             <tbody>
-              {combinaisons.map((c) => (
-                <tr key={`${c.reels1}-${c.reels2}`} className={c === meilleure ? "combinaison-meilleure" : undefined}>
+              {couple.combinaisons.map((c) => (
+                <tr key={`${c.reels1}-${c.reels2}`} className={c === couple.meilleure ? "combinaison-meilleure" : undefined}>
                   <td>{typographie(libelleCombinaison(c.reels1, c.reels2))}</td>
                   <td className="montant">{euros(c.base1)}</td>
                   <td className="montant">{euros(c.base2)}</td>
@@ -202,13 +223,20 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
               ))}
             </tbody>
           </table>
-          <p className="detail-calcul">{typographie("Montants par déclarant : revenu imposable après abattement ou frais réels.")}</p>
+          <p className="detail-calcul">
+            {typographie(
+              charges.length > 0
+                ? "Montants par déclarant : revenu imposable après abattement ou frais réels. L'impôt compte aussi les personnes à charge, chacune à sa meilleure option."
+                : "Montants par déclarant : revenu imposable après abattement ou frais réels.",
+            )}
+          </p>
         </section>
+        )}
 
         <details className="depliant">
           <summary>Modifier les renseignements sur mon foyer</summary>
           <div style={{ marginTop: 12 }}>
-            <EstimationImpot mode="couple" valeurInitiale={foyer} onValider={onFoyer} />
+            <EstimationImpot mode={enCouple ? "couple" : "seul"} valeurInitiale={foyer} onValider={onFoyer} />
           </div>
         </details>
 

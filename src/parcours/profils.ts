@@ -28,10 +28,21 @@ export interface Profil {
   autres?: SaisieAutresFrais;
 }
 
-/** Nom affiché du profil : « Vous », puis le prénom ou « Votre conjoint ». */
+/**
+ * Places fixes : 0 = vous (1AK), 1 = conjoint (1BK, en couple seulement), 2 et 3 = personnes à charge
+ * salariées (1CK, 1DK). En mode « seul », la place 1 reste vide.
+ */
+export const PLACES_A_CHARGE = [2, 3];
+
+/** Nom affiché du profil : « Vous », le prénom, « Votre conjoint » ou « Personne à charge 1 ». */
 export function nomProfil(index: number, profil?: Profil): string {
   if (index === 0) return "Vous";
-  return profil?.prenom?.trim() || "Votre conjoint";
+  return profil?.prenom?.trim() || (index === 1 ? "Votre conjoint" : `Personne à charge ${index - 1}`);
+}
+
+/** Places des déclarants à calculer : vous, le conjoint en couple, puis les personnes à charge ajoutées. */
+export function placesDeclarants(mode: ModeDeclaration | undefined, profils: Profil[]): number[] {
+  return [0, ...(mode === "couple" ? [1] : []), ...PLACES_A_CHARGE.filter((i) => i < profils.length && Boolean(profils[i]))];
 }
 
 /** Réponses d'un profil pour le moteur : la journée type remplace le trajet dans le parcours aide à domicile. */
@@ -59,5 +70,6 @@ export function phraseCombinaison(reels1: boolean, reels2: boolean, conjoint?: P
 
 /** « Votre conjoint » devient « votre conjoint » en milieu de phrase ; un prénom reste inchangé. */
 export function minuscule(nom: string): string {
-  return nom === "Votre conjoint" ? "votre conjoint" : nom;
+  if (nom === "Votre conjoint") return "votre conjoint";
+  return nom.startsWith("Personne à charge") ? "la " + nom.charAt(0).toLowerCase() + nom.slice(1) : nom;
 }
