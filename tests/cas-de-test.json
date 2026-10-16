@@ -1165,6 +1165,36 @@
         "gain_base": 14827.0
       },
       "source": "F14 grand rouleur / double résidence : trajets hebdomadaires ajoutés au même véhicule avant le barème (BOI-RSA-BASE-30-50-30-20)"
+    },
+    {
+      "id": "LOC-01",
+      "titre": "Bureau réservé au travail : 10 m² sur 100, charges 10 000 €",
+      "entrees": {
+        "usage": "dedie",
+        "charges": 10000,
+        "surface_bureau": 10,
+        "surface_totale": 100
+      },
+      "attendu": {
+        "montant": 1000.0
+      },
+      "source": "Guide SE-UNSA 2025 : maison de 100 m², bureau de 10 m², 10 % des factures"
+    },
+    {
+      "id": "LOC-02",
+      "titre": "Pièce à usage mixte : 12 m² sur 80, charges 9 000 €, 6 h par semaine sur 36 semaines",
+      "entrees": {
+        "usage": "mixte",
+        "charges": 9000,
+        "surface_bureau": 12,
+        "surface_totale": 80,
+        "heures_par_semaine": 6,
+        "semaines": 36
+      },
+      "attendu": {
+        "montant": 33.29
+      },
+      "source": "F5.3 appliqué aux heures de travail à domicile : 9 000 × 15 % × 216 / 8 760"
     }
   ]
 }

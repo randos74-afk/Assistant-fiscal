@@ -12,7 +12,7 @@ import {
   type Comparaison,
 } from "./calcul";
 import { arrondiEuro, euros, eurosCentimes, nombre } from "./format";
-import { teletravailReel, type EntreeTeletravailReel } from "./teletravail";
+import { localProfessionnel, teletravailReel, type EntreeLocalProfessionnel, type EntreeTeletravailReel } from "./teletravail";
 import { covoiturageConducteur, covoituragePassager, vehiculePartage } from "./couple";
 
 /** « thermique » : énergie inconnue, valeur prudente (barème non majoré). */
@@ -116,6 +116,8 @@ export interface EntreeDeclarant {
   teletravailMethode?: "forfait" | "reel";
   teletravailReel?: EntreeTeletravailReel;
   autresFrais?: MontantLibelle[];
+  /** F6.11 — Bureau à domicile hors télétravail (aucun bureau fourni par l'employeur). */
+  localProfessionnel?: EntreeLocalProfessionnel;
   reintegrations?: MontantLibelle[];
   /** Motifs hors véhicule (double résidence…), repris dans la ligne « Motifs ». */
   motifs?: string[];
@@ -328,6 +330,12 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
   for (const a of autres) {
     lignes.push({ categorie: "autre", texte: `${a.libelle} ${euros(a.montant)}`, montant: arrondiEuro(a.montant) });
   }
+  if (e.localProfessionnel) {
+    const l = localProfessionnel(p, e.localProfessionnel);
+    if (l.montant > 0) {
+      lignes.push({ categorie: "autre", texte: `bureau à domicile, aucun bureau fourni par l'employeur (${l.formule})`, montant: arrondiEuro(l.montant) });
+    }
+  }
 
   const montantCase = lignes.reduce((s, l) => s + l.montant, 0);
   const reintegrations = (e.reintegrations ?? []).filter((r) => r.montant > 0);
@@ -340,7 +348,7 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
   texteLignes.push(...parCategorie("vehicule"));
   if (vehicules.length) texteLignes.push(`${parCategorie("peages")[0]} ${parCategorie("interets")[0]}`);
   texteLignes.push(...parCategorie("repas"), ...parCategorie("teletravail"));
-  if (autres.length) texteLignes.push(`Autres : ${parCategorie("autre").join(", ")}.`);
+  if (parCategorie("autre").length) texteLignes.push(`Autres : ${parCategorie("autre").join(", ")}.`);
   if (motifs.length) texteLignes.push(`Motifs : ${motifs.join(" ; ")}.`);
   texteLignes.push(
     reintegrations.length

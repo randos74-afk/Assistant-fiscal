@@ -22,6 +22,40 @@ export function ratioTemps(p: Parametres, usage: UsageLocal, joursTeletravail: n
   return Math.min((joursTeletravail * t.heures_par_journee_teletravail_local_mixte) / t.heures_par_an, 1);
 }
 
+/** F6.11 — Bureau à domicile hors télétravail, quand l'employeur ne fournit aucun bureau (enseignant). */
+export interface EntreeLocalProfessionnel {
+  usage: "dedie" | "mixte";
+  /** Charges annuelles du logement (loyer ou intérêts, énergie, eau, assurance, taxes). */
+  charges: number;
+  surfaceBureau: number;
+  surfaceTotale: number;
+  studio?: boolean;
+  /** Pièce à usage mixte : heures de travail à domicile par semaine et semaines concernées. */
+  heuresParSemaine?: number;
+  semaines?: number;
+}
+
+/**
+ * Décision du 16/10/2026 : pièce réservée au travail = charges × part de surface (guide SE-UNSA) ;
+ * pièce à usage mixte = charges × part de surface × heures de travail à domicile / heures de l'année (comme F5.3).
+ */
+export function localProfessionnel(p: Parametres, e: EntreeLocalProfessionnel): { montant: number; formule: string } {
+  const part = partSurface(p, e.surfaceBureau, e.surfaceTotale, e.studio);
+  const surface = e.studio
+    ? `studio ${Math.round(p.teletravail.studio_part_professionnelle * 100)} %`
+    : `${nombre(e.surfaceBureau)} m²/${nombre(e.surfaceTotale)} m²`;
+  if (e.usage === "dedie") {
+    const montant = e.charges * part;
+    return { montant, formule: `pièce réservée au travail, charges ${euros(e.charges)} × ${surface} = ${euros(montant)}` };
+  }
+  const heures = (e.heuresParSemaine ?? 0) * (e.semaines ?? 0);
+  const montant = e.charges * part * Math.min(heures / p.teletravail.heures_par_an, 1);
+  return {
+    montant,
+    formule: `pièce à usage mixte, charges ${euros(e.charges)} × ${surface} × ${nombre(e.heuresParSemaine ?? 0)} h × ${nombre(e.semaines ?? 0)} semaines/${nombre(p.teletravail.heures_par_an)} h = ${euros(montant)}`,
+  };
+}
+
 export interface Achat {
   libelle: string;
   prixHT: number;

@@ -118,6 +118,16 @@ def ratio_local(usage, jours_tt, jours_travailles):
     return jours_tt * t["heures_par_journee_teletravail_local_mixte"] / t["heures_par_an"]
 
 
+def local_professionnel(charges, surface_bureau, surface_totale, usage, heures_par_semaine=0, semaines=0, studio=False):
+    """F6.11 (enseignant, décision de Marc du 16/10/2026) : bureau à domicile, aucun bureau fourni par l'employeur.
+    Pièce réservée au travail : charges × part de surface (guide SE-UNSA 2025).
+    Pièce à usage mixte : charges × part de surface × heures de travail à domicile / heures de l'année (comme F5.3)."""
+    part = part_surface(surface_bureau, surface_totale, studio)
+    if usage == "dedie":
+        return charges * part
+    return charges * part * min(heures_par_semaine * semaines / P["teletravail"]["heures_par_an"], 1)
+
+
 def parts_foyer(couple, enfants, parent_isole=False, veuf=False):
     """Parts de quotient familial : 1 ou 2, + 0,5 pour chacun des 2 premiers enfants, + 1 au-delà, + 0,5 case T.
     Veuf avec enfants à charge : autant de parts qu'un couple (CGI art. 194 I), mais base 1 pour le plafonnement."""
@@ -506,6 +516,13 @@ cas("MET-04", "Professeur de collège muté à 400 km : 3 km sur place (175 j), 
     {"km": met4_km, "lignes": [arrondi_euro(x) for x in met4], "montant_1AK": met4_case, "gain_base": r2(g)},
     "F14 grand rouleur / double résidence : trajets hebdomadaires ajoutés au même véhicule avant le barème (BOI-RSA-BASE-30-50-30-20)")
 
+# --- Bureau à domicile hors télétravail (F6.11, enseignant) ---
+cas("LOC-01", "Bureau réservé au travail : 10 m² sur 100, charges 10 000 €", {"usage": "dedie", "charges": 10000, "surface_bureau": 10, "surface_totale": 100},
+    {"montant": r2(local_professionnel(10000, 10, 100, "dedie"))}, "Guide SE-UNSA 2025 : maison de 100 m², bureau de 10 m², 10 % des factures")
+cas("LOC-02", "Pièce à usage mixte : 12 m² sur 80, charges 9 000 €, 6 h par semaine sur 36 semaines",
+    {"usage": "mixte", "charges": 9000, "surface_bureau": 12, "surface_totale": 80, "heures_par_semaine": 6, "semaines": 36},
+    {"montant": r2(local_professionnel(9000, 12, 80, "mixte", 6, 36))}, "F5.3 appliqué aux heures de travail à domicile : 9 000 × 15 % × 216 / 8 760")
+
 
 if __name__ == "__main__":
     out = os.path.join(ICI, "cas-de-test.json")
@@ -544,4 +561,5 @@ if __name__ == "__main__":
     assert r2(bareme_km(foy6_1, cv=5)) == 5143.5 and r2(bareme_km(foy6_2, cv=5)) == 4393.8
     assert r2(covoiturage_conducteur(bareme_km(10000, cv=5), 900)) == 4065.0
     assert (foy3_best["reels_1"], foy3_best["reels_2"]) == (True, False)
+    assert r2(local_professionnel(10000, 10, 100, "dedie")) == 1000.0
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

@@ -2,7 +2,7 @@
 import { describe, expect, it } from "vitest";
 import casDeTest from "../../tests/cas-de-test.json";
 import { calculerDeclarant, kmJournee } from "./declarant";
-import { materielAnnee, partSurface, ratioTemps } from "./teletravail";
+import { localProfessionnel, materielAnnee, partSurface, ratioTemps } from "./teletravail";
 import { comparerImpot, impotFoyer, partsFoyer } from "./impot";
 import { arrondiEuro } from "./format";
 import { combinaisonsFoyer, covoiturageConducteur, covoituragePassager, kmCovoiturageConjugal, motifEmploiConjointPropose, vehiculePartage } from "./couple";
@@ -92,6 +92,17 @@ function calculer(c: Cas): Record<string, unknown> {
       return calculerFoyer(c);
     case "MET":
       return calculerMetier(c);
+    case "LOC":
+      return {
+        montant: localProfessionnel(p, {
+          usage: e.usage,
+          charges: e.charges,
+          surfaceBureau: e.surface_bureau,
+          surfaceTotale: e.surface_totale,
+          heuresParSemaine: e.heures_par_semaine,
+          semaines: e.semaines,
+        }).montant,
+      };
     case "ADM":
       return calculerAideDomicile(c);
     case "SEU": {
@@ -326,8 +337,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 68 cas", () => {
-    expect(casDeTest.cas.length).toBe(68);
+  it("contient bien les 70 cas", () => {
+    expect(casDeTest.cas.length).toBe(70);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));
