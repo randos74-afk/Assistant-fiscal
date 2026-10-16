@@ -17,18 +17,20 @@ export interface ContenuPdf {
   nonVerifiees: { libelle: string; valeurRetenue: string }[];
   justificatifs: string[];
   date: Date;
+  /** Mode foyer : 1 pour « Vous », 2 pour le conjoint. */
+  numeroDeclarant?: number;
   /** Estimation de l'impôt si le foyer a été renseigné. */
   impot?: { avecAbattement: number; avecFraisReels: number; gain: number } | null;
 }
 
-export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, justificatifs, date, impot }: ContenuPdf, urlLogo: string): string {
+export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, justificatifs, date, impot, numeroDeclarant = 1 }: ContenuPdf, urlLogo: string): string {
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
   const verdict = c.fraisReelsConseilles
     ? `Avec vos frais réels, votre revenu imposable baisse de ${euros(c.gainBase)} par rapport à l'abattement automatique de ${taux}.` +
       (impot ? ` Impôt estimé : ${euros(impot.avecAbattement)} avec l'abattement, ${euros(impot.avecFraisReels)} avec les frais réels, soit ${euros(impot.gain)} de moins.` : "")
     : `L'abattement automatique de ${taux} est plus avantageux pour vous : ne changez rien.`;
-  const note = noteExplicative(r, p.millesime.revenus, 1, prudentes, justificatifs);
+  const note = noteExplicative(r, p.millesime.revenus, numeroDeclarant, prudentes, justificatifs);
   const lignes = r.lignes
     .map((l) => `<tr><td>${echapper(l.texte.charAt(0).toUpperCase() + l.texte.slice(1))}</td><td class="m">${euros(l.montant)}</td></tr>`)
     .join("");

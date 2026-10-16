@@ -184,11 +184,11 @@ export function Resultat({ parametres: p, resultat: r, nonVerifiees, casAdminist
           <details className="depliant">
             <summary>Modifier les renseignements sur mon foyer</summary>
             <div style={{ marginTop: 12 }}>
-              <EstimationImpot valeurInitiale={foyer} onValider={onFoyer} />
+              <EstimationImpot mode="seul" valeurInitiale={foyer} onValider={onFoyer} />
             </div>
           </details>
         ) : (
-          conseille && <EstimationImpot onValider={onFoyer} />
+          conseille && <EstimationImpot mode="seul" onValider={onFoyer} />
         )}
 
         <div className="colonnes-comparaison">

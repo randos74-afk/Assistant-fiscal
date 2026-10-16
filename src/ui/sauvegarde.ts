@@ -9,10 +9,12 @@ import type { SaisieRepas } from "../parcours/repas";
 import type { SaisieTeletravail } from "../parcours/teletravail";
 import type { SaisieTrajet } from "../parcours/trajet";
 import type { SaisieDomicile } from "../parcours/domicile";
+import type { ModeDeclaration, Profil } from "../parcours/profils";
 import type { SaisieJours } from "./Jours";
 import type { SaisieSalaire } from "./Salaire";
 
-const VERSION = 1;
+/** Version 2 : mode foyer, réponses rangées par profil (ajout n° 1). */
+const VERSION = 2;
 const PREFIXE = "fraisfit.simulation.";
 
 export interface Dossier {
@@ -22,6 +24,14 @@ export interface Dossier {
   enregistreLe: string;
   ecran: string;
   reponsesFiltrage: ReponsesFiltrage;
+  mode?: ModeDeclaration;
+  profils: Profil[];
+  profilActif: number;
+  foyer?: SaisieFoyer;
+}
+
+/** Dossier de la version 1 : un seul déclarant, réponses à plat, salaire du conjoint dans le foyer. */
+interface DossierV1 {
   metier?: IdProfil;
   salaire?: SaisieSalaire;
   jours?: SaisieJours;
@@ -31,6 +41,22 @@ export interface Dossier {
   teletravail?: SaisieTeletravail;
   autres?: SaisieAutresFrais;
   foyer?: SaisieFoyer;
+}
+
+/** Version 1 → 2 : les réponses deviennent le profil « Vous » ; un conjoint saisi par son seul salaire devient le second profil. */
+export function migrerDossierV1(d: DossierV1 & Omit<Dossier, "profils" | "profilActif" | "mode">): Dossier {
+  const { metier, salaire, jours, trajet, domicile, repas, teletravail, autres, ...reste } = d;
+  const couple = Boolean(d.foyer?.couple);
+  const profils: Profil[] = [{ metier, salaire, jours, trajet, domicile, repas, teletravail, autres }];
+  if (couple) profils.push({ salaireSeulement: true, salaire: { montant: d.foyer?.salaireConjoint ?? 0, source: "bulletin-decembre" } });
+  return {
+    ...reste,
+    version: VERSION,
+    mode: metier === undefined ? undefined : couple ? "couple" : "seul",
+    profils,
+    profilActif: 0,
+    foyer: d.foyer ? { ...d.foyer, salaireConjoint: 0 } : undefined,
+  };
 }
 
 export type ContenuDossier = Omit<Dossier, "application" | "version" | "enregistreLe">;
@@ -75,7 +101,8 @@ export function lireDossier(texte: string): Dossier | null {
     const d = JSON.parse(texte);
     if (d?.application !== "FraisFit" || typeof d.version !== "number" || d.version > VERSION) return null;
     if (typeof d.millesime !== "number" || typeof d.ecran !== "string") return null;
-    return { reponsesFiltrage: {}, ...d } as Dossier;
+    const dossier = { reponsesFiltrage: {}, ...d };
+    return d.version < 2 ? migrerDossierV1(dossier) : ({ profilActif: 0, ...dossier } as Dossier);
   } catch {
     return null;
   }

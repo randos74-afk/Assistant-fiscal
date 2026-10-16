@@ -17,6 +17,8 @@ export interface ValeurNonVerifiee {
   valeurRetenue: string;
   /** Étape où l'on corrige la valeur. */
   ecran: EcranModifiable;
+  /** Mode foyer : profil concerné (0 = vous, 1 = conjoint). */
+  profil?: number;
   /** Réponses avec la valeur la plus favorable, pour savoir si la vraie valeur peut changer le verdict. */
   variante?: Reponses;
 }

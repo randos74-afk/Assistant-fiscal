@@ -98,6 +98,8 @@ export interface CasAdministration {
   phrase: string;
   /** Étape où se trouve la réponse en cause. */
   ecran?: EcranModifiable;
+  /** Mode foyer : profil concerné (0 = vous, 1 = conjoint). */
+  profil?: number;
 }
 
 export const CONSEIL_ADMINISTRATION =

@@ -1303,3 +1303,61 @@ a {
 .carte-administration {
   border-left: 4px solid var(--orange-attention-texte);
 }
+
+/* Ajout n° 1 — Sélecteur de profil du mode foyer. */
+.selecteur-profil {
+  display: flex;
+  gap: 8px;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 16px 0;
+}
+
+.selecteur-profil-option {
+  flex: 1;
+  min-height: var(--zone-tactile);
+  border: 1.5px solid var(--bordure);
+  border-radius: 999px;
+  background: var(--fond);
+  color: var(--primaire);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.selecteur-profil-actif {
+  border-color: var(--primaire);
+  background: var(--bleu-tres-clair);
+}
+
+.tableau-combinaisons {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--taille-texte-min);
+}
+
+.tableau-combinaisons th,
+.tableau-combinaisons td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--bordure);
+  text-align: left;
+  vertical-align: top;
+}
+
+.tableau-combinaisons td.montant {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.combinaison-meilleure {
+  background: var(--bleu-tres-clair);
+  font-weight: 700;
+}
+
+.avec-selecteur {
+  background: var(--fond);
+}
+
+.avec-selecteur .ecran {
+  min-height: calc(100dvh - 60px);
+}

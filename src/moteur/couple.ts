@@ -74,6 +74,8 @@ export function combinaisonsFoyer(
   d1: DeclarantDuFoyer,
   d2: DeclarantDuFoyer,
   foyer: Omit<Foyer, "couple">,
+  /** Autres revenus imposables du foyer, déjà nets (pensions, revenus fonciers…). */
+  autresRevenus = 0,
 ): { combinaisons: Combinaison[]; meilleure: Combinaison } {
   const c1 = comparer(p, d1.salairePrerempli, d1.reintegrations, d1.fraisReels);
   const c2 = comparer(p, d2.salairePrerempli, d2.reintegrations, d2.fraisReels);
@@ -82,7 +84,7 @@ export function combinaisonsFoyer(
     for (const reels2 of [false, true]) {
       const base1 = reels1 ? c1.baseFraisReels : c1.baseAbattement10;
       const base2 = reels2 ? c2.baseFraisReels : c2.baseAbattement10;
-      combinaisons.push({ reels1, reels2, base1, base2, impot: impotFoyer(p, base1 + base2, { ...foyer, couple: true }).impot });
+      combinaisons.push({ reels1, reels2, base1, base2, impot: impotFoyer(p, base1 + base2 + autresRevenus, { ...foyer, couple: true }).impot });
     }
   }
   const cle = (c: Combinaison) => [Math.round(c.impot * 100), c.base1 + c.base2, Number(c.reels1) + Number(c.reels2)];

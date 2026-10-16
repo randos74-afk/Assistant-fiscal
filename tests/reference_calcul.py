@@ -218,7 +218,7 @@ def covoiturage_conducteur(frais_vehicule, participations_recues):
     return max(0.0, frais_vehicule - participations_recues)
 
 
-def combinaisons_foyer(d1, d2, enfants=0):
+def combinaisons_foyer(d1, d2, enfants=0, autres_revenus=0):
     """Ajout n° 1 : les 4 combinaisons 10 % / frais réels d'un couple, impôt du foyer pour chacune.
     d = (salaire prérempli, réintégrations, frais réels). Retourne la liste et la combinaison la moins chère."""
     def base(d, reel):
@@ -228,7 +228,7 @@ def combinaisons_foyer(d1, d2, enfants=0):
     for r1 in (False, True):
         for r2_ in (False, True):
             b1, b2 = base(d1, r1), base(d2, r2_)
-            res.append({"reels_1": r1, "reels_2": r2_, "base_1": b1, "base_2": b2, "impot": impot_foyer(b1 + b2, True, enfants)})
+            res.append({"reels_1": r1, "reels_2": r2_, "base_1": b1, "base_2": b2, "impot": impot_foyer(b1 + b2 + autres_revenus, True, enfants)})
     # À impôt égal, la base imposable la plus faible (revenu fiscal de référence), puis le moins d'options.
     meilleure = min(res, key=lambda c: (round(c["impot"], 2), c["base_1"] + c["base_2"], c["reels_1"] + c["reels_2"]))
     return res, meilleure

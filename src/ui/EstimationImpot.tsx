@@ -4,6 +4,7 @@ import { partsFoyer } from "../moteur/impot";
 import { libelleEtape } from "../parcours/etapes";
 import { FICHES } from "../parcours/fichesAide";
 import type { SaisieFoyer } from "../parcours/foyer";
+import type { ModeDeclaration } from "../parcours/profils";
 import { afficherMontant, lireEntier, lireMontant } from "../parcours/saisie";
 import { BoutonAsterisque, FicheAide } from "./Aide";
 import { PiedDePage } from "./Cadre";
@@ -16,31 +17,33 @@ const valeur = (n: number | null) => (n === null || Number.isNaN(n) ? 0 : n);
 type Situation = "seul" | "couple" | "veuf";
 
 interface Props {
+  /** Ajout n° 1 — La question d'entrée a déjà dit seul ou en couple : en couple, le salaire du conjoint vient de son profil. */
+  mode: ModeDeclaration;
   valeurInitiale?: SaisieFoyer;
   onValider: (f: SaisieFoyer) => void;
   /** Présent : affiché comme une étape du parcours, avec en-tête et bouton « Précédent ». */
   onRetour?: () => void;
 }
 
-export function EstimationImpot({ valeurInitiale: v, onValider, onRetour }: Props) {
-  const [situation, setSituation] = useState<Situation | undefined>(v ? (v.couple ? "couple" : v.veuf ? "veuf" : "seul") : undefined);
+export function EstimationImpot({ mode, valeurInitiale: v, onValider, onRetour }: Props) {
+  const [situationSeul, setSituation] = useState<Situation | undefined>(v && !v.couple ? (v.veuf ? "veuf" : "seul") : undefined);
+  const situation: Situation | undefined = mode === "couple" ? "couple" : situationSeul;
   const [enfants, setEnfants] = useState(String(v?.enfants ?? 0));
   const [parentIsole, setParentIsole] = useState(v?.parentIsole ?? false);
-  const [salaireConjoint, setSalaireConjoint] = useState(v?.salaireConjoint ? afficherMontant(v.salaireConjoint) : "");
   const [autres, setAutres] = useState(v?.autresRevenus ? afficherMontant(v.autresRevenus) : "");
   const [aide, setAide] = useState(false);
 
   const couple = situation === "couple";
   const nbEnfants = valeur(lireEntier(enfants));
   const champsValides =
-    [lireMontant(salaireConjoint), lireMontant(autres)].every((n) => n === null || !Number.isNaN(n)) && !Number.isNaN(lireEntier(enfants));
+    [lireMontant(autres)].every((n) => n === null || !Number.isNaN(n)) && !Number.isNaN(lireEntier(enfants));
   const foyer: SaisieFoyer = {
     couple,
     enfants: nbEnfants,
     // Veuf avec enfants : le régime du veuf (parts d'un couple) remplace la case T.
     parentIsole: situation === "seul" && nbEnfants > 0 && parentIsole,
     ...(situation === "veuf" ? { veuf: true } : {}),
-    salaireConjoint: couple ? valeur(lireMontant(salaireConjoint)) : 0,
+    salaireConjoint: 0,
     autresRevenus: valeur(lireMontant(autres)),
   };
   const parts = partsFoyer(foyer).parts;
@@ -48,17 +51,18 @@ export function EstimationImpot({ valeurInitiale: v, onValider, onRetour }: Prop
 
   const champs = (
     <>
-      <ChoixUnique
-        nom="situation"
-        legende="Vous déclarez"
-        options={[
-          { valeur: "seul", libelle: "Seul", detail: "Célibataire, divorcé ou séparé." },
-          { valeur: "couple", libelle: "En couple", detail: "Marié ou pacsé, déclaration commune." },
-          { valeur: "veuf", libelle: "Veuf ou veuve" },
-        ]}
-        valeur={situation}
-        onChoix={(x) => setSituation(x as Situation)}
-      />
+      {mode === "seul" && (
+        <ChoixUnique
+          nom="situation"
+          legende="Vous êtes"
+          options={[
+            { valeur: "seul", libelle: "Célibataire, divorcé ou séparé", detail: "Concubins compris : chacun déclare de son côté." },
+            { valeur: "veuf", libelle: "Veuf ou veuve" },
+          ]}
+          valeur={situation}
+          onChoix={(x) => setSituation(x as Situation)}
+        />
+      )}
       <ChampNombre compact libelleVisible libelle="Enfants à charge" unite="enfants" valeur={enfants} onChange={setEnfants} />
       {situation === "seul" && nbEnfants > 0 && (
         <label className="case-a-cocher">
@@ -68,16 +72,6 @@ export function EstimationImpot({ valeurInitiale: v, onValider, onRetour }: Prop
       )}
       {situation === "veuf" && nbEnfants > 0 && (
         <Encadre>{typographie("Avec des enfants à charge, une personne veuve garde autant de parts qu'un couple.")}</Encadre>
-      )}
-      {couple && (
-        <ChampMontant
-          compact
-          libelleVisible
-          libelle="Salaire net imposable de votre conjoint"
-          detail="Nous lui appliquons l'abattement automatique."
-          valeur={salaireConjoint}
-          onChange={setSalaireConjoint}
-        />
       )}
       <ChampMontant
         compact

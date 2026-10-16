@@ -17,7 +17,8 @@ interface Props {
   valeurs: { valeur: ValeurNonVerifiee; effet: EffetPossible }[];
   /** Ajout n° 3 — Cas à faire trancher par l'administration, comptés comme points d'attention. */
   cas: CasAdministration[];
-  onVerifier: (ecran: EcranModifiable) => void;
+  /** Étape à corriger, et profil concerné en mode foyer. */
+  onVerifier: (ecran: EcranModifiable, profil?: number) => void;
   onVerifierTout: () => void;
   onContinuer: () => void;
   onRetour: () => void;
@@ -51,7 +52,7 @@ export function AvantDeRecopier({ valeurs, cas, onVerifier, onVerifierTout, onCo
                 )}
               </p>
               {phrase && <p className="detail-calcul texte-attention">{typographie(phrase)}</p>}
-              <button type="button" className="bouton bouton-secondaire" onClick={() => onVerifier(v.ecran)}>
+              <button type="button" className="bouton bouton-secondaire" onClick={() => onVerifier(v.ecran, v.profil)}>
                 Vérifier maintenant
               </button>
             </section>
@@ -59,7 +60,7 @@ export function AvantDeRecopier({ valeurs, cas, onVerifier, onVerifierTout, onCo
         })}
 
         {cas.map((c) => (
-          <CarteAdministration key={c.id} cas={c} onVoir={c.ecran ? () => onVerifier(c.ecran!) : undefined} />
+          <CarteAdministration key={c.id} cas={c} onVoir={c.ecran ? () => onVerifier(c.ecran!, c.profil) : undefined} />
         ))}
 
         <p>{typographie(TEXTE_RESPONSABILITE)}</p>
