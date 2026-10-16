@@ -1,4 +1,5 @@
 // Étape 6 : vos autres frais (F6) et abonnement de transport (F3.12).
+import { ConseilsMetier } from "./QuestionsMetier";
 import { useState } from "react";
 import { calculerDeclarant } from "../moteur/declarant";
 import { euros, eurosCentimes, nombre } from "../moteur/format";
@@ -39,6 +40,8 @@ interface Props {
   valeurInitiale?: SaisieAutresFrais;
   onValider: (s: SaisieAutresFrais) => void;
   onRetour: () => void;
+  /** F14 — Conseils du métier, en tête de la liste des postes. */
+  conseils?: string[];
 }
 
 const montant = (t: string) => {
@@ -47,7 +50,7 @@ const montant = (t: string) => {
 };
 const texte = (n: number | undefined) => (n ? afficherMontant(n) : "");
 
-export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuvertsDOffice, employeurs, valeurInitiale: v, onValider, onRetour }: Props) {
+export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuvertsDOffice, employeurs, valeurInitiale: v, onValider, onRetour, conseils }: Props) {
   const [question, setQuestion] = useState<Question>(v ? "bilan" : enTransports ? "transport" : "postes");
   const [ouverts, setOuverts] = useState<IdAutreFrais[]>(v?.ouverts ?? postesOuvertsDOffice);
   const [montants, setMontants] = useState<Record<string, string>>(
@@ -323,6 +326,7 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
           <h1 className="titre-question">{typographie(titre)}</h1>
           {fiche && <BoutonAsterisque onClick={() => setAide(fiche!)} />}
         </div>
+        {question === "postes" && <ConseilsMetier conseils={conseils} />}
         {contenu}
       </main>
 

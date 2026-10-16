@@ -3,7 +3,7 @@
 import type { Reponses } from "./assemblage";
 import type { SaisieAutresFrais } from "./autresFrais";
 import type { SaisieDomicile } from "./domicile";
-import type { IdProfil } from "./metiers";
+import type { IdProfil, QuestionsMetier } from "./metiers";
 import type { SaisieRepas } from "./repas";
 import type { SaisieTeletravail } from "./teletravail";
 import type { SaisieTrajet } from "./trajet";
@@ -19,6 +19,8 @@ export interface Profil {
   /** Conjoint sans frais à examiner : seul son salaire compte, il garde l'abattement de 10 %. */
   salaireSeulement?: boolean;
   metier?: IdProfil;
+  /** F14 — Réponses aux questions propres au métier. */
+  questionsMetier?: QuestionsMetier;
   salaire?: SaisieSalaire;
   jours?: SaisieJours;
   trajet?: SaisieTrajet;

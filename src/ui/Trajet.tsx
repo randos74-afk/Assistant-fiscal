@@ -1,4 +1,5 @@
 // Étape 3 : votre trajet (F3). Une question par écran ; le moteur calcule le bilan à la fin.
+import { ConseilsMetier } from "./QuestionsMetier";
 import { useState } from "react";
 import { calculerDeclarant } from "../moteur/declarant";
 import type { Parametres } from "../moteur/types";
@@ -37,18 +38,22 @@ interface Props {
   valeurInitiale?: SaisieTrajet;
   onValider: (trajet: SaisieTrajet) => void;
   onRetour: () => void;
+  /** F14 — Conseils du métier, en tête des deux premières questions. */
+  conseils?: string[];
+  /** F14 — Soins à domicile (SSIAD, HAD) : trajets saisis par leur total annuel. */
+  totalAnnuelConseille?: boolean;
 }
 
 const nombreOuZero = (n: number | null) => (n === null || Number.isNaN(n) ? 0 : n);
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
-export function Trajet({ parametres: p, joursSurSite, couple, employeurs, siteParMois, valeurInitiale: v, onValider, onRetour }: Props) {
+export function Trajet({ parametres: p, joursSurSite, couple, employeurs, siteParMois, valeurInitiale: v, onValider, onRetour, conseils, totalAnnuelConseille }: Props) {
   // Employeurs changés depuis la dernière saisie : on repasse par les distances.
   const employeursAJour = !employeurs || employeurs.length < 2 || v?.kmAnnuel !== undefined || v?.employeurs?.length === employeurs.length;
   const [question, setQuestion] = useState<Question>(v ? (employeursAJour ? "bilan" : "distance") : "mode");
   const [mode, setMode] = useState<ModeTrajet | undefined>(v?.mode);
   const [distance, setDistance] = useState(v?.allerKm ? String(v.allerKm) : "");
-  const [parTotal, setParTotal] = useState(v?.kmAnnuel !== undefined);
+  const [parTotal, setParTotal] = useState(v ? v.kmAnnuel !== undefined : Boolean(totalAnnuelConseille));
   // F12 : une distance et des jours sur site par employeur, jours pré-remplis d'après les mois de chacun.
   const listeEmployeurs = employeurs && employeurs.length > 1 ? employeurs : null;
   const memesEmployeurs = listeEmployeurs !== null && v?.employeurs?.length === listeEmployeurs.length;
@@ -647,6 +652,7 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
           <h1 className="titre-question">{typographie(titre)}</h1>
           {fiche && <BoutonAsterisque onClick={() => setAide(fiche)} />}
         </div>
+        {(question === "mode" || question === "distance") && <ConseilsMetier conseils={conseils} />}
         {contenu}
       </main>
 

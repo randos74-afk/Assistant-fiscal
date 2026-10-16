@@ -1,5 +1,6 @@
 // Écran « Votre métier » (F14) : le profil ne change aucune règle de calcul.
 // Il ouvre d'office les postes utiles et oriente vers les questions propres au métier.
+import { eurosCentimes } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
 
 export type IdProfil = "domicile" | "soignant" | "enseignant" | "grandRouleur" | "autre";
@@ -80,4 +81,46 @@ export function detailProfil(p: Profil, param: Parametres): string {
 
 export function profil(id: IdProfil): Profil {
   return PROFILS.find((p) => p.id === id)!;
+}
+
+/** F14 — Réponses aux questions propres au métier (soignant pour l'instant). */
+export interface QuestionsMetier {
+  /** Soignant : l'employeur lave les tenues (l'entretien n'est alors pas déductible). */
+  lavageTenues?: boolean;
+  /** Soignant : travail de nuit ou en 12 h. */
+  nuit12h?: boolean;
+  /** Soignant : soins à domicile (SSIAD, HAD) ; trajets saisis par leur total annuel (décision du 16/10/2026). */
+  soinsDomicile?: boolean;
+}
+
+export type EtapeConseillee = "jours" | "trajet" | "repas" | "autres";
+
+/** Le métier pose-t-il des questions propres avant le salaire ? */
+export function aDesQuestionsMetier(id: IdProfil | undefined): boolean {
+  return id === "soignant";
+}
+
+/** Conseils affichés en tête des étapes, selon le métier et ses réponses. Aucune règle de calcul n'est changée. */
+export function conseilsMetier(param: Parametres, id: IdProfil | undefined, q: QuestionsMetier | undefined): Record<EtapeConseillee, string[]> {
+  const c: Record<EtapeConseillee, string[]> = { jours: [], trajet: [], repas: [], autres: [] };
+  if (id !== "soignant" || !q) return c;
+  const forfait = eurosCentimes(param.repas.forfait_sans_justificatif_detaille);
+  const foyer = eurosCentimes(param.repas.valeur_repas_au_foyer);
+  if (q.nuit12h) {
+    c.jours.push("En 12 h ou de nuit, comptez vos gardes : chaque garde compte pour un jour de trajet et de repas.");
+    c.trajet.push("La nuit ou en horaires décalés, sans transport en commun, la voiture se justifie. Gardez votre planning de gardes.");
+    c.repas.push(`La nuit, si aucune restauration n'est ouverte, le forfait de ${forfait} par repas s'applique.`);
+  }
+  c.repas.push(`Self ou cantine subventionnée : seul ce que vous payez au-delà de ${foyer} par repas compte.`);
+  if (q.soinsDomicile) {
+    c.trajet.push(
+      "Soins à domicile : indiquez le total de vos kilomètres de l'année avec ce véhicule, tournées comprises (carnet de bord ou relevé de votre employeur). Les trajets entre patients ne sont pas plafonnés.",
+    );
+  }
+  c.autres.push(
+    q.lavageTenues
+      ? "Votre employeur lave vos tenues : ne comptez que leur achat (tenues, chaussures), pas l'entretien."
+      : "Vous lavez vous-même vos tenues : l'achat et l'entretien comptent. Gardez une estimation écrite du coût de l'entretien.",
+  );
+  return c;
 }

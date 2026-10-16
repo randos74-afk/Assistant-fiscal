@@ -5,7 +5,8 @@ import { calculerParcours, valeursPrudentes } from "./parcours/assemblage";
 import { postesDuProfil } from "./parcours/autresFrais";
 import { totaux } from "./parcours/calendrier";
 import { QUESTIONS_FILTRAGE, type Reponses as ReponsesFiltrage } from "./parcours/filtrage";
-import { profil as profilMetier } from "./parcours/metiers";
+import { aDesQuestionsMetier, conseilsMetier, profil as profilMetier } from "./parcours/metiers";
+import { QuestionsSoignant } from "./ui/QuestionsMetier";
 import { estVehicule } from "./parcours/trajet";
 import { Accueil } from "./ui/Accueil";
 import { AutresFrais } from "./ui/AutresFrais";
@@ -39,6 +40,7 @@ type Ecran =
   | "filtrage"
   | "declaration"
   | "metier"
+  | "questionsMetier"
   | "conjoint"
   | "passageCharge"
   | "personnesACharge"
@@ -47,7 +49,7 @@ type Ecran =
   | "resultat";
 
 /** Écrans propres à un profil : le sélecteur « Vous / Votre conjoint » y est affiché en mode foyer. */
-const ECRANS_DU_PROFIL: Ecran[] = ["metier", "salaire", "jours", "trajet", "repas", "teletravail", "autres"];
+const ECRANS_DU_PROFIL: Ecran[] = ["metier", "questionsMetier", "salaire", "jours", "trajet", "repas", "teletravail", "autres"];
 
 export default function App() {
   const [ecran, setEcran] = useState<Ecran>("accueil");
@@ -74,6 +76,8 @@ export default function App() {
   const enCouple = mode === "couple";
   const profilActif = profils[actif] ?? {};
   const { metier, salaire, jours, trajet, domicile, repas, teletravail, autres } = profilActif;
+  // F14 — Conseils du métier affichés en tête des étapes.
+  const conseils = conseilsMetier(parametres, metier, profilActif.questionsMetier);
   const joursSurSite = jours ? totaux(jours.mois).site : 0;
   // Parcours aide à domicile : la journée type remplace le trajet.
   const estDomicile = metier === "domicile";
@@ -308,8 +312,17 @@ export default function App() {
           onRetour={() => setEcran(actif === 0 ? "declaration" : actif === 1 ? "conjoint" : "passageCharge")}
           onChoix={(choix) => {
             maj("metier")(choix);
-            setEcran("salaire");
+            setEcran(aDesQuestionsMetier(choix) ? "questionsMetier" : "salaire");
           }}
+        />,
+      );
+
+    case "questionsMetier":
+      return avecProfil(
+        <QuestionsSoignant
+          valeurInitiale={profilActif.questionsMetier}
+          onRetour={() => setEcran("metier")}
+          onValider={(q) => (maj("questionsMetier")(q), setEcran("salaire"))}
         />,
       );
 
@@ -318,7 +331,9 @@ export default function App() {
         <Salaire
           millesime={millesime}
           valeurInitiale={salaire}
-          onRetour={precedent(actif >= 1 && profilActif.salaireSeulement ? (actif === 1 ? "conjoint" : "passageCharge") : "metier")}
+          onRetour={precedent(
+            actif >= 1 && profilActif.salaireSeulement ? (actif === 1 ? "conjoint" : "passageCharge") : aDesQuestionsMetier(metier) ? "questionsMetier" : "metier",
+          )}
           onValider={(s) => {
             maj("salaire")(s);
             if (actif === 0) suivant("foyer");
@@ -346,6 +361,7 @@ export default function App() {
           parametres={parametres}
           valeurInitiale={jours}
           onRetour={precedent(actif === 0 ? "foyer" : "salaire")}
+          conseils={conseils.jours}
           onValider={(j) => (maj("jours")(j), suivant("trajet"))}
         />,
       );
@@ -371,6 +387,8 @@ export default function App() {
           employeurs={salaire?.employeurs}
           siteParMois={jours?.mois.map((m) => m.site)}
           valeurInitiale={trajet}
+          conseils={conseils.trajet}
+          totalAnnuelConseille={profilActif.questionsMetier?.soinsDomicile}
           onRetour={precedent("jours")}
           onValider={(t) => (maj("trajet")(t), suivant("repas"))}
         />,
@@ -382,6 +400,7 @@ export default function App() {
           parametres={parametres}
           joursSurSite={joursSurSite}
           valeurInitiale={repas}
+          conseils={conseils.repas}
           onRetour={precedent("trajet")}
           onValider={(r) => (maj("repas")(r), suivant("teletravail"))}
         />,
@@ -413,6 +432,7 @@ export default function App() {
           ]}
           employeurs={salaire?.employeurs}
           valeurInitiale={autres}
+          conseils={conseils.autres}
           onRetour={precedent("teletravail")}
           onValider={(a) => (maj("autres")(a), finDuProfil())}
         />,

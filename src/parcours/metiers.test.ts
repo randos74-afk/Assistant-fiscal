@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { libelleEtape } from "./etapes";
 import { chargerParametres } from "../moteur/parametres";
-import { detailProfil, PROFILS, profil } from "./metiers";
+import { aDesQuestionsMetier, conseilsMetier, detailProfil, PROFILS, profil } from "./metiers";
 
 describe("Votre métier (F14)", () => {
   it("propose les cinq profils, « Autre métier » en dernier", () => {
@@ -31,5 +31,34 @@ describe("Votre métier (F14)", () => {
 describe("Étapes du parcours", () => {
   it("nomme l'étape comme la maquette", () => {
     expect(libelleEtape("votre trajet").libelle).toBe("Étape 4 sur 8 : votre trajet");
+  });
+});
+
+describe("F14 — soignant : questions et conseils", () => {
+  const param = chargerParametres(2025);
+
+  it("seul le soignant a des questions propres pour l'instant", () => {
+    expect(aDesQuestionsMetier("soignant")).toBe(true);
+    expect(aDesQuestionsMetier("autre")).toBe(false);
+    expect(aDesQuestionsMetier(undefined)).toBe(false);
+  });
+
+  it("nuit ou 12 h : conseils sur les gardes, la voiture et le forfait repas lu dans les paramètres", () => {
+    const c = conseilsMetier(param, "soignant", { lavageTenues: true, nuit12h: true, soinsDomicile: false });
+    expect(c.jours[0]).toContain("comptez vos gardes");
+    expect(c.repas[0]).toContain("5,45 €");
+    expect(c.autres[0]).toContain("ne comptez que leur achat");
+    expect(c.trajet).toHaveLength(1);
+  });
+
+  it("soins à domicile : total des km de l'année ; tenues lavées soi-même : l'entretien compte", () => {
+    const c = conseilsMetier(param, "soignant", { lavageTenues: false, nuit12h: false, soinsDomicile: true });
+    expect(c.trajet[0]).toContain("total de vos kilomètres");
+    expect(c.autres[0]).toContain("l'achat et l'entretien comptent");
+    expect(c.jours).toEqual([]);
+  });
+
+  it("autre métier : aucun conseil", () => {
+    expect(conseilsMetier(param, "autre", {})).toEqual({ jours: [], trajet: [], repas: [], autres: [] });
   });
 });

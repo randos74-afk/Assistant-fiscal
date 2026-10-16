@@ -1,4 +1,5 @@
 // Étape 4 : vos repas (F4). Une question par écran ; le moteur calcule le bilan.
+import { ConseilsMetier } from "./QuestionsMetier";
 import { useState } from "react";
 import { calculerDeclarant } from "../moteur/declarant";
 import { eurosCentimes } from "../moteur/format";
@@ -38,12 +39,14 @@ interface Props {
   valeurInitiale?: SaisieRepas;
   onValider: (repas: SaisieRepas) => void;
   onRetour: () => void;
+  /** F14 — Conseils du métier, en tête de la première question. */
+  conseils?: string[];
 }
 
 const positif = (n: number | null): n is number => n !== null && !Number.isNaN(n) && n > 0;
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
-export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour }: Props) {
+export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour, conseils }: Props) {
   const [question, setQuestion] = useState<Question>(v ? "bilan" : "acces");
   const [acces, setAcces] = useState<AccesRepas | undefined>(v?.acces);
   const [lieu, setLieu] = useState<LieuRepas | undefined>(v?.lieu);
@@ -451,6 +454,7 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
           <h1 className="titre-question">{typographie(titre)}</h1>
           {fiche && <BoutonAsterisque onClick={() => setAide(fiche!)} />}
         </div>
+        {question === "acces" && <ConseilsMetier conseils={conseils} />}
         {contenu}
       </main>
 

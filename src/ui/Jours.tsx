@@ -1,5 +1,6 @@
 // Étape 2 : vos jours (F2). Deux questions : combien de jours travaillés, puis où.
 // Le calendrier réel de l'année pré-remplit tout ; la personne corrige, mois par mois si besoin.
+import { ConseilsMetier } from "./QuestionsMetier";
 import { useMemo, useState } from "react";
 import type { Parametres } from "../moteur/types";
 import {
@@ -48,6 +49,8 @@ interface Props {
   valeurInitiale?: SaisieJours;
   onValider: (jours: SaisieJours) => void;
   onRetour: () => void;
+  /** F14 — Conseils du métier, en tête de la première question. */
+  conseils?: string[];
 }
 
 const entier = (t: string) => {
@@ -56,7 +59,7 @@ const entier = (t: string) => {
 };
 const entierValide = (t: string) => !Number.isNaN(lireEntier(t));
 
-export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onRetour }: Props) {
+export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onRetour, conseils }: Props) {
   const [question, setQuestion] = useState<1 | 2>(v ? 2 : 1);
   const [joursParSemaine, setJoursParSemaine] = useState(v?.joursParSemaine ?? 5);
   const [conges, setConges] = useState(String(v?.semainesConges ?? 5));
@@ -170,6 +173,7 @@ export function Jours({ millesime, parametres, valeurInitiale: v, onValider, onR
             <h1 className="titre-question">{titre}</h1>
             <BoutonAsterisque onClick={() => setAide("jours")} />
           </div>
+          <ConseilsMetier conseils={conseils} />
           <p className="texte-secondaire sous-question">
             {typographie(`Nous partons du calendrier ${millesime}, jours fériés compris. Corrigez seulement ce qui ne va pas.`)}
           </p>
