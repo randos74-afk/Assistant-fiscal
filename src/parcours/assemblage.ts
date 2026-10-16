@@ -66,6 +66,7 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
     autresFrais: autres.autresFrais,
     reintegrations: [
       ...(domicile?.reintegrations ?? []),
+      ...(r.trajet?.indemnitesKmRecues ? [{ libelle: "indemnités kilométriques", montant: r.trajet.indemnitesKmRecues }] : []),
       ...repas.reintegrations,
       ...(r.teletravail ? reintegrationsTeletravail(r.teletravail) : []),
     ],

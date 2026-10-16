@@ -1,5 +1,6 @@
 // Étape 3 : votre trajet (F3). Une question par écran ; le moteur calcule le bilan à la fin.
 import { ConseilsMetier } from "./QuestionsMetier";
+import { AideKilometresSoins, ReglesSoinsDomicile } from "./AideKilometres";
 import { useState } from "react";
 import { calculerDeclarant } from "../moteur/declarant";
 import type { Parametres } from "../moteur/types";
@@ -89,6 +90,10 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
   const [participationsPrudentes, setParticipationsPrudentes] = useState(v?.covoiturage?.participations === null);
   const [joursCovoit, setJoursCovoit] = useState(v?.covoiturage?.joursParSemaine ? String(v.covoiturage.joursParSemaine) : "");
   const [joursCovoitPrudent, setJoursCovoitPrudent] = useState(v?.covoiturage?.participations === null && v.covoiturage.joursParSemaine === null);
+  // F14 soignant — Soins à domicile : aide au calcul du total, indemnités kilométriques reçues (montant obligatoire).
+  const [aideKm, setAideKm] = useState(false);
+  const [ikRecues, setIkRecues] = useState<boolean | undefined>(v?.indemnitesKmRecues !== undefined ? v.indemnitesKmRecues > 0 : undefined);
+  const [ik, setIk] = useState(v?.indemnitesKmRecues ? String(v.indemnitesKmRecues) : "");
   const [aide, setAide] = useState<Fiche | null>(null);
 
   const etape = libelleEtape("votre trajet");
@@ -119,6 +124,7 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
       peagesParking: avecPeages ? nombreOuZero(lireMontant(peages)) : 0,
       interetsCredit: avecCredit ? nombreOuZero(lireMontant(interets)) : 0,
       kmTotauxCompteur: avecCredit ? nombreOuZero(lireEntier(kmCompteur)) || undefined : undefined,
+      ...(totalAnnuelConseille && mode && estVehicule(mode) ? { indemnitesKmRecues: ikRecues ? nombreOuZero(lireMontant(ik)) : 0 } : {}),
       ...(mode === "covoiturage" ? { montantPaye: montantPayePrudent ? null : nombreOuZero(lireMontant(montantPaye)) } : {}),
       ...(mode && estVehicule(mode) && avecCovoit
         ? {
@@ -198,6 +204,18 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
                 `Nous appliquons le barème officiel à ce total. Sans raison particulière, chaque trajet maison-travail compte au plus ${plafond} km aller.`,
               )}
             </Encadre>
+            {totalAnnuelConseille && (
+              <>
+                <ReglesSoinsDomicile parametres={p} />
+                {aideKm ? (
+                  <AideKilometresSoins parametres={p} joursSurSite={joursSurSite} onUtiliser={(km) => (setTotal(String(km)), setAideKm(false))} />
+                ) : (
+                  <button type="button" className="lien-je-ne-sais-pas" onClick={() => setAideKm(true)}>
+                    Je ne connais pas mon total : m'aider à le calculer
+                  </button>
+                )}
+              </>
+            )}
             <ChoixUnique
               nom="motif"
               legende="Raison de la distance"
@@ -414,7 +432,9 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
       titre = "D'autres frais pour ce véhicule ?";
       const champs = [lireEntier(missions), lireMontant(peages), lireMontant(interets), lireEntier(kmCompteur), lireMontant(participations), lireEntier(joursCovoit)];
       const nbJoursCovoit = lireEntier(joursCovoit);
+      const ikNb = lireMontant(ik);
       peutContinuer =
+        (!totalAnnuelConseille || ikRecues === false || (ikRecues === true && ikNb !== null && !Number.isNaN(ikNb) && ikNb > 0)) &&
         champs.every(valide) &&
         (!avecCovoit ||
           (participationsPrudentes
@@ -425,6 +445,47 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
           <p className="texte-secondaire sous-question">
             {typographie("Cochez seulement ce qui vous concerne. Sans justificatif, laissez décoché : rien ne sera compté.")}
           </p>
+
+          {totalAnnuelConseille && (
+            <section className="carte" aria-labelledby="titre-ik">
+              <div className="question-titre" style={{ alignItems: "center" }}>
+                <h2 id="titre-ik" style={{ flex: 1 }}>
+                  {typographie("Votre employeur vous a-t-il remboursé des kilomètres cette année ?")}
+                </h2>
+                <BoutonAsterisque
+                  onClick={() =>
+                    setAide({
+                      ...FICHES.indemnitesKm,
+                      ouRegarder:
+                        "Sur votre bulletin de décembre, ligne « indemnités kilométriques » ou « frais de déplacement », colonne du cumul de l'année. Sans cumul, additionnez les montants de vos 12 bulletins.",
+                      siIntrouvable:
+                        "Demandez le cumul de l'année au service paie : ce montant est indispensable, car vos kilomètres remboursés sont comptés dans votre total.",
+                    })
+                  }
+                />
+              </div>
+              <ChoixUnique
+                nom="ik"
+                legende="Indemnités kilométriques reçues"
+                options={[
+                  { valeur: "non", libelle: "Non" },
+                  { valeur: "oui", libelle: "Oui", detail: "Ligne « indemnités kilométriques » ou « frais de déplacement » de vos bulletins." },
+                ]}
+                valeur={ikRecues === undefined ? undefined : ikRecues ? "oui" : "non"}
+                onChoix={(x) => setIkRecues(x === "oui")}
+              />
+              {ikRecues && (
+                <ChampMontant
+                  compact
+                  libelleVisible
+                  libelle="Montant reçu dans l'année"
+                  detail="Cumul de l'année sur votre bulletin de décembre. Il sera ajouté à votre salaire, puisque vos kilomètres sont tous comptés."
+                  valeur={ik}
+                  onChange={setIk}
+                />
+              )}
+            </section>
+          )}
 
           {!parTotal && (
             <label className="case-a-cocher">
@@ -606,6 +667,9 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
                 {typographie(a)}
               </Encadre>
             ))}
+          {s.indemnitesKmRecues ? (
+            <Encadre>{typographie(`Indemnités kilométriques à ajouter à votre salaire : ${s.indemnitesKmRecues.toLocaleString("fr-FR")} €.`)}</Encadre>
+          ) : null}
           {s.covoiturage?.participations === null && (
             <Encadre>{typographie("Les jours de covoiturage seront retirés de ce calcul dans votre résultat.")}</Encadre>
           )}

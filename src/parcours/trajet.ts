@@ -104,6 +104,8 @@ export interface SaisieTrajet {
    * ne sont pas déduits) et jours de covoiturage par semaine (null = « Je ne sais pas » : tous les jours).
    */
   covoiturage?: { participations: number | null; joursParSemaine: number | null };
+  /** F14 soignant (soins à domicile) — Indemnités kilométriques reçues dans l'année, à ajouter au salaire. */
+  indemnitesKmRecues?: number;
 }
 
 export function estVehicule(mode: ModeTrajet): mode is TypeVehicule {

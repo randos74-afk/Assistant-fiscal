@@ -92,6 +92,12 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Le message sur les infirmiers libéraux (pas de case 1AK) est visible.
 - [ ] « Nuit ou 12 h » : conseil « comptez vos gardes » à l'étape des jours, conseil sur la voiture au trajet, forfait repas de nuit à l'étape des repas.
 - [ ] « Soins à domicile » : l'étape du trajet propose directement le total de kilomètres de l'année, avec le conseil sur les tournées.
+- [ ] Encadré « Ce qui compte dans votre total » : trajets maison plafonnés, trajets entre patients en entier, voiture du service, km remboursés.
+- [ ] « Je ne connais pas mon total » → méthode « bulletins » : 12 mois de km + trajets maison × jours (jours pré-remplis) ; le détail tournées / trajets maison / total s'affiche.
+- [ ] Méthode « compteur » : km d'une semaine × semaines travaillées.
+- [ ] « Utiliser ce total » remplit le champ du total.
+- [ ] Étape « D'autres frais » : question obligatoire « Votre employeur vous a-t-il remboursé des kilomètres ? » ; si oui, montant obligatoire, ajouté au salaire dans le bilan et au résultat (case 1AJ corrigée).
+- [ ] Astérisque de cette question : fiche adaptée (cumul du bulletin de décembre, service paie).
 - [ ] « Employeur qui lave les tenues » : conseil « ne comptez que leur achat » dans les autres frais ; sinon « l'achat et l'entretien comptent ».
 - [ ] « Précédent » depuis le salaire ramène aux trois questions ; la relecture et le résultat sont inchangés.
 - [ ] Autre métier : aucun de ces écrans ni conseils.
