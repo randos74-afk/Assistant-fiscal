@@ -8,6 +8,7 @@ import type { EcranModifiable } from "../ui/Relecture";
 import type { Reponses } from "./assemblage";
 
 export interface Configuration {
+  editeur: { nom: string; email_contact: string };
   liens: { annexe_limites_usage: string; politique_confidentialite: string };
   conditions: { version: string; date: string; changements: string[] };
 }
@@ -32,6 +33,8 @@ export function texteConditions(c: Configuration = CONFIGURATION, brut: string =
   const ou = (v: string) => adresse(v) ?? "(adresse à venir)";
   return brut
     .replace(/<!--[\s\S]*?-->\s*/g, "")
+    .replace(/\{editeur_nom\}/g, c.editeur.nom)
+    .replace(/\{email_contact\}/g, c.editeur.email_contact)
     .replace(/\{lien_annexe\}/g, ou(c.liens.annexe_limites_usage))
     .replace(/\{lien_confidentialite\}/g, ou(c.liens.politique_confidentialite))
     .trim();

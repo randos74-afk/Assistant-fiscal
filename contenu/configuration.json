@@ -1,5 +1,9 @@
 {
   "_note": "Réglages de l'application modifiables sans toucher au code. Remplacer les valeurs entre crochets par les vraies adresses une fois publiées.",
+  "editeur": {
+    "nom": "Marc Chevallay",
+    "email_contact": "fraisfit@gmail.com"
+  },
   "liens": {
     "annexe_limites_usage": "https://sites.google.com/view/fraisfit-cgv",
     "politique_confidentialite": "[lien GitHub Pages]"

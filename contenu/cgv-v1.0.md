@@ -1,10 +1,10 @@
 <!-- Conditions générales de FraisFit. Version et date : contenu/configuration.json (conditions.version, conditions.date).
-     {lien_annexe} et {lien_confidentialite} sont remplacés à l'affichage par les adresses de la configuration.
+     {editeur_nom}, {email_contact}, {lien_annexe} et {lien_confidentialite} sont remplacés à l'affichage par les adresses de la configuration.
      Les passages entre crochets restent à compléter par Marc avant la publication. -->
 
 # Conditions générales de vente et d'utilisation de FraisFit
 
-**Article 1 — Éditeur.** L'application FraisFit est éditée par [Prénom NOM], entrepreneur individuel (EI), SIRET [numéro], [adresse], contact : [adresse email FraisFit]. Ci-après « l'éditeur ».
+**Article 1 — Éditeur.** L'application FraisFit est éditée par {editeur_nom}, entrepreneur individuel (EI), SIRET [numéro], [adresse], contact : {email_contact}. Ci-après « l'éditeur ».
 
 **Article 2 — Objet.** Les présentes conditions encadrent l'achat et l'utilisation de FraisFit, application d'aide au calcul qui compare l'abattement forfaitaire de 10 % et l'option pour les frais réels des salariés, et propose un montant et un texte à reporter dans la déclaration de revenus. Elles s'appliquent avec leur annexe « Limites d'usage et bonnes pratiques », qui en fait partie intégrante et est consultable à l'adresse {lien_annexe}.
 
@@ -28,6 +28,6 @@
 
 **Article 12 — Évolution.** Les barèmes changent chaque année. L'éditeur peut modifier les présentes conditions ; la nouvelle version est présentée à l'utilisateur au lancement suivant.
 
-**Article 13 — Réclamations et médiation.** Toute réclamation s'adresse d'abord à [adresse email FraisFit]. À défaut d'accord, l'utilisateur peut recourir gratuitement à un médiateur de la consommation (articles L612-1 et suivants du Code de la consommation). La liste officielle des médiateurs référencés est consultable sur le site du ministère de l'Économie : https://www.economie.gouv.fr/mediation-conso/liste-des-mediateurs-references.
+**Article 13 — Réclamations et médiation.** Toute réclamation s'adresse d'abord à {email_contact}. À défaut d'accord, l'utilisateur peut recourir gratuitement à un médiateur de la consommation (articles L612-1 et suivants du Code de la consommation). La liste officielle des médiateurs référencés est consultable sur le site du ministère de l'Économie : https://www.economie.gouv.fr/mediation-conso/liste-des-mediateurs-references.
 
 **Article 14 — Droit applicable.** Les présentes conditions sont soumises au droit français.

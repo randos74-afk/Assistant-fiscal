@@ -42,6 +42,14 @@ describe("Ajout n° 3 — conditions générales", () => {
     expect(texteConditions(avecAdresse("[URL Google Site]"))).toContain("(adresse à venir)");
   });
 
+  it("le nom de l'éditeur et l'email de contact viennent de la configuration", () => {
+    const t = texteConditions();
+    expect(t).toContain("éditée par Marc Chevallay");
+    expect(t).toContain("contact : fraisfit@gmail.com");
+    expect(t).toContain("s'adresse d'abord à fraisfit@gmail.com");
+    expect(t).not.toMatch(/\{editeur_nom\}|\{email_contact\}/);
+  });
+
   it("case non cochée → « Commencer » inactif", () => {
     expect(peutCommencer(false)).toBe(false);
     expect(peutCommencer(true)).toBe(true);

@@ -20,7 +20,7 @@ Tests : lien de l'annexe lu depuis la configuration (aucune URL en dur) ; case n
 
 ## Partie B — Conditions générales de vente et d'utilisation de FraisFit (projet v1.0)
 
-**Article 1 — Éditeur.** L'application FraisFit est éditée par [Prénom NOM], entrepreneur individuel (EI), SIRET [numéro], [adresse], contact : [adresse email FraisFit]. Ci-après « l'éditeur ».
+**Article 1 — Éditeur.** L'application FraisFit est éditée par Marc Chevallay, entrepreneur individuel (EI), SIRET [numéro], [adresse], contact : fraisfit@gmail.com. Ci-après « l'éditeur ».
 
 **Article 2 — Objet.** Les présentes conditions encadrent l'achat et l'utilisation de FraisFit, application d'aide au calcul qui compare l'abattement forfaitaire de 10 % et l'option pour les frais réels des salariés, et propose un montant et un texte à reporter dans la déclaration de revenus. Elles s'appliquent avec leur annexe « Limites d'usage et bonnes pratiques », qui en fait partie intégrante et est consultable à l'adresse [URL Google Site].
 
@@ -44,13 +44,13 @@ Tests : lien de l'annexe lu depuis la configuration (aucune URL en dur) ; case n
 
 **Article 12 — Évolution.** Les barèmes changent chaque année. L'éditeur peut modifier les présentes conditions ; la nouvelle version est présentée à l'utilisateur au lancement suivant.
 
-**Article 13 — Réclamations et médiation.** Toute réclamation s'adresse d'abord à [adresse email FraisFit]. À défaut d'accord, l'utilisateur peut recourir gratuitement au médiateur de la consommation : [nom, site internet du médiateur — à désigner avant le lancement, obligation des articles L612-1 et suivants]. Plateforme européenne de règlement en ligne des litiges : [à vérifier si toujours en service].
+**Article 13 — Réclamations et médiation.** Toute réclamation s'adresse d'abord à fraisfit@gmail.com. À défaut d'accord, l'utilisateur peut recourir gratuitement au médiateur de la consommation : [nom, site internet du médiateur — à désigner avant le lancement, obligation des articles L612-1 et suivants]. Plateforme européenne de règlement en ligne des litiges : [à vérifier si toujours en service].
 
 **Article 14 — Droit applicable.** Les présentes conditions sont soumises au droit français.
 
 ## Points à régler par Marc avant la publication
 
-1. Compléter les crochets : identité EI, SIRET, adresse, email, prix, régime de TVA.
+1. Compléter les crochets : SIRET, adresse, prix, régime de TVA. Nom de l'éditeur (Marc Chevallay) et email de contact (fraisfit@gmail.com) renseignés le 17/10/2026 dans `contenu/configuration.json` (rubrique `editeur`).
 2. Désigner un médiateur de la consommation (adhésion payante, obligatoire pour vendre à des particuliers). **Décision de Marc (16/10/2026) :** l'article 13 ne nomme pas de médiateur et renvoie à la liste officielle des médiateurs référencés (texte de référence : `contenu/cgv-v1.0.md`). Point signalé par Claude Code : selon la DGCCRF, le professionnel doit indiquer dans ses CGV les coordonnées de **son** médiateur ; à faire valider par le juriste. Phrase sur la plateforme européenne de règlement en ligne retirée (plateforme fermée en juillet 2025, à confirmer par le juriste).
 3. Vérifier qui est le vendeur au sens juridique pour un achat sur Google Play, et adapter les articles 5 et 6.
 4. Faire relire l'ensemble par un avocat ou un juriste, notamment l'article 9.
