@@ -104,7 +104,9 @@ ${
 ${r.alertes.length ? `<p><strong>Points d'attention :</strong> ${echapper(r.alertes.join(" "))}</p>` : ""}
 </section>
 
-<section>
+${
+  c.fraisReelsConseilles
+    ? `<section>
 <h2>Texte « Informations complémentaires »</h2>
 <pre>${echapper(r.texte)}</pre>
 </section>
@@ -174,7 +176,9 @@ ${
   <div>Fait à ………………………, le ……………………</div>
   <div>Signature</div>
 </div>
-</div>
+</div>`
+    : `<p>Vous gardez l'abattement automatique : rien à reporter case ${r.caseFraisReels}, ni texte, ni note explicative.</p>`
+}
 
 <footer>
   C'est une estimation indicative, pas un conseil fiscal. Seuls impots.gouv.fr et votre avis d'imposition font foi.<br>
@@ -219,17 +223,22 @@ export function htmlPdfFoyer(contenus: ContenuPdf[], s: SyntheseFoyer, urlLogo: 
 <p class="verdict">${echapper(s.verdict)}</p>
 ${tableau ? `<section><h2>Les possibilités</h2>${tableau}<p>Montants par déclarant : revenu imposable après abattement ou frais réels.</p></section>` : ""}
 <section><h2>Choix de chacun</h2><ul>${s.noms.map((n, i) => `<li>${echapper(n)} : ${echapper(s.choix[i])}</li>`).join("")}</ul>
-<p>La partie de chaque personne suit, avec le texte à recopier et la note explicative à signer.</p></section>
+<p>La partie de chaque personne suit ; pour celle qui gagne aux frais réels, avec le texte à recopier et la note explicative à signer.</p></section>
 ${corps.map((c) => `<div style="break-before: page">${c}</div>`).join("\n")}
 </body></html>`;
 }
+
+/** Bandeau visible à l'écran seulement : le PDF s'ouvre dans un nouvel onglet, il faut savoir comment revenir. */
+const BANDEAU_ONGLET = `<style>@media print { .bandeau-onglet { display: none; } }</style>
+<p class="bandeau-onglet" style="border:1.5px solid #111;border-radius:8px;padding:8px 12px;font:11pt/1.4 sans-serif">
+Ce document s'est ouvert dans un nouvel onglet. Choisissez « Enregistrer au format PDF » comme imprimante, puis fermez cet onglet pour revenir à FraisFit. Si la fenêtre d'impression ne s'est pas ouverte, utilisez le menu du navigateur : Partager puis Imprimer.</p>`;
 
 /** Ouvre une fenêtre autonome sur fond blanc et lance l'impression ; renvoie false si le navigateur l'a bloquée. */
 function imprimer(html: string): boolean {
   const fenetre = window.open("", "_blank");
   if (!fenetre) return false;
   fenetre.document.open();
-  fenetre.document.write(html);
+  fenetre.document.write(html.replace("<body>", `<body>${BANDEAU_ONGLET}`));
   fenetre.document.close();
   const lancer = () => {
     fenetre.focus();

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { chargerParametres } from "../moteur/parametres";
 import { calculerParcours } from "../parcours/assemblage";
-import { htmlPdfFoyer, type ContenuPdf } from "./pdf";
+import { htmlPdf, htmlPdfFoyer, type ContenuPdf } from "./pdf";
 
 const p = chargerParametres(2025);
 const contenu = (montant: number, numero: number, nom: string): ContenuPdf => {
@@ -29,5 +29,14 @@ describe("PDF du foyer (ajout n° 1)", () => {
     expect(html).toContain("Léa : abattement de 10 %, rien à changer");
     expect(html).toContain("Léa (case 1BK)");
     expect(html.match(/break-before: page/g)!.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe("PDF quand l'abattement l'emporte (remarque du 22/10/2026)", () => {
+  it("s'arrête à la première page : ni texte à recopier, ni note explicative", () => {
+    const html = htmlPdf(contenu(30000, 1, "Vous"), "logo.png");
+    expect(html).toContain("rien à reporter case 1AK");
+    expect(html).not.toContain("Note explicative");
+    expect(html).not.toContain("Informations complémentaires");
   });
 });
