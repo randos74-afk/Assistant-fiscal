@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { chargerParametres } from "../moteur/parametres";
 import { calculerParcours, type Reponses } from "./assemblage";
 import { repartirAuProrata } from "./calendrier";
-import { noteExplicative } from "./noteExplicative";
+import { justificationDistance, noteExplicative } from "./noteExplicative";
 
 const p = chargerParametres(2025);
 const site = repartirAuProrata(180, Array(12).fill(1));
@@ -60,5 +60,17 @@ describe("Note explicative", () => {
   it("signale honnêtement les valeurs prudentes et la conservation des pièces", () => {
     expect(n.introduction[3]).toBe("Faute de chiffre exact, j'ai retenu la valeur la plus basse pour : puissance du véhicule.");
     expect(n.conclusion).toContain("pendant trois ans");
+  });
+});
+
+describe("Justification de la distance au-delà du plafond (remarque du 22/10/2026)", () => {
+  it("reprend la phrase pré-remplie du motif, une seule fois, avec des lignes à compléter", () => {
+    const j = justificationDistance(["distance de 45 km retenue (emploi du conjoint)", "distance de 45 km retenue (emploi du conjoint)"], 40);
+    expect(j?.[0]).toContain("dépasse 40 km");
+    expect(j?.filter((t) => t.includes("conjoint"))).toHaveLength(1);
+    expect(j?.some((t) => t.startsWith("Précisions"))).toBe(true);
+  });
+  it("est absente sans motif de distance", () => {
+    expect(justificationDistance(["second aller-retour quotidien (santé)"], 40)).toBeUndefined();
   });
 });

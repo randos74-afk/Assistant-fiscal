@@ -3,6 +3,7 @@
 // pendant 3 ans »). Construite uniquement à partir du résultat du moteur : la somme des sections égale la case 1AK.
 import type { LigneResume, MontantLibelle, ResultatDeclarant } from "../moteur/declarant";
 import { euros, nombre } from "../moteur/format";
+import { motifDistance } from "./trajet";
 
 export interface SectionNote {
   titre: string;
@@ -15,6 +16,11 @@ export interface NoteExplicative {
   introduction: string[];
   sections: SectionNote[];
   motifs: string[];
+  /**
+   * Distance réelle au-delà du plafond : paragraphe pré-rempli exposant les raisons de l'éloignement, que le BOFiP
+   * demande de joindre à la déclaration (BOI-RSA-BASE-30-50-30-20). Absent sans motif de distance.
+   */
+  justificationDistance?: string[];
   reintegrations: MontantLibelle[];
   /** Salaire à porter case 1AJ (remboursements compris, chômage exclu). */
   salaireDeclare: number;
@@ -40,6 +46,7 @@ export function noteExplicative(
   numeroDeclarant: number,
   prudentes: string[],
   justificatifs: string[],
+  plafondKm?: number,
 ): NoteExplicative {
   const sections = SECTIONS.map(({ titre, categories, prefixe }) => {
     const lignes = r.lignes
@@ -65,6 +72,7 @@ export function noteExplicative(
     introduction,
     sections,
     motifs: r.motifs.map(phrase),
+    justificationDistance: justificationDistance(r.motifs, plafondKm),
     reintegrations: r.reintegrations,
     salaireDeclare,
     total: r.montantCase,
@@ -79,4 +87,21 @@ export function noteExplicative(
 export function texteReintegrations(n: NoteExplicative, caseSalaire: string): string {
   const total = n.reintegrations.reduce((s, x) => s + x.montant, 0);
   return `Ces sommes, soit ${euros(total)}, sont comprises dans le salaire déclaré case ${caseSalaire} (${nombre(n.salaireDeclare)} €).`;
+}
+
+/** Paragraphes pré-remplis pour la distance au-delà du plafond, d'après les motifs « … retenue (motif) » du moteur. */
+export function justificationDistance(motifs: string[], plafondKm?: number): string[] | undefined {
+  const raisons = motifs
+    .map((m) => /retenue \((.+)\)$/.exec(m)?.[1])
+    .map((v) => (v ? (motifDistance(v)?.justification ?? `Motif : ${v}.`) : null))
+    .filter((t, i, liste): t is string => t !== null && liste.indexOf(t) === i);
+  if (!raisons.length) return undefined;
+  const plafond = plafondKm !== undefined ? `${nombre(plafondKm)} km` : "le plafond";
+  return [
+    `Ma distance entre mon domicile et mon lieu de travail dépasse ${plafond}. Je demande la déduction de la distance réelle, en raison de circonstances particulières qui expliquent l'éloignement de mon domicile :`,
+    ...raisons,
+    "Précisions (à compléter à la main) : ................................................................................................",
+    "................................................................................................................................",
+    "Je tiens les pièces justificatives correspondantes à la disposition de l'administration.",
+  ];
 }

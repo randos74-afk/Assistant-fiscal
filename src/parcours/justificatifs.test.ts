@@ -24,7 +24,7 @@ describe("Justificatifs à conserver (F9.2)", () => {
     };
     const liste = justificatifs(r);
     expect(liste).toContain("Carte grise du véhicule (puissance et énergie)");
-    expect(liste).toContain("Pièce justifiant la distance au-delà du plafond (mutation)");
+    expect(liste).toContain("Lettre ou arrêté de mutation (distance réelle retenue : mutation)");
     expect(liste).toContain("Relevés de télépéage et tickets de parking");
     expect(liste).toContain("Attestation de télétravail de l'employeur (jours télétravaillés)");
     expect(liste.some((j) => j.includes("amortissement"))).toBe(false);

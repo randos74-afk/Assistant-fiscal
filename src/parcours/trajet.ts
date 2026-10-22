@@ -16,21 +16,108 @@ export const MODES: { valeur: ModeTrajet; libelle: string; detail?: string }[] =
   { valeur: "doux", libelle: "À vélo ou à pied" },
 ];
 
-/** F3.4 — Circonstances qui permettent de retenir la distance réelle au-delà du plafond. */
-export const MOTIFS_DISTANCE: { valeur: string; libelle: string }[] = [
-  { valeur: "emploi du conjoint", libelle: "Mon conjoint ou partenaire travaille loin de mon travail" },
-  { valeur: "emploi précaire ou mobile", libelle: "Mon emploi est précaire ou change souvent de lieu" },
-  { valeur: "mutation", libelle: "J'ai été muté par mon employeur" },
-  { valeur: "embauche éloignée après un licenciement", libelle: "J'ai retrouvé un emploi loin après un licenciement" },
-  { valeur: "raison de santé", libelle: "Pour une raison de santé (moi ou un proche)" },
-  { valeur: "scolarité des enfants", libelle: "Pour la scolarité de mes enfants" },
-  { valeur: "mandat électif local", libelle: "J'ai un mandat d'élu local" },
-  { valeur: "coût du logement près du travail hors de proportion", libelle: "Se loger près du travail coûte beaucoup trop cher" },
+/**
+ * F3.4 — Circonstances qui permettent de retenir la distance réelle au-delà du plafond (BOFiP BOI-RSA-BASE-30-50-30-20,
+ * liste non exhaustive ; document de Marc du 22/10/2026). Pour chacune : la phrase pré-remplie de la note explicative
+ * et la pièce à conserver.
+ */
+export interface MotifDistance {
+  valeur: string;
+  libelle: string;
+  detail?: string;
+  /** Phrase de la note explicative, à la première personne. */
+  justification: string;
+  /** Pièce à garder pour le prouver. */
+  piece: string;
+}
+
+export const MOTIFS_DISTANCE: MotifDistance[] = [
+  {
+    valeur: "difficulté à trouver un emploi près du domicile",
+    libelle: "Je n'ai pas trouvé d'emploi plus près de chez moi",
+    justification: "Je n'ai pas trouvé d'emploi correspondant à ma qualification plus près de mon domicile.",
+    piece: "Preuves de recherche d'emploi (candidatures, attestation de France Travail)",
+  },
+  {
+    valeur: "embauche éloignée après un licenciement",
+    libelle: "J'ai retrouvé un emploi loin après un licenciement",
+    justification: "Après un licenciement, j'ai retrouvé un emploi éloigné de mon domicile, que je n'ai pas pu rapprocher.",
+    piece: "Lettre de licenciement et contrat du nouvel emploi",
+  },
+  {
+    valeur: "mutation",
+    libelle: "J'ai été muté par mon employeur",
+    justification: "Mon employeur m'a muté ; mon domicile était fixé avant cette mutation.",
+    piece: "Lettre ou arrêté de mutation",
+  },
+  {
+    valeur: "emploi précaire ou mobile",
+    libelle: "Mon emploi est précaire ou change souvent de lieu",
+    detail: "Contrats courts, intérim, missions, remplacements.",
+    justification:
+      "Mon emploi est précaire ou m'oblige à changer souvent de lieu de travail : il n'est pas raisonnable de déménager à chaque changement.",
+    piece: "Contrats de travail, avenants ou ordres de mission",
+  },
+  {
+    valeur: "emploi du conjoint",
+    libelle: "Mon conjoint ou partenaire travaille près de notre domicile",
+    justification:
+      "Notre domicile commun est proche du lieu de travail de mon conjoint ou partenaire ; nous ne pouvons pas nous rapprocher de nos deux lieux de travail à la fois.",
+    piece: "Attestation d'emploi ou bulletin de paie du conjoint, avec son lieu de travail",
+  },
+  {
+    valeur: "raison de santé",
+    libelle: "Pour une raison de santé (moi, mon conjoint ou mes enfants)",
+    justification: "Pour une raison de santé me concernant ou concernant un membre de ma famille, nous devons rester à notre domicile actuel.",
+    piece: "Certificat médical (sans le diagnostic) ou suivi médical près du domicile",
+  },
+  {
+    valeur: "contraintes familiales ou sociales particulières",
+    libelle: "Une contrainte familiale ou sociale particulière",
+    detail: "Par exemple : aide à un parent âgé, garde alternée d'un enfant.",
+    justification: "Une contrainte familiale ou sociale particulière m'oblige à garder mon domicile actuel.",
+    piece: "Tout document qui établit cette contrainte (jugement de garde, attestation…)",
+  },
+  {
+    valeur: "scolarité des enfants",
+    libelle: "Pour la scolarité de mes enfants",
+    justification: "La scolarité de mes enfants m'oblige à garder mon domicile actuel.",
+    piece: "Certificats de scolarité des enfants",
+  },
+  {
+    valeur: "mandat électif local",
+    libelle: "J'ai un mandat d'élu local",
+    justification: "J'exerce un mandat d'élu local qui m'oblige à résider dans ma commune.",
+    piece: "Procès-verbal d'élection ou arrêté de nomination",
+  },
+  {
+    valeur: "coût du logement près du travail hors de proportion",
+    libelle: "Se loger près du travail coûte beaucoup trop cher",
+    justification: "Le coût d'un logement près de mon lieu de travail est hors de proportion avec mes revenus.",
+    piece: "Annonces ou estimations de loyer près du lieu de travail",
+  },
 ];
 
+/** Motif connu par sa valeur, ou undefined (ancienne sauvegarde). */
+export function motifDistance(valeur: string | undefined): MotifDistance | undefined {
+  return MOTIFS_DISTANCE.find((m) => m.valeur === valeur);
+}
+
 /** F10.4 et F10.5 — Sans conjoint (personne seule ou veuve), le motif « emploi du conjoint » n'est pas proposé. */
-export function motifsDistance(couple?: boolean): { valeur: string; libelle: string }[] {
+export function motifsDistance(couple?: boolean): MotifDistance[] {
   return couple === false ? MOTIFS_DISTANCE.filter((m) => m.valeur !== "emploi du conjoint") : MOTIFS_DISTANCE;
+}
+
+/** Message sous le choix du motif : distance ramenée au plafond sans raison, ou note pré-remplie avec une raison. */
+export function messageMotif(motif: string | undefined, plafondKm: number): string | null {
+  if (motif === undefined) return null;
+  if (motif === "aucun") {
+    return `Sans raison, seuls les ${nombre(plafondKm)} premiers kilomètres de chaque trajet sont comptés : c'est la règle de l'administration. Si l'une des raisons ci-dessus vous concerne, choisissez-la plutôt.`;
+  }
+  const m = motifDistance(motif);
+  return `La distance réelle sera comptée. Votre PDF contiendra une note pré-remplie qui expose cette raison : complétez-la et joignez-la à votre déclaration${
+    m ? `. Gardez aussi la pièce qui le prouve : ${m.piece.charAt(0).toLowerCase()}${m.piece.slice(1)}.` : "."
+  }`;
 }
 
 export const ENERGIES: { valeur: Energie; libelle: string }[] = [

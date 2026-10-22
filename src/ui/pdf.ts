@@ -32,7 +32,7 @@ export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, j
     ? `Avec vos frais réels, votre revenu imposable baisse de ${euros(c.gainBase)} par rapport à l'abattement automatique de ${taux}.` +
       (impot ? ` Impôt estimé : ${euros(impot.avecAbattement)} avec l'abattement, ${euros(impot.avecFraisReels)} avec les frais réels, soit ${euros(impot.gain)} de moins.` : "")
     : `L'abattement automatique de ${taux} est plus avantageux pour vous : ne changez rien.`;
-  const note = noteExplicative(r, p.millesime.revenus, numeroDeclarant, prudentes, justificatifs);
+  const note = noteExplicative(r, p.millesime.revenus, numeroDeclarant, prudentes, justificatifs, p.deplacements.distance_aller_max_sans_justification_km);
   const lignes = r.lignes
     .map((l) => `<tr><td>${echapper(l.texte.charAt(0).toUpperCase() + l.texte.slice(1))}</td><td class="m">${euros(l.montant)}</td></tr>`)
     .join("");
@@ -142,7 +142,11 @@ ${sec.lignes.length > 1 ? `<tr class="sous-total"><td>Sous-total</td><td class="
 </section>
 ${
   note.motifs.length
-    ? `<section><h2>3. Circonstances particulières</h2>${note.motifs.map((m) => `<p>${echapper(m)}</p>`).join("")}</section>`
+    ? `<section><h2>3. Circonstances particulières</h2>${note.motifs.map((m) => `<p>${echapper(m)}</p>`).join("")}${
+        note.justificationDistance
+          ? `<h3 style="font-size:10.5pt;margin:12px 0 4px">Raisons de l'éloignement du domicile</h3>${note.justificationDistance.map((t) => `<p>${echapper(t)}</p>`).join("")}`
+          : ""
+      }</section>`
     : ""
 }
 ${

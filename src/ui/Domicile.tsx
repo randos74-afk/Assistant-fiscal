@@ -17,7 +17,7 @@ import {
 import { libelleEtape } from "../parcours/etapes";
 import { completerFiche, FICHES, type FicheAide as Fiche } from "../parcours/fichesAide";
 import { afficherMontant, lireEntier, lireMontant } from "../parcours/saisie";
-import { ENERGIES, libelleLigne, lignePrudente, motifsDistance, optionsPuissance } from "../parcours/trajet";
+import { ENERGIES, libelleLigne, lignePrudente, messageMotif, motifsDistance, optionsPuissance } from "../parcours/trajet";
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
@@ -320,6 +320,7 @@ export function Domicile({ parametres: p, joursSurSite, couple, valeurInitiale: 
                 valeur={motif}
                 onChoix={setMotif}
               />
+              {messageMotif(motif, plafond) && <Encadre>{typographie(messageMotif(motif, plafond)!)}</Encadre>}
             </>
           )}
         </>

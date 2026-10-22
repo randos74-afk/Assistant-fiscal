@@ -14,6 +14,7 @@ import {
   libelleLigne,
   lignePrudente,
   MODES,
+  messageMotif,
   motifsDistance,
   optionsPuissance,
   vehiculePourMoteur,
@@ -386,6 +387,7 @@ export function Trajet({ parametres: p, joursSurSite, couple, employeurs, sitePa
                 valeur={motif}
                 onChoix={setMotif}
               />
+              {messageMotif(motif, plafond) && <Encadre>{typographie(messageMotif(motif, plafond)!)}</Encadre>}
             </>
           )}
         </>

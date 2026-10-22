@@ -2,7 +2,13 @@
 import type { Reponses } from "./assemblage";
 import { POSTES } from "./autresFrais";
 import { totaux } from "./calendrier";
-import { estVehicule } from "./trajet";
+import { estVehicule, motifDistance } from "./trajet";
+
+/** Pièce à garder pour le motif de distance au-delà du plafond. */
+function pieceDistance(valeur: string): string {
+  const piece = motifDistance(valeur)?.piece;
+  return piece ? `${piece} (distance réelle retenue : ${valeur})` : `Pièce justifiant la distance au-delà du plafond (${valeur})`;
+}
 
 export function justificatifs(r: Reponses): string[] {
   const liste = ["Bulletin de paie de décembre (salaire de l'année)"];
@@ -16,7 +22,7 @@ export function justificatifs(r: Reponses): string[] {
   if (trajet && estVehicule(trajet.mode)) {
     liste.push("Carte grise du véhicule (puissance et énergie)");
     liste.push("Itinéraire le plus court entre domicile et travail");
-    if (trajet.motifDistance) liste.push(`Pièce justifiant la distance au-delà du plafond (${trajet.motifDistance})`);
+    if (trajet.motifDistance) liste.push(pieceDistance(trajet.motifDistance));
     if (trajet.kmMissions > 0) liste.push("Carnet de bord ou relevés des trajets professionnels");
     if (trajet.kmAnnuel) liste.push("Relevé de compteur ou carnet de bord justifiant le total de kilomètres");
     if (trajet.peagesParking > 0) liste.push("Relevés de télépéage et tickets de parking");
@@ -28,7 +34,7 @@ export function justificatifs(r: Reponses): string[] {
   if (trajet?.mode === "covoiturage" && trajet.montantPaye) {
     liste.push("Historique des paiements au conducteur (plateforme de covoiturage, virements)");
     liste.push("Itinéraire le plus court entre domicile et travail");
-    if (trajet.motifDistance) liste.push(`Pièce justifiant la distance au-delà du plafond (${trajet.motifDistance})`);
+    if (trajet.motifDistance) liste.push(pieceDistance(trajet.motifDistance));
   }
   if (r.reintegrationsMetier?.length) {
     liste.push("Déclaration fiscale des traitements et salaires (ENSAP) ou bulletin de décembre : remboursements de frais");
