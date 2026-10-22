@@ -11,6 +11,15 @@ export const ACCES: { valeur: AccesRepas; libelle: string; detail?: string }[] =
   { valeur: "domicile", libelle: "Oui, je rentre déjeuner chez moi" },
 ];
 
+/**
+ * Décision de Marc (22/10/2026) : quand tous les lieux de travail sont au-delà du plafond de distance (40 km),
+ * « Je rentre déjeuner chez moi » n'est pas proposé ; le repas se déclare comme pris hors du domicile.
+ */
+export function dejeunerDomicileExclu(p: Parametres, distancesAller: number[]): boolean {
+  const plafond = p.deplacements.distance_aller_max_sans_justification_km;
+  return distancesAller.length > 0 && distancesAller.every((d) => d > plafond);
+}
+
 export const LIEUX: { valeur: LieuRepas; libelle: string; detail?: string }[] = [
   { valeur: "restaurant", libelle: "Au restaurant, en boulangerie, en snack" },
   { valeur: "cantine", libelle: "À la cantine ou au restaurant d'entreprise" },

@@ -41,14 +41,19 @@ interface Props {
   onRetour: () => void;
   /** F14 — Conseils du métier, en tête de la première question. */
   conseils?: string[];
+  /** Tous les lieux de travail au-delà du plafond : rentrer déjeuner chez soi n'est pas proposé. */
+  dejeunerDomicileExclu?: boolean;
 }
 
 const positif = (n: number | null): n is number => n !== null && !Number.isNaN(n) && n > 0;
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
-export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour, conseils }: Props) {
-  const [question, setQuestion] = useState<Question>(v ? "bilan" : "acces");
-  const [acces, setAcces] = useState<AccesRepas | undefined>(v?.acces);
+export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour, conseils, dejeunerDomicileExclu }: Props) {
+  // Au-delà du plafond, seule la réponse « je ne peux pas » reste ; une ancienne réponse « je rentre déjeuner » est reposée.
+  const accesDevenuImpossible = dejeunerDomicileExclu && v?.acces === "domicile";
+  const accesInitial = dejeunerDomicileExclu ? "impossible" : v?.acces;
+  const [question, setQuestion] = useState<Question>(v && !accesDevenuImpossible ? "bilan" : "acces");
+  const [acces, setAcces] = useState<AccesRepas | undefined>(accesInitial);
   const [lieu, setLieu] = useState<LieuRepas | undefined>(v?.lieu);
   const [surPlace, setSurPlace] = useState<RestaurationSurPlace | undefined>(v ? restaurationSurPlace(v) : undefined);
   const [prixSP, setPrixSP] = useState(v?.prixSurPlace ? afficherMontant(v.prixSurPlace.prix) : "");
@@ -154,7 +159,24 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
     case "acces":
       titre = "Pouvez-vous déjeuner chez vous les jours de travail ?";
       peutContinuer = acces !== undefined;
-      contenu = <ChoixUnique nom="acces" legende={titre} options={ACCES} valeur={acces} onChoix={(x) => setAcces(x as AccesRepas)} />;
+      contenu = (
+        <>
+          <ChoixUnique
+            nom="acces"
+            legende={titre}
+            options={dejeunerDomicileExclu ? ACCES.filter((a) => a.valeur !== "domicile") : ACCES}
+            valeur={acces}
+            onChoix={(x) => setAcces(x as AccesRepas)}
+          />
+          {dejeunerDomicileExclu && (
+            <Encadre>
+              {typographie(
+                `Votre travail est à plus de ${p.deplacements.distance_aller_max_sans_justification_km} km de chez vous : l'administration n'admet pas un retour à la maison pour déjeuner. Vos repas se comptent comme pris sur votre lieu de travail ou à côté.`,
+              )}
+            </Encadre>
+          )}
+        </>
+      );
       break;
 
     case "lieu":

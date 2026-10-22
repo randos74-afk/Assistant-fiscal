@@ -7,7 +7,8 @@ import { totaux } from "./parcours/calendrier";
 import { QUESTIONS_FILTRAGE, type Reponses as ReponsesFiltrage } from "./parcours/filtrage";
 import { aDesQuestionsMetier, conseilsMetier, profil as profilMetier } from "./parcours/metiers";
 import { QuestionsEnseignant, QuestionsGrandRouleur, QuestionsSoignant } from "./ui/QuestionsMetier";
-import { estVehicule } from "./parcours/trajet";
+import { dejeunerDomicileExclu } from "./parcours/repas";
+import { distancesAller, estVehicule } from "./parcours/trajet";
 import { Accueil } from "./ui/Accueil";
 import { AutresFrais } from "./ui/AutresFrais";
 import { Filtrage } from "./ui/Filtrage";
@@ -417,6 +418,7 @@ export default function App() {
           joursSurSite={joursSurSite}
           valeurInitiale={repas}
           conseils={conseils.repas}
+          dejeunerDomicileExclu={trajet ? dejeunerDomicileExclu(parametres, distancesAller(trajet)) : false}
           onRetour={precedent("trajet")}
           onValider={(r) => (maj("repas")(r), suivant("teletravail"))}
         />,

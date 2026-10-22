@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calculerDeclarant } from "../moteur/declarant";
 import { chargerParametres } from "../moteur/parametres";
-import { partDepuisPourcent, partEmployeurPrudente, primePanierAnnuelle, repasDeductibles, repasPourMoteur, type SaisieRepas } from "./repas";
+import { dejeunerDomicileExclu, partDepuisPourcent, partEmployeurPrudente, primePanierAnnuelle, repasDeductibles, repasPourMoteur, type SaisieRepas } from "./repas";
 
 const p = chargerParametres(2025);
 const restaurant: SaisieRepas = { acces: "impossible", lieu: "restaurant", prix: 12, titres: null, primePanier: 0 };
@@ -110,5 +110,17 @@ describe("Vos repas (F4)", () => {
   it("part employeur en pourcentage et prime de panier par jour", () => {
     expect(partDepuisPourcent(9, 60)).toBe(5.4);
     expect(primePanierAnnuelle(6.5, 180)).toBe(1170);
+  });
+});
+
+describe("Déjeuner à la maison au-delà de 40 km (décision du 22/10/2026)", () => {
+  it("est exclu quand tous les lieux de travail dépassent le plafond", () => {
+    expect(dejeunerDomicileExclu(p, [45])).toBe(true);
+    expect(dejeunerDomicileExclu(p, [45, 60])).toBe(true);
+  });
+  it("reste possible si un lieu est à 40 km ou moins, ou si la distance est inconnue", () => {
+    expect(dejeunerDomicileExclu(p, [40])).toBe(false);
+    expect(dejeunerDomicileExclu(p, [45, 12])).toBe(false);
+    expect(dejeunerDomicileExclu(p, [])).toBe(false);
   });
 });
