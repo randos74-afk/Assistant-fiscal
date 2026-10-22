@@ -9,7 +9,7 @@ import type { Reponses } from "./assemblage";
 
 export interface Configuration {
   editeur: { nom: string; email_contact: string };
-  liens: { annexe_limites_usage: string; politique_confidentialite: string };
+  liens: { annexe_limites_usage: string; politique_confidentialite: string; recu_dons_benevoles: string; frais_benevoles: string };
   conditions: { version: string; date: string; changements: string[] };
 }
 

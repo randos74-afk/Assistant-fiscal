@@ -181,6 +181,8 @@ F6 couvre tout ce qui n'est ni trajet, ni repas, ni télétravail : 17 postes, c
 
 Chaque poste ouvert par l'utilisateur génère sa ligne dans le résumé 1AK (F8) et sa ligne dans la liste des justificatifs à conserver (F9).
 
+
+**Bénévoles d'association (demande de Marc du 22/10/2026).** Les kilomètres faits avec son véhicule pour une association ne sont pas des frais réels de salarié : quand le bénévole renonce par écrit à leur remboursement, ils deviennent un don (reçu 2041-RD, cerfa 11580) ouvrant droit à une réduction d'impôt. L'étape « Autres frais » l'explique dans un encadré, avec les liens `recu_dons_benevoles` et `frais_benevoles` de `contenu/configuration.json`. Aucun calcul : ces sommes ne vont jamais dans la case 1AK.
 ## 9. F7 — Comparaison avec l'abattement de 10 % et impact sur l'impôt
 
 La recommandation compare deux bases imposables et non deux totaux bruts, car l'option frais réels augmente aussi le salaire déclaré (réintégrations F1).

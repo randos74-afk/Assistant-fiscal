@@ -23,6 +23,7 @@ import { MontantsParEmployeur, totalParEmployeur } from "./MontantsParEmployeur"
 import type { Employeur } from "../parcours/employeurs";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
 import { ListeAchats, lignesValides, versAchats, versLignes, type LigneAchat } from "./ListeAchats";
+import { CONFIGURATION } from "../parcours/conditions";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
@@ -405,6 +406,19 @@ export function AutresFrais({ parametres: p, enTransports, aVehicule, postesOuve
               ))}
             </section>
           ))}
+          <Encadre>
+            <strong>{typographie("Vous êtes bénévole dans une association ?")}</strong>{" "}
+            {typographie(
+              "Les kilomètres faits avec votre véhicule pour une association ne se mettent pas dans vos frais réels. Si vous renoncez par écrit à vous les faire rembourser, ils comptent comme un don : l'association vous remet un reçu fiscal (formulaire 2041-RD, cerfa 11580) et vous avez droit à une réduction d'impôt, à déclarer avec vos dons. Cela vaut que vous gardiez l'abattement automatique ou que vous choisissiez les frais réels.",
+            )}{" "}
+            <a className="lien" href={CONFIGURATION.liens.recu_dons_benevoles} target="_blank" rel="noopener noreferrer">
+              Télécharger le reçu (service-public.gouv.fr)
+            </a>{" "}
+            ·{" "}
+            <a className="lien" href={CONFIGURATION.liens.frais_benevoles} target="_blank" rel="noopener noreferrer">
+              Les règles pour les frais des bénévoles
+            </a>
+          </Encadre>
         </>
       );
       break;

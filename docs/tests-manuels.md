@@ -151,3 +151,4 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Point 102 : simulation où l'abattement l'emporte → le PDF tient sur une page, sans texte à recopier ni note explicative.
 - [ ] Point 102 : à l'ouverture du PDF, bandeau « Ce document s'est ouvert dans un nouvel onglet… » visible à l'écran, absent du PDF enregistré. Essayer aussi sur téléphone Android (Chrome).
 - [ ] Point 16 (scénario précis) : salaire 30 000 €, voiture diesel, 30 km aller, 200 jours sur site, puissance « Je ne sais pas » (cas vérifié par les tests automatiques) → dans « Avant de recopier », la phrase « vous pourriez gagner davantage » apparaît sous la carte de la puissance.
+- [ ] Bénévoles : étape « Autres frais », sous la liste des postes, encadré « Vous êtes bénévole dans une association ? » ; les deux liens ouvrent les pages de service-public.gouv.fr dans un nouvel onglet, et le reçu cerfa 11580 se télécharge depuis la première.

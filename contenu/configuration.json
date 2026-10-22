@@ -6,7 +6,9 @@
   },
   "liens": {
     "annexe_limites_usage": "https://sites.google.com/view/fraisfit-cgv",
-    "politique_confidentialite": "[lien GitHub Pages]"
+    "politique_confidentialite": "[lien GitHub Pages]",
+    "recu_dons_benevoles": "https://www.service-public.gouv.fr/particuliers/vosdroits/R17454",
+    "frais_benevoles": "https://www.service-public.gouv.fr/particuliers/vosdroits/F1132"
   },
   "conditions": {
     "version": "1.0",
