@@ -1349,6 +1349,42 @@ a {
   white-space: nowrap;
 }
 
+/* Téléphone : une possibilité par bloc, chaque montant sur sa ligne avec son libellé. */
+@media (max-width: 480px) {
+  .tableau-combinaisons thead {
+    display: none;
+  }
+
+  .tableau-combinaisons tr,
+  .tableau-combinaisons td {
+    display: block;
+  }
+
+  .tableau-combinaisons tr {
+    border-bottom: 1px solid var(--bordure);
+    padding: 6px 0;
+  }
+
+  .tableau-combinaisons th,
+  .tableau-combinaisons td {
+    border-bottom: 0;
+    padding: 2px 6px;
+  }
+
+  .tableau-combinaisons td.montant {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .tableau-combinaisons td.montant::before {
+    content: attr(data-libelle);
+    font-weight: 400;
+    white-space: normal;
+    text-align: left;
+  }
+}
+
 .combinaison-meilleure {
   background: var(--bleu-tres-clair);
   font-weight: 700;

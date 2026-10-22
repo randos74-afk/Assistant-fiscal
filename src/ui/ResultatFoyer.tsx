@@ -238,9 +238,9 @@ export function ResultatFoyer({ parametres: p, declarants, foyer, onFoyer, onVer
               {couple.combinaisons.map((c) => (
                 <tr key={`${c.reels1}-${c.reels2}`} className={c === couple.meilleure ? "combinaison-meilleure" : undefined}>
                   <td>{typographie(libelleCombinaison(c.reels1, c.reels2))}</td>
-                  <td className="montant">{euros(c.base1)}</td>
-                  <td className="montant">{euros(c.base2)}</td>
-                  <td className="montant">{euros(c.impot)}</td>
+                  <td className="montant" data-libelle={d1.nom}>{euros(c.base1)}</td>
+                  <td className="montant" data-libelle={d2.nom}>{euros(c.base2)}</td>
+                  <td className="montant" data-libelle="Impôt du foyer">{euros(c.impot)}</td>
                 </tr>
               ))}
             </tbody>
