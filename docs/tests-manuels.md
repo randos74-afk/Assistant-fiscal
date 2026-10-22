@@ -139,3 +139,15 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Dans la fenêtre d'impression, « Enregistrer au format PDF » produit bien un fichier PDF.
 - [ ] Plus aucun fichier de reprise (.json) nulle part : ni bouton sur les résultats (seul ou foyer), ni « Ouvrir une simulation enregistrée » à l'accueil (décision de Marc du 16/10/2026).
 - [ ] La sauvegarde automatique sur l'appareil fonctionne toujours : « Reprendre ma simulation » à l'accueil.
+
+## Corrections après les tests du 22/10/2026 (à retester)
+
+- [ ] Point 5 : conditions générales, articles 4 (liste non exhaustive), 5 (un achat = un appareil), 7 (erreur signalée par courriel), 11 (droit d'usage d'un an), 13 (phrase courte sur le médiateur).
+- [ ] Point 35 : sur téléphone (360 px), le tableau des quatre possibilités s'affiche en blocs empilés, sans débordement ; sur ordinateur, il reste un tableau.
+- [ ] Point 11 : trajet à 45 km, étape des repas : « Je rentre déjeuner chez moi » n'est plus proposé, un encadré explique pourquoi. À 30 km, les deux choix restent.
+- [ ] Point 38 : à plus de 40 km, la liste des raisons contient aussi « Je n'ai pas trouvé d'emploi plus près de chez moi » et « Une contrainte familiale ou sociale particulière » ; le motif du conjoint dit « travaille près de notre domicile ».
+- [ ] Point 38 : une raison choisie → encadré « La distance réelle sera comptée… » avec la pièce à garder ; PDF, partie 3 de la note : « Raisons de l'éloignement du domicile », phrase pré-remplie et lignes « Précisions » à compléter.
+- [ ] Point 39 : « Aucune de ces raisons » → encadré « Sans raison, seuls les 40 premiers kilomètres… ».
+- [ ] Point 102 : simulation où l'abattement l'emporte → le PDF tient sur une page, sans texte à recopier ni note explicative.
+- [ ] Point 102 : à l'ouverture du PDF, bandeau « Ce document s'est ouvert dans un nouvel onglet… » visible à l'écran, absent du PDF enregistré. Essayer aussi sur téléphone Android (Chrome).
+- [ ] Point 16 (scénario précis) : salaire 30 000 €, voiture diesel, 30 km aller, 200 jours sur site, puissance « Je ne sais pas » (cas vérifié par les tests automatiques) → dans « Avant de recopier », la phrase « vous pourriez gagner davantage » apparaît sous la carte de la puissance.
