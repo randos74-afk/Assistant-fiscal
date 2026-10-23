@@ -152,3 +152,10 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Point 102 : à l'ouverture du PDF, bandeau « Ce document s'est ouvert dans un nouvel onglet… » visible à l'écran, absent du PDF enregistré. Essayer aussi sur téléphone Android (Chrome).
 - [ ] Point 16 (scénario précis) : salaire 30 000 €, voiture diesel, 30 km aller, 200 jours sur site, puissance « Je ne sais pas » (cas vérifié par les tests automatiques) → dans « Avant de recopier », la phrase « vous pourriez gagner davantage » apparaît sous la carte de la puissance.
 - [ ] Bénévoles : étape « Autres frais », sous la liste des postes, encadré « Vous êtes bénévole dans une association ? » ; les deux liens ouvrent les pages de service-public.gouv.fr dans un nouvel onglet, et le reçu cerfa 11580 se télécharge depuis la première.
+
+## Badge des chiffres sur l'accueil — livré le 23/10/2026
+
+- [ ] Aujourd'hui (octobre 2026) : en haut à droite de l'accueil, pastille verte « Revenus 2025 / vérifié le 13/10/2026 », sans encadré sous le titre.
+- [ ] Sur téléphone (360 px), la pastille tient sur deux lignes à côté du logo, sans débordement ; lisible en mode sombre.
+- [ ] Simulation du 1er janvier (changer la date de l'ordinateur ou du téléphone au 05/01/2027) : pastille rouge « Revenus 2026 / chiffres en attente » et encadré orange expliquant que le calcul utilise les chiffres 2025.
+- [ ] Même essai au 15/04/2027 : pastille orange « provisoire », même encadré sans la phrase sur la publication.

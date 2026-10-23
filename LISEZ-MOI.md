@@ -29,7 +29,7 @@ Si Python est installé : `python3 tests/reference_calcul.py`. Le message « tou
 
 ## Chaque année
 
-Au printemps, quand la DGFiP publie la brochure pratique, ajoutez `parametres/revenus-2026.json` (copie du 2025, chiffres mis à jour) et demandez à Claude Code de l'intégrer. Le code ne doit pas changer.
+Suivez `parametres/LISEZ-MOI.md` : calendrier de la mise à jour, badge rouge, orange ou vert de l'accueil, et explication de chaque ligne du fichier avec l'endroit où la vérifier. Le code ne doit pas changer.
 
 ## À noter
 
