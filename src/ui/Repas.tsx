@@ -25,13 +25,21 @@ import {
   type SaisieRepas,
 } from "../parcours/repas";
 import { afficherMontant, lireEntier, lireMontant } from "../parcours/saisie";
+import {
+  justificationSuffisante,
+  LONGUEUR_MINIMALE_JUSTIFICATION,
+  motifSecondAllerRetour,
+  MOTIFS_SECOND_ALLER_RETOUR,
+  type MotifSecondAllerRetour,
+  type SaisieSecondAllerRetour,
+} from "../parcours/secondAllerRetour";
 import { BoutonAsterisque, FicheAide, LienJeNeSaisPas } from "./Aide";
 import { PiedDePage } from "./Cadre";
 import { ChampMontant, ChampNombre } from "./ChampNombre";
 import { BandeauConfidentialite, ChoixUnique, Encadre, EnTeteEtape } from "./Question";
 import { typographie } from "./typographie";
 
-type Question = "acces" | "lieu" | "cantine" | "subvention" | "prix" | "employeur" | "bilan";
+type Question = "acces" | "midi" | "justification" | "lieu" | "cantine" | "subvention" | "prix" | "employeur" | "bilan";
 
 interface Props {
   parametres: Parametres;
@@ -41,14 +49,41 @@ interface Props {
   onRetour: () => void;
   /** F14 — Conseils du métier, en tête de la première question. */
   conseils?: string[];
+  /** F3.6 — Véhicule et distance unique : le second aller-retour du midi peut être déclaré, avec justification. */
+  secondAllerRetourPossible?: boolean;
+}
+
+/** Zone de texte libre avec le nombre de caractères restant avant le minimum. */
+function ZoneTexte({ id, libelle, detail, valeur, onChange }: { id: string; libelle: string; detail: string; valeur: string; onChange: (v: string) => void }) {
+  const manque = LONGUEUR_MINIMALE_JUSTIFICATION - valeur.trim().length;
+  return (
+    <div className="champ">
+      <label className="champ-libelle" htmlFor={id}>
+        {libelle}
+      </label>
+      <p className="texte-secondaire" style={{ margin: 0, fontSize: "var(--taille-texte-min)" }}>
+        {typographie(detail)}
+      </p>
+      <textarea id={id} className="zone-texte" rows={5} value={valeur} onChange={(e) => onChange(e.target.value)} />
+      <p className="texte-secondaire" style={{ margin: 0, fontSize: "var(--taille-texte-min)" }} aria-live="polite">
+        {manque > 0 ? typographie(`Encore ${manque} caractères au moins.`) : "Merci, c'est noté."}
+      </p>
+    </div>
+  );
 }
 
 const positif = (n: number | null): n is number => n !== null && !Number.isNaN(n) && n > 0;
 const valide = (n: number | null) => n === null || !Number.isNaN(n);
 
-export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour, conseils }: Props) {
+export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValider, onRetour, conseils, secondAllerRetourPossible }: Props) {
   const [question, setQuestion] = useState<Question>(v ? "bilan" : "acces");
   const [acces, setAcces] = useState<AccesRepas | undefined>(v?.acces);
+  const sar = v?.secondAllerRetour;
+  const [motifMidi, setMotifMidi] = useState<MotifSecondAllerRetour | "non" | undefined>(sar?.motif ?? (v?.acces === "domicile" ? "non" : undefined));
+  const [joursMidi, setJoursMidi] = useState(sar?.jours ? String(sar.jours) : String(joursSurSite));
+  const [joursMidiPrudent, setJoursMidiPrudent] = useState(sar ? sar.jours === null : false);
+  const [situation, setSituation] = useState(sar?.situation ?? "");
+  const [preuves, setPreuves] = useState(sar?.preuves ?? "");
   const [lieu, setLieu] = useState<LieuRepas | undefined>(v?.lieu);
   const [surPlace, setSurPlace] = useState<RestaurationSurPlace | undefined>(v ? restaurationSurPlace(v) : undefined);
   const [prixSP, setPrixSP] = useState(v?.prixSurPlace ? afficherMontant(v.prixSurPlace.prix) : "");
@@ -98,6 +133,13 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
   const joursPanierNb = lireEntier(joursPanier);
   const panierAnnuel = positif(panierNb) && positif(joursPanierNb) ? primePanierAnnuelle(panierNb, joursPanierNb) : 0;
   const prixNb = lireMontant(prix);
+  const joursMidiNb = lireEntier(joursMidi);
+  const avecSecondAllerRetour = acces === "domicile" && secondAllerRetourPossible && motifMidi !== undefined && motifMidi !== "non";
+
+  function saisieSecondAllerRetour(): SaisieSecondAllerRetour | undefined {
+    if (!avecSecondAllerRetour) return undefined;
+    return { motif: motifMidi, jours: joursMidiPrudent || !positif(joursMidiNb) ? null : joursMidiNb, situation, preuves };
+  }
 
   function saisie(): SaisieRepas {
     return {
@@ -129,11 +171,16 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
           : null,
       primePanier: avecPanier ? panierAnnuel : 0,
       ...(avecPanier && panierAnnuel > 0 ? { primePanierParJour: { montant: panierNb!, jours: joursPanierNb! } } : {}),
+      ...(avecSecondAllerRetour ? { secondAllerRetour: saisieSecondAllerRetour() } : {}),
     };
   }
 
   // Ordre des questions selon les réponses.
   const suite: Question[] = ["acces"];
+  if (acces === "domicile" && secondAllerRetourPossible) {
+    suite.push("midi");
+    if (avecSecondAllerRetour) suite.push("justification");
+  }
   if (acces === "impossible") {
     suite.push("lieu");
     if (lieu === "gamelle" || lieu === "restaurant") suite.push("cantine");
@@ -166,13 +213,89 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
           {acces === "domicile" && (
             <Encadre>
               {typographie(
-                "Rentrer déjeuner chez vous est votre choix. Mais le trajet du midi ne se déduit pas : l'administration fiscale ne retient qu'un aller-retour par jour. Elle n'admet un second aller-retour que dans des circonstances très particulières, par exemple l'impossibilité de vous restaurer sur votre lieu de travail, et il faut alors le justifier solidement. Nous comptons donc un seul aller-retour par jour.",
+                "Rentrer déjeuner chez vous est votre choix. Mais le trajet du midi ne se déduit pas : l'administration fiscale ne retient qu'un aller-retour par jour. Elle n'admet un second aller-retour que dans des circonstances très particulières, par exemple l'impossibilité de vous restaurer sur votre lieu de travail, et il faut alors le justifier solidement." +
+                  (secondAllerRetourPossible ? " Nous vous posons la question juste après." : " Nous comptons donc un seul aller-retour par jour."),
               )}
             </Encadre>
           )}
         </>
       );
       break;
+
+    case "midi":
+      titre = "Êtes-vous dans un de ces cas très particuliers ?";
+      peutContinuer = motifMidi !== undefined;
+      contenu = (
+        <>
+          <p className="texte-secondaire sous-question">
+            {typographie("Seuls ces cas permettent de déduire le trajet du midi. Il faudra le justifier par écrit.")}
+          </p>
+          <ChoixUnique
+            nom="midi"
+            legende={titre}
+            options={[
+              { valeur: "non", libelle: "Non, aucun de ces cas", detail: "Le trajet du midi n'est pas déduit. C'est la situation la plus courante." },
+              ...MOTIFS_SECOND_ALLER_RETOUR.map((m) => ({ valeur: m.valeur, libelle: m.libelle })),
+            ]}
+            valeur={motifMidi}
+            onChoix={(x) => setMotifMidi(x as MotifSecondAllerRetour | "non")}
+          />
+        </>
+      );
+      break;
+
+    case "justification": {
+      titre = "Justifiez ce second aller-retour";
+      fiche = completerFiche(FICHES.joursSecondAllerRetour, { joursSurSite });
+      const joursValides = positif(joursMidiNb) && joursMidiNb <= joursSurSite;
+      peutContinuer = joursMidiPrudent || (joursValides && justificationSuffisante({ situation, preuves }));
+      const pieces = avecSecondAllerRetour ? motifSecondAllerRetour(motifMidi).pieces : "";
+      contenu = joursMidiPrudent ? (
+        <>
+          <Encadre>{typographie("Sans ce nombre de jours, nous ne déduisons pas le trajet du midi. C'est le choix le plus prudent.")}</Encadre>
+          <button type="button" className="lien-je-ne-sais-pas" onClick={() => setJoursMidiPrudent(false)}>
+            Finalement, je connais ce nombre
+          </button>
+        </>
+      ) : (
+        <>
+          <Encadre ton="attention">
+            {typographie(
+              "L'administration n'admet ce trajet qu'avec une justification très solide. Sans elle, elle peut le refuser et vous réclamer l'impôt correspondant. Écrivez avec vos mots : votre texte figurera en annexe de votre document PDF, à dater et signer.",
+            )}
+          </Encadre>
+          <ChampNombre
+            compact
+            libelleVisible
+            libelle="Nombre de jours concernés dans l'année"
+            detail={
+              positif(joursMidiNb) && joursMidiNb > joursSurSite
+                ? `C'est plus que vos ${joursSurSite} jours sur site.`
+                : `Au plus vos ${joursSurSite} jours sur site.`
+            }
+            unite="jours"
+            valeur={joursMidi}
+            onChange={setJoursMidi}
+          />
+          <LienJeNeSaisPas onClick={() => setJoursMidiPrudent(true)} />
+          <ZoneTexte
+            id="situation-midi"
+            libelle="Expliquez votre situation"
+            detail="Ce qui vous empêche de déjeuner sur place, depuis quand, et pourquoi vous n'avez pas d'autre solution."
+            valeur={situation}
+            onChange={setSituation}
+          />
+          <ZoneTexte
+            id="preuves-midi"
+            libelle="Sur quels éléments vous appuyez-vous ?"
+            detail={`Les pièces que vous pouvez montrer. Pour ce cas, on attend souvent : ${pieces.charAt(0).toLowerCase() + pieces.slice(1)}.`}
+            valeur={preuves}
+            onChange={setPreuves}
+          />
+        </>
+      );
+      break;
+    }
 
     case "lieu":
       titre = "Où déjeunez-vous le plus souvent ?";
@@ -453,6 +576,16 @@ export function Repas({ parametres: p, joursSurSite, valeurInitiale: v, onValide
           {s.prix === null && s.lieu !== "gamelle" && ferme.ok && !restaurationCollective(s) && <Encadre>Valeur prudente retenue pour le prix des repas.</Encadre>}
           {s.titres?.partPrudente && <Encadre>Valeur prudente retenue pour la part de l'employeur.</Encadre>}
           {s.prixSurPlacePrudent && <Encadre>Valeur prudente retenue pour le prix d'un repas sur place.</Encadre>}
+          {s.secondAllerRetour &&
+            (s.secondAllerRetour.jours === null ? (
+              <Encadre>Valeur prudente retenue : le trajet du midi n'est pas déduit.</Encadre>
+            ) : (
+              <Encadre>
+                {typographie(
+                  `Trajet du midi : ${Math.min(s.secondAllerRetour.jours, joursSurSite)} jours de second aller-retour ajoutés aux kilomètres de votre véhicule. Votre justification sera en annexe du document PDF.`,
+                )}
+              </Encadre>
+            ))}
           <p className="texte-secondaire" style={{ fontSize: "var(--taille-texte-min)" }}>
             {typographie(`Calculé sur vos ${joursSurSite} jours sur site. Les jours de télétravail ne comptent pas.`)}
           </p>

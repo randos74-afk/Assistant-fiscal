@@ -8,6 +8,7 @@ import { repasPourMoteur, type SaisieRepas } from "./repas";
 import { entreeReel, reintegrationsTeletravail, type SaisieTeletravail } from "./teletravail";
 import { retirerJoursDuTrajet, vehiculePourMoteur, type SaisieTrajet } from "./trajet";
 import { domicilePourMoteur, type SaisieDomicile } from "./domicile";
+import { joursRetenus, motifSecondAllerRetour, secondAllerRetourPossible } from "./secondAllerRetour";
 import { resumeEmployeurs, type Employeur } from "./employeurs";
 
 export interface Reponses {
@@ -32,6 +33,14 @@ export function entreeDeclarant(p: Parametres, r: Reponses, numero = 1): EntreeD
   const employeurs = r.salaire?.employeurs && r.salaire.employeurs.length > 1 ? r.salaire.employeurs : undefined;
   const vehicule = domicile ? domicile.vehicule : r.trajet ? vehiculePourMoteur(p, r.trajet, t.site, employeurs) : null;
   if (vehicule && autres.kmVehiculeEnPlus > 0) vehicule.kmDoubleResidence = autres.kmVehiculeEnPlus;
+
+  // F3.6 — Second aller-retour (déjeuner à la maison) : seulement sur circonstance particulière, justification écrite.
+  const second = r.repas?.acces === "domicile" ? r.repas.secondAllerRetour : undefined;
+  const joursSecond = vehicule && !domicile && secondAllerRetourPossible(r.trajet) ? joursRetenus(second, t.site) : 0;
+  if (vehicule && second && joursSecond > 0) {
+    vehicule.motifDoubleAllerRetour = motifSecondAllerRetour(second.motif).motif;
+    vehicule.joursSecondAllerRetour = joursSecond;
+  }
 
   // Ajout n° 1 — Covoiturage comme conducteur : participations retirées ; inconnues, les jours de covoiturage ne sont pas déduits.
   const motifsCovoiturage: string[] = [];
@@ -99,6 +108,7 @@ export function valeursPrudentes(r: Reponses): string[] {
   if (r.repas?.titres?.partPrudente) liste.push("part de l'employeur sur les titres-restaurant");
   if (r.repas?.lieu === "restaurant" && r.repas.prixSurPlacePrudent) liste.push("prix d'un repas sur place");
   if (r.teletravail?.allocationPrudente) liste.push("indemnité de télétravail");
+  if (r.repas?.acces === "domicile" && r.repas.secondAllerRetour?.jours === null) liste.push("jours du second aller-retour (aucun retenu)");
   if (r.autres?.transport?.priseEnChargePrudente) liste.push("remboursement de l'abonnement de transport");
   return liste;
 }

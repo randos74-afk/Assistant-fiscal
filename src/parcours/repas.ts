@@ -2,6 +2,7 @@
 import type { EntreeRepasDeclarant, MontantLibelle } from "../moteur/declarant";
 import { nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
+import type { SaisieSecondAllerRetour } from "./secondAllerRetour";
 
 export type AccesRepas = "domicile" | "impossible";
 export type LieuRepas = "restaurant" | "cantine" | "gamelle";
@@ -61,6 +62,8 @@ export interface SaisieRepas {
   primePanier: number;
   /** Saisie par jour : montant et jours, dont le produit donne primePanier. */
   primePanierParJour?: { montant: number; jours: number };
+  /** F3.6 — Déjeuner à la maison : second aller-retour déclaré sur circonstance particulière, justification du client. */
+  secondAllerRetour?: SaisieSecondAllerRetour;
 }
 
 /** Prime de panier de l'année à partir du montant par jour. */

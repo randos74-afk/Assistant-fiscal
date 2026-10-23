@@ -199,6 +199,17 @@ export const FICHES = {
     siIntrouvable:
       "Ce montant est indispensable : avec les frais réels, il s'ajoute à votre salaire. Demandez-le à votre service de gestion ou au rectorat.",
   },
+  joursSecondAllerRetour: {
+    titre: "Comment compter ces jours ?",
+    illustration: "bulletin-compteurs",
+    texteAlternatif:
+      "Exemple de bas de bulletin de paie de décembre : la ligne « Congés payés », colonne « Pris », est entourée en orange. Elle indique 25 jours.",
+    ouRegarder:
+      "Partez de vos {joursSurSite} jours sur site, calculés d'après les compteurs de votre bulletin de décembre. Retirez les jours où vous avez déjeuné ailleurs qu'à la maison. Votre agenda ou vos plannings vous aident.",
+    motsAChercher: ["Congés payés pris", "RTT pris", "Planning", "Agenda"],
+    siIntrouvable:
+      "Choisissez « Je ne sais pas » : nous ne déduisons pas ce trajet. C'est le choix le plus prudent.",
+  },
 } satisfies Record<string, FicheAide>;
 
 /** Remplace les repères {nom} d'un texte de fiche par les valeurs du millésime. */

@@ -3,6 +3,7 @@ import type { Reponses } from "./assemblage";
 import { POSTES } from "./autresFrais";
 import { totaux } from "./calendrier";
 import { estVehicule, motifDistance } from "./trajet";
+import { joursRetenus, motifSecondAllerRetour, secondAllerRetourPossible } from "./secondAllerRetour";
 
 /** Pièce à garder pour le motif de distance au-delà du plafond. */
 function pieceDistance(valeur: string): string {
@@ -53,6 +54,11 @@ export function justificatifs(r: Reponses): string[] {
   if (repas?.acces === "impossible" && t.site > 0) {
     if (repas.lieu === "gamelle") liste.push("Preuve de l'absence de cantine proche (attestation de l'employeur)");
     else liste.push("Tickets de caisse, relevés bancaires ou relevé de badge de cantine");
+  }
+  const second = repas?.acces === "domicile" ? repas.secondAllerRetour : undefined;
+  if (second && !r.domicile && secondAllerRetourPossible(trajet) && joursRetenus(second, t.site) > 0) {
+    liste.push(`${motifSecondAllerRetour(second.motif).pieces} (second aller-retour quotidien)`);
+    liste.push("Votre justification écrite du second aller-retour (annexe du PDF), datée et signée");
   }
   if (repas?.titres) liste.push("Bulletins de paie : ligne des titres-restaurant");
   if (repas && repas.primePanier > 0) liste.push("Bulletins de paie : ligne de la prime de panier");

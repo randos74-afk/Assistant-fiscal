@@ -159,3 +159,15 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 - [ ] Sur téléphone (360 px), la pastille tient sur deux lignes à côté du logo, sans débordement ; lisible en mode sombre.
 - [ ] Simulation du 1er janvier (changer la date de l'ordinateur ou du téléphone au 05/01/2027) : pastille rouge « Revenus 2026 / chiffres en attente » et encadré orange expliquant que le calcul utilise les chiffres 2025.
 - [ ] Même essai au 15/04/2027 : pastille orange « provisoire », même encadré sans la phrase sur la publication.
+
+## Second aller-retour du midi (F3.6) — livré le 23/10/2026
+
+- [ ] Voiture, 20 km, étape des repas, « Je rentre déjeuner chez moi » : l'encadré annonce la question suivante ; écran « Êtes-vous dans un de ces cas très particuliers ? » avec « Non, aucun de ces cas » et les quatre motifs.
+- [ ] « Non, aucun de ces cas » : on passe directement à la participation de l'employeur ; le résultat ne change pas (un aller-retour par jour).
+- [ ] Un motif choisi : écran « Justifiez ce second aller-retour » avec l'encadré orange, le nombre de jours pré-rempli avec les jours sur site, l'astérisque (fiche « Comment compter ces jours ? »), « Je ne sais pas » et les deux zones de texte avec le compteur « Encore X caractères au moins ».
+- [ ] « Continuer » reste grisé tant que les deux textes sont trop courts, ou si les jours dépassent les jours sur site.
+- [ ] Bilan des repas : encadré « Trajet du midi : N jours de second aller-retour ajoutés… ». Résultat : la ligne véhicule montre « + second aller-retour 20 km × 2 × N j » et les motifs reprennent le cas choisi.
+- [ ] PDF : après la note explicative, page « Annexe : justification du second aller-retour quotidien », texte du client avec ses retours à la ligne, pièces attendues, date et signature ; la partie 3 de la note dit « justifié en annexe » ; les justificatifs listent les pièces du motif.
+- [ ] « Je ne sais pas » pour les jours : rien n'est ajouté, « valeur prudente » signalée, pas d'annexe.
+- [ ] En transports en commun, avec un total de km saisi, plusieurs employeurs ou le parcours aide à domicile : la question n'apparaît pas.
+- [ ] Zones de texte lisibles en thème clair et sombre, sur téléphone (360 px).

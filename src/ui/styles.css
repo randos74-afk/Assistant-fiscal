@@ -575,6 +575,25 @@ a {
   font-size: var(--taille-texte);
 }
 
+/* Zone de texte libre (justification écrite par le client). */
+.zone-texte {
+  width: 100%;
+  min-height: 120px;
+  border: 1.5px solid var(--bordure);
+  border-radius: var(--rayon);
+  background: var(--fond);
+  color: var(--texte);
+  font: inherit;
+  font-size: var(--taille-texte);
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.zone-texte:focus {
+  outline: 0;
+  border: 2px solid var(--primaire);
+}
+
 .champ-erreur {
   margin: 0;
   color: var(--rouge-erreur);

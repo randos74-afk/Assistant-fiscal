@@ -9,6 +9,7 @@ import { QUESTIONS_FILTRAGE, type Reponses as ReponsesFiltrage } from "./parcour
 import { aDesQuestionsMetier, conseilsMetier, profil as profilMetier } from "./parcours/metiers";
 import { QuestionsEnseignant, QuestionsGrandRouleur, QuestionsSoignant } from "./ui/QuestionsMetier";
 import { estVehicule } from "./parcours/trajet";
+import { annexeDuDeclarant, secondAllerRetourPossible } from "./parcours/secondAllerRetour";
 import { Accueil } from "./ui/Accueil";
 import { AutresFrais } from "./ui/AutresFrais";
 import { Filtrage } from "./ui/Filtrage";
@@ -134,6 +135,7 @@ export default function App() {
       impot: plusieurs ? null : estimationImpot(),
       numeroDeclarant: d.index + 1,
       nom: plusieurs ? d.nom : undefined,
+      annexeSecondAllerRetour: annexeDuDeclarant(parametres, d.reponses),
     };
   }
 
@@ -418,6 +420,7 @@ export default function App() {
           joursSurSite={joursSurSite}
           valeurInitiale={repas}
           conseils={conseils.repas}
+          secondAllerRetourPossible={!domicile && secondAllerRetourPossible(trajet)}
           onRetour={precedent("trajet")}
           onValider={(r) => (maj("repas")(r), suivant("teletravail"))}
         />,

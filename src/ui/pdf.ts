@@ -4,6 +4,7 @@ import type { ResultatDeclarant } from "../moteur/declarant";
 import { euros, nombre } from "../moteur/format";
 import type { Parametres } from "../moteur/types";
 import { noteExplicative, texteReintegrations } from "../parcours/noteExplicative";
+import type { AnnexeSecondAllerRetour } from "../parcours/secondAllerRetour";
 import logoComplet from "../../design/logo/logo-complet.png";
 import { CONFIGURATION, lienAnnexe, MENTION_LEGALE } from "../parcours/conditions";
 
@@ -23,9 +24,51 @@ export interface ContenuPdf {
   nom?: string;
   /** Estimation de l'impôt si le foyer a été renseigné. */
   impot?: { avecAbattement: number; avecFraisReels: number; gain: number } | null;
+  /** F3.6 — Second aller-retour quotidien : justification écrite par le client, en annexe de la note. */
+  annexeSecondAllerRetour?: AnnexeSecondAllerRetour;
 }
 
-export function htmlPdf({ parametres: p, resultat: r, prudentes, nonVerifiees, justificatifs, date, impot, numeroDeclarant = 1, nom }: ContenuPdf, urlLogo: string): string {
+/** Texte libre du client : retours à la ligne conservés. */
+const paragraphesLibres = (t: string) =>
+  t
+    .split(/\n+/)
+    .filter((x) => x.trim())
+    .map((x) => `<p>${echapper(x.trim())}</p>`)
+    .join("");
+
+/** Annexe de la note explicative : la règle, les kilomètres en jeu, puis les mots du client. */
+function htmlAnnexe(a: AnnexeSecondAllerRetour): string {
+  return `<div class="note">
+<h1>${echapper(a.titre)}</h1>
+<table class="identite">
+  <tr><td>Nom et prénom</td><td class="ligne-vide"></td></tr>
+  <tr><td>Numéro fiscal</td><td class="ligne-vide"></td></tr>
+</table>
+<section>
+<h2>1. Ce que je déduis</h2>
+${a.paragraphes.map((t) => `<p>${echapper(t)}</p>`).join("")}
+</section>
+<section>
+<h2>2. Ma situation</h2>
+${paragraphesLibres(a.situation)}
+</section>
+<section>
+<h2>3. Les éléments sur lesquels je m'appuie</h2>
+${paragraphesLibres(a.preuves)}
+<p><em>Pièces généralement attendues pour ce motif : ${echapper(a.pieces)}.</em></p>
+</section>
+<p>Je certifie l'exactitude de ces informations et tiens les pièces correspondantes à la disposition de l'administration fiscale.</p>
+<div class="signature">
+  <div>Fait à ………………………, le ……………………</div>
+  <div>Signature</div>
+</div>
+</div>`;
+}
+
+export function htmlPdf(
+  { parametres: p, resultat: r, prudentes, nonVerifiees, justificatifs, date, impot, numeroDeclarant = 1, nom, annexeSecondAllerRetour }: ContenuPdf,
+  urlLogo: string,
+): string {
   const c = r.comparaison;
   const taux = `${Math.round(p.abattement_10_pourcent.taux * 100)} %`;
   const verdict = c.fraisReelsConseilles
@@ -148,7 +191,7 @@ ${
         note.justificationDistance
           ? `<h3 style="font-size:10.5pt;margin:12px 0 4px">Raisons de l'éloignement du domicile</h3>${note.justificationDistance.map((t) => `<p>${echapper(t)}</p>`).join("")}`
           : ""
-      }</section>`
+      }${annexeSecondAllerRetour ? "<p>Le second aller-retour quotidien est justifié en annexe.</p>" : ""}</section>`
     : ""
 }
 ${
@@ -176,7 +219,7 @@ ${
   <div>Fait à ………………………, le ……………………</div>
   <div>Signature</div>
 </div>
-</div>`
+</div>${annexeSecondAllerRetour ? htmlAnnexe(annexeSecondAllerRetour) : ""}`
     : `<p>Vous gardez l'abattement automatique : rien à reporter case ${r.caseFraisReels}, ni texte, ni note explicative.</p>`
 }
 
