@@ -105,6 +105,24 @@ function calculer(c: Cas): Record<string, unknown> {
       };
     case "ADM":
       return calculerAideDomicile(c);
+    case "DAR": {
+      const r = calculerDeclarant(p, {
+        numero: 1,
+        salairePrerempli: e.salaire_prerempli,
+        vehicules: [
+          {
+            type: "voiture",
+            energie: "essence",
+            cv: e.cv,
+            allerKm: e.aller_km,
+            joursSurSite: e.jours_sur_site,
+            motifDoubleAllerRetour: e.motif_second_aller_retour,
+            joursSecondAllerRetour: e.jours_second_aller_retour,
+          },
+        ],
+      });
+      return { km: r.kmVehicules[0], lignes: r.lignes.map((l) => l.montant), montant_1AK: r.montantCase };
+    }
     case "SEU": {
       const km_aller_min = {
         thermique: distanceAllerMinimale(p, e.salaire, e.jours, { cv: e.cv }),
@@ -337,8 +355,8 @@ function verifier(obtenu: unknown, attendu: unknown, chemin: string) {
 }
 
 describe(`Cas de test ${casDeTest.millesime}`, () => {
-  it("contient bien les 70 cas", () => {
-    expect(casDeTest.cas.length).toBe(70);
+  it("contient bien les 72 cas", () => {
+    expect(casDeTest.cas.length).toBe(72);
   });
   for (const c of casDeTest.cas as Cas[]) {
     it(`${c.id} — ${c.titre}`, () => verifier(calculer(c), c.attendu, c.id));

@@ -1167,6 +1167,46 @@
       "source": "F14 grand rouleur / double résidence : trajets hebdomadaires ajoutés au même véhicule avant le barème (BOI-RSA-BASE-30-50-30-20)"
     },
     {
+      "id": "DAR-01",
+      "titre": "20 km, 200 jours sur site, retour déjeuner à la maison 150 jours faute de restauration sur place, voiture 5 CV",
+      "entrees": {
+        "salaire_prerempli": 30000,
+        "aller_km": 20,
+        "jours_sur_site": 200,
+        "jours_second_aller_retour": 150,
+        "cv": 5,
+        "motif_second_aller_retour": "impossibilité de se restaurer sur le lieu de travail"
+      },
+      "attendu": {
+        "km": 14000,
+        "lignes": [
+          6393
+        ],
+        "montant_1AK": 6393
+      },
+      "source": "Dépliant DGFiP GP 120 : un seul aller-retour par jour sauf circonstances particulières ; BOI-RSA-BASE-30-50-30-20"
+    },
+    {
+      "id": "DAR-02",
+      "titre": "55 km sans motif de distance, second aller-retour 180 jours : 40 km retenus pour les deux allers-retours",
+      "entrees": {
+        "salaire_prerempli": 35000,
+        "aller_km": 55,
+        "jours_sur_site": 180,
+        "jours_second_aller_retour": 180,
+        "cv": 6,
+        "motif_second_aller_retour": "horaires de travail atypiques"
+      },
+      "attendu": {
+        "km": 28800,
+        "lignes": [
+          12873
+        ],
+        "montant_1AK": 12873
+      },
+      "source": "Règle des 40 km appliquée à chaque aller-retour (BOI-RSA-BASE-30-50-30-20)"
+    },
+    {
       "id": "LOC-01",
       "titre": "Bureau réservé au travail : 10 m² sur 100, charges 10 000 €",
       "entrees": {

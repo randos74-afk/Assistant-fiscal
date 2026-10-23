@@ -516,6 +516,29 @@ cas("MET-04", "Professeur de collège muté à 400 km : 3 km sur place (175 j), 
     {"km": met4_km, "lignes": [arrondi_euro(x) for x in met4], "montant_1AK": met4_case, "gain_base": r2(g)},
     "F14 grand rouleur / double résidence : trajets hebdomadaires ajoutés au même véhicule avant le barème (BOI-RSA-BASE-30-50-30-20)")
 
+# --- Second aller-retour quotidien (F3.6) ---
+# Un seul aller-retour par jour ; le second (trajet du midi) n'est admis que dans des circonstances très particulières,
+# dont l'impossibilité de se restaurer sur le lieu de travail, avec une forte justification. Il s'ajoute au même
+# véhicule, sur les seuls jours concernés, à la même distance retenue (40 km sans motif de distance).
+def km_second_aller_retour(aller_km, jours, motif_distance=False):
+    return distance_retenue(aller_km, motif_distance) * 2 * jours
+
+
+dar1_km = distance_retenue(20) * 2 * 200 + km_second_aller_retour(20, 150)
+dar1 = [bareme_km(dar1_km, cv=5)]
+cas("DAR-01", "20 km, 200 jours sur site, retour déjeuner à la maison 150 jours faute de restauration sur place, voiture 5 CV",
+    {"salaire_prerempli": 30000, "aller_km": 20, "jours_sur_site": 200, "jours_second_aller_retour": 150, "cv": 5,
+     "motif_second_aller_retour": "impossibilité de se restaurer sur le lieu de travail"},
+    {"km": dar1_km, "lignes": [arrondi_euro(x) for x in dar1], "montant_1AK": total_1ak(dar1)},
+    "Dépliant DGFiP GP 120 : un seul aller-retour par jour sauf circonstances particulières ; BOI-RSA-BASE-30-50-30-20")
+dar2_km = distance_retenue(55) * 2 * 180 + km_second_aller_retour(55, 180)
+dar2 = [bareme_km(dar2_km, cv=6)]
+cas("DAR-02", "55 km sans motif de distance, second aller-retour 180 jours : 40 km retenus pour les deux allers-retours",
+    {"salaire_prerempli": 35000, "aller_km": 55, "jours_sur_site": 180, "jours_second_aller_retour": 180, "cv": 6,
+     "motif_second_aller_retour": "horaires de travail atypiques"},
+    {"km": dar2_km, "lignes": [arrondi_euro(x) for x in dar2], "montant_1AK": total_1ak(dar2)},
+    "Règle des 40 km appliquée à chaque aller-retour (BOI-RSA-BASE-30-50-30-20)")
+
 # --- Bureau à domicile hors télétravail (F6.11, enseignant) ---
 cas("LOC-01", "Bureau réservé au travail : 10 m² sur 100, charges 10 000 €", {"usage": "dedie", "charges": 10000, "surface_bureau": 10, "surface_totale": 100},
     {"montant": r2(local_professionnel(10000, 10, 100, "dedie"))}, "Guide SE-UNSA 2025 : maison de 100 m², bureau de 10 m², 10 % des factures")
@@ -562,4 +585,5 @@ if __name__ == "__main__":
     assert r2(covoiturage_conducteur(bareme_km(10000, cv=5), 900)) == 4065.0
     assert (foy3_best["reels_1"], foy3_best["reels_2"]) == (True, False)
     assert r2(local_professionnel(10000, 10, 100, "dedie")) == 1000.0
+    assert dar1_km == 14000 and dar2_km == 28800
     print(f"{len(CAS)} cas écrits dans {out} ; tous les exemples officiels sont retrouvés.")

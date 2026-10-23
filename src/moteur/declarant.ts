@@ -32,6 +32,11 @@ export interface EntreeVehicule {
   motifDistance?: string;
   /** F3.6 — Motif du second aller-retour quotidien. */
   motifDoubleAllerRetour?: string;
+  /**
+   * F3.6 — Jours où un second aller-retour (trajet du midi) est fait, avec un motif : distance retenue × 2 × jours,
+   * ajoutés au même véhicule. Ignoré sans motif, avec un total de km saisi, des journées types ou plusieurs trajets.
+   */
+  joursSecondAllerRetour?: number;
   /** F3.7 — Kilomètres de missions non remboursés. */
   kmMissions?: number;
   /** F6.8 — Allers-retours vers le domicile familial (double résidence), même véhicule. */
@@ -185,6 +190,10 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     let kmTrajets = parEmployeur
       ? kmPlusieursEmployeurs(p, parEmployeur, Boolean(v.motifDistance), allersRetours)
       : kmDomicileTravail(p, aller, v.joursSurSite, allersRetours);
+    const joursSecond =
+      v.motifDoubleAllerRetour && !parEmployeur && !v.journeesTypes?.length && v.kmForce === undefined ? (v.joursSecondAllerRetour ?? 0) : 0;
+    const kmSecond = kmDomicileTravail(p, aller, joursSecond, 1);
+    kmTrajets += kmSecond;
     let kmDT = 0;
     let kmPro = 0;
     if (v.journeesTypes?.length) {
@@ -222,6 +231,7 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
     } else {
       detail = `domicile-travail ${nombre(aller)} km × 2` + (allersRetours > 1 ? ` × ${allersRetours} allers-retours` : "");
       detail += ` × ${nombre(v.joursSurSite)} j sur site`;
+      if (kmSecond) detail += ` + second aller-retour ${nombre(aller)} km × 2 × ${nombre(joursSecond)} j`;
       if (v.kmMissions) detail += ` + missions ${nombre(v.kmMissions)} km`;
       if (v.kmDoubleResidence) detail += ` + trajets double résidence ${nombre(v.kmDoubleResidence)} km`;
     }
@@ -243,7 +253,9 @@ export function calculerDeclarant(p: Parametres, e: EntreeDeclarant): ResultatDe
           : `distance de ${nombre(v.allerKm)} km retenue (${v.motifDistance})`,
       );
     }
-    if (v.motifDoubleAllerRetour) motifs.push(`second aller-retour quotidien (${v.motifDoubleAllerRetour})`);
+    if (v.motifDoubleAllerRetour) {
+      motifs.push(joursSecond ? `second aller-retour quotidien sur ${nombre(joursSecond)} jours (${v.motifDoubleAllerRetour})` : `second aller-retour quotidien (${v.motifDoubleAllerRetour})`);
+    }
 
     let montantVehicule = b.montant;
     let formule = `barème : ${b.formule}`;
