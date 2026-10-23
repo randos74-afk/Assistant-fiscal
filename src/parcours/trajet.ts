@@ -197,13 +197,6 @@ export interface SaisieTrajet {
   indemnitesKmRecues?: number;
 }
 
-/** Distances aller de chaque lieu de travail (employeurs, établissements ou trajet unique) ; vide si seul le total annuel est connu. */
-export function distancesAller(t: SaisieTrajet): number[] {
-  if (t.employeurs?.length) return t.employeurs.map((e) => e.allerKm).filter((d) => d > 0);
-  if (t.lieux?.length) return t.lieux.map((l) => l.allerKm).filter((d) => d > 0);
-  return t.allerKm > 0 ? [t.allerKm] : [];
-}
-
 export function estVehicule(mode: ModeTrajet): mode is TypeVehicule {
   return mode === "voiture" || mode === "moto" || mode === "cyclomoteur";
 }

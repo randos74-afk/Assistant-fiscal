@@ -144,7 +144,7 @@ Liste tenue à jour à chaque livraison qui n'a pas pu être essayée à l'écra
 
 - [ ] Point 5 : conditions générales, articles 4 (liste non exhaustive), 5 (un achat = un appareil), 7 (erreur signalée par courriel), 11 (droit d'usage d'un an), 13 (phrase courte sur le médiateur).
 - [ ] Point 35 : sur téléphone (360 px), le tableau des quatre possibilités s'affiche en blocs empilés, sans débordement ; sur ordinateur, il reste un tableau.
-- [ ] Point 11 : trajet à 45 km, étape des repas : « Je rentre déjeuner chez moi » n'est plus proposé, un encadré explique pourquoi. À 30 km, les deux choix restent.
+- [ ] Point 11 (corrigé le 23/10/2026) : trajet à 45 km comme à 30 km, étape des repas : « Je rentre déjeuner chez moi » est proposé ; en le choisissant, un encadré dit que le trajet du midi ne se déduit pas (un seul aller-retour par jour, sauf circonstances très particulières comme l'impossibilité de se restaurer sur place, à justifier solidement). Le calcul garde un seul aller-retour par jour.
 - [ ] Point 38 : à plus de 40 km, la liste des raisons contient aussi « Je n'ai pas trouvé d'emploi plus près de chez moi » et « Une contrainte familiale ou sociale particulière » ; le motif du conjoint dit « travaille près de notre domicile ».
 - [ ] Point 38 : une raison choisie → encadré « La distance réelle sera comptée… » avec la pièce à garder ; PDF, partie 3 de la note : « Raisons de l'éloignement du domicile », phrase pré-remplie et lignes « Précisions » à compléter.
 - [ ] Point 39 : « Aucune de ces raisons » → encadré « Sans raison, seuls les 40 premiers kilomètres… ».
