@@ -1,6 +1,6 @@
 // Parcours FraisFit : accueil, filtrage, seul ou en couple, métier, sept étapes par profil, relecture et résultat.
 import { useEffect, useState, type ReactNode } from "react";
-import { chargerParametres, millesimes, millesimesDisponibles } from "./moteur/parametres";
+import { chargerParametres, millesimeDuJour, millesimes } from "./moteur/parametres";
 import { badgeFraicheur } from "./parcours/fraicheur";
 import { calculerParcours, valeursPrudentes } from "./parcours/assemblage";
 import { postesDuProfil } from "./parcours/autresFrais";
@@ -73,7 +73,7 @@ export default function App() {
     return () => window.removeEventListener("hashchange", suivre);
   }, []);
 
-  const millesime = millesimesDisponibles()[0];
+  const millesime = millesimeDuJour(new Date());
   const parametres = chargerParametres(millesime);
   const enCouple = mode === "couple";
   const profilActif = profils[actif] ?? {};

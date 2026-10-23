@@ -50,3 +50,13 @@ describe("fichiers parametres/revenus-AAAA.json", () => {
     }
   });
 });
+
+describe("millésime utilisé selon la date", () => {
+  it("un fichier 2026 déposé en décembre ne sert qu'à partir du 1er janvier", async () => {
+    const { millesimeDuJour } = await import("../moteur/parametres");
+    expect(millesimeDuJour(new Date(2026, 11, 15), [2026, 2025])).toBe(2025);
+    expect(millesimeDuJour(new Date(2027, 0, 1), [2026, 2025])).toBe(2026);
+    expect(millesimeDuJour(new Date(2027, 0, 1), [2025])).toBe(2025);
+    expect(millesimeDuJour(new Date(2025, 5, 1), [2026, 2025])).toBe(2025);
+  });
+});

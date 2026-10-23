@@ -8,7 +8,8 @@ L'administration fiscale publie les chiffres d'une année de revenus l'année su
 
 | Quand | Ce qu'il faut faire | Badge sur l'accueil |
 | --- | --- | --- |
-| 1er janvier | Rien : l'application continue avec les chiffres de l'an dernier. | Rouge « en attente » |
+| Décembre (facultatif) | Déposer `revenus-2026.json`, copie de 2025 avec `revenus` 2026, `declaration` 2027 et `"statut": "provisoire"`. Il ne sert qu'à partir du 1er janvier. | Reste vert jusqu'au 31 décembre |
+| 1er janvier | Rien : l'application passe seule sur le fichier 2026 provisoire, ou garde 2025 s'il n'existe pas. | Rouge « en attente » |
 | Février à avril, dès la publication | Demander à Claude Code : « Crée `parametres/revenus-2026.json` à partir de 2025, statut provisoire ». | Rouge (orange après le 30 mars) |
 | Ensuite | Vérifier chaque ligne avec le tableau ci-dessous, colonne « Où vérifier ». Corriger les chiffres qui ont changé et mettre à jour les sources. | — |
 | Une fois tout contrôlé | Dans le bloc `millesime` : `"statut": "vérifié"` et `"date_verification": "AAAA-MM-JJ"` (date du jour). | Vert « vérifié le… » |

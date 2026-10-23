@@ -18,6 +18,15 @@ export function millesimesDisponibles(): number[] {
   return Object.keys(parAnnee).map(Number).sort((x, y) => y - x);
 }
 
+/**
+ * Millésime à utiliser à une date donnée : les revenus de l'année écoulée (déclarés cette année) s'ils existent,
+ * sinon le plus récent qui les précède. Un fichier provisoire déposé en décembre ne sert donc qu'au 1er janvier.
+ */
+export function millesimeDuJour(aujourdhui: Date, disponibles: number[] = millesimesDisponibles()): number {
+  const attendue = aujourdhui.getFullYear() - 1;
+  return disponibles.find((a) => a <= attendue) ?? disponibles[disponibles.length - 1];
+}
+
 /** En-têtes de tous les fichiers disponibles (statut, date de vérification), pour le badge de l'accueil. */
 export function millesimes(): Parametres["millesime"][] {
   return Object.values(parAnnee).map((p) => p.millesime);
