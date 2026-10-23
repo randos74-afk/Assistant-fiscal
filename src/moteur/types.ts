@@ -16,7 +16,15 @@ export interface BaremeUnique {
 }
 
 export interface Parametres {
-  millesime: { revenus: number; declaration: number; statut: string; date_gel: string };
+  millesime: {
+    revenus: number;
+    declaration: number;
+    /** « provisoire » tant que les chiffres ne sont pas contrôlés, « vérifié » ensuite (badge de l'accueil). */
+    statut: "provisoire" | "vérifié";
+    date_gel: string;
+    /** Date du contrôle des chiffres (AAAA-MM-JJ), obligatoire si le statut est « vérifié ». */
+    date_verification?: string;
+  };
   abattement_10_pourcent: {
     taux: number;
     minimum_par_declarant: number;

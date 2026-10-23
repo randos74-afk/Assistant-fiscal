@@ -1,5 +1,7 @@
 // Écran d'accueil (docs/02 §3, maquette design/maquettes/01-accueil.html).
+import type { BadgeFraicheur } from "../parcours/fraicheur";
 import { EnTete, PiedDePage } from "./Cadre";
+import { Encadre } from "./Question";
 
 const traitIcone = {
   width: 22,
@@ -83,17 +85,17 @@ const garanties = [
 ];
 
 interface Props {
-  millesime: number;
+  badge: BadgeFraicheur;
   sauvegardeDisponible: boolean;
   onCommencer: () => void;
   onReprendre: () => void;
 }
 
-export function Accueil({ millesime, sauvegardeDisponible, onCommencer, onReprendre }: Props) {
+export function Accueil({ badge, sauvegardeDisponible, onCommencer, onReprendre }: Props) {
 
   return (
     <div className="ecran">
-      <EnTete millesime={millesime} />
+      <EnTete badge={badge} />
 
       <main className="ecran-contenu">
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -102,6 +104,8 @@ export function Accueil({ millesime, sauvegardeDisponible, onCommencer, onRepren
             En 15 minutes, sachez si vous pouvez payer moins d'impôt. On vous guide à chaque question.
           </p>
         </div>
+
+        {badge.explication && <Encadre ton="attention">{badge.explication}</Encadre>}
 
         <section className="carte" aria-labelledby="titre-documents">
           <h2 id="titre-documents">Préparez ces 3 documents</h2>

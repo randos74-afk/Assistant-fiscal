@@ -2,8 +2,9 @@
   "millesime": {
     "revenus": 2025,
     "declaration": 2026,
-    "statut": "en vigueur",
+    "statut": "vérifié",
     "date_gel": "2026-10-13",
+    "date_verification": "2026-10-13",
     "note": "Fichier versionné : changer d'année = ajouter parametres/revenus-AAAA.json, jamais modifier le code. Montants en euros."
   },
 

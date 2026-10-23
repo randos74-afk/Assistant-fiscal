@@ -18,6 +18,11 @@ export function millesimesDisponibles(): number[] {
   return Object.keys(parAnnee).map(Number).sort((x, y) => y - x);
 }
 
+/** En-têtes de tous les fichiers disponibles (statut, date de vérification), pour le badge de l'accueil. */
+export function millesimes(): Parametres["millesime"][] {
+  return Object.values(parAnnee).map((p) => p.millesime);
+}
+
 export function chargerParametres(anneeRevenus: number): Parametres {
   const p = parAnnee[anneeRevenus];
   if (!p) throw new Error(`Aucun fichier de paramètres pour les revenus ${anneeRevenus}.`);

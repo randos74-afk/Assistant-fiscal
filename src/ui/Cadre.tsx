@@ -1,8 +1,9 @@
 // En-tête et pied de page communs à tous les écrans.
 import type { ReactNode } from "react";
 import logo from "../../design/logo/logo-symbole-entrelace.png";
+import type { BadgeFraicheur } from "../parcours/fraicheur";
 
-export function EnTete({ millesime }: { millesime: number }) {
+export function EnTete({ badge }: { badge: BadgeFraicheur }) {
   return (
     <header className="entete">
       <div className="entete-logo">
@@ -12,7 +13,10 @@ export function EnTete({ millesime }: { millesime: number }) {
           <div className="entete-sous-titre">frais professionnels</div>
         </div>
       </div>
-      <div className="pastille">Revenus {millesime}</div>
+      <div className={`pastille pastille-fraicheur pastille-${badge.couleur}`}>
+        <span>{badge.ligne1}</span>
+        <small>{badge.ligne2}</small>
+      </div>
     </header>
   );
 }

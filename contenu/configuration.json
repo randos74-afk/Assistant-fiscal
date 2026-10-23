@@ -10,6 +10,10 @@
     "recu_dons_benevoles": "https://www.service-public.gouv.fr/particuliers/vosdroits/R17454",
     "frais_benevoles": "https://www.service-public.gouv.fr/particuliers/vosdroits/F1132"
   },
+  "mise_a_jour_annuelle": {
+    "_note": "Badge rouge du 1er janvier jusqu'à cette date (MM-JJ) incluse tant que les chiffres des revenus de l'année écoulée ne sont pas vérifiés, orange ensuite.",
+    "fin_badge_rouge": "03-30"
+  },
   "conditions": {
     "version": "1.0",
     "date": "2026-10-16",

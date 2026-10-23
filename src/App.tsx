@@ -1,6 +1,7 @@
 // Parcours FraisFit : accueil, filtrage, seul ou en couple, métier, sept étapes par profil, relecture et résultat.
 import { useEffect, useState, type ReactNode } from "react";
-import { chargerParametres, millesimesDisponibles } from "./moteur/parametres";
+import { chargerParametres, millesimes, millesimesDisponibles } from "./moteur/parametres";
+import { badgeFraicheur } from "./parcours/fraicheur";
 import { calculerParcours, valeursPrudentes } from "./parcours/assemblage";
 import { postesDuProfil } from "./parcours/autresFrais";
 import { totaux } from "./parcours/calendrier";
@@ -530,7 +531,7 @@ export default function App() {
     default:
       return (
         <Accueil
-          millesime={millesime}
+          badge={badgeFraicheur(millesimes(), millesime, new Date(), CONFIGURATION.mise_a_jour_annuelle.fin_badge_rouge)}
           sauvegardeDisponible={existeSauvegarde(millesime)}
           onCommencer={() => setEcran("filtrage")}
           onReprendre={() => {
